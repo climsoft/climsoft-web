@@ -83,8 +83,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         // Count conflicts
         const conflictCountSql = this.buildConflictCountQuery(dto.filter, dto.change);
+        console.log('conflictCountSql: ', conflictCountSql)
         const conflictCountResult = await this.dataSource.query(conflictCountSql.sql, conflictCountSql.params);
         const conflictCount: number = conflictCountResult[0]?.cnt ?? 0;
+        console.log('conflictCount: ', conflictCount)
 
         let previewData: BulkPkUpdateCheckResponse['previewData'] | undefined;
 
@@ -169,6 +171,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         // Build target value expression for display
         let targetValueExpr: string;
         if (change.field === PkFieldEnum.DATE_TIME) {
+            // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
+            // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
+            // validated non-zero integer and shiftUnit is a DateTimeShiftUnitEnum, string interpolation
+            // here is safe and avoids the extra casting needed when using parameters.
             targetValueExpr = `o.date_time + ${this.buildDateTimeInterval(change)} AS target_date_time`;
         } else {
             targetValueExpr = `$${paramIndex} AS target_${change.field}`;
@@ -249,7 +255,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         }
     }
 
-    
+
     private buildOverwriteSoftDeleteQuery(
         filter: BulkPkUpdateFilterDto,
         change: PkChangeSpecDto,
@@ -282,6 +288,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         let setClause: string;
         if (change.field === PkFieldEnum.DATE_TIME) {
+            // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
+            // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
+            // validated non-zero integer and shiftUnit is a DateTimeShiftUnitEnum, string interpolation
+            // here is safe and avoids the extra casting needed when using parameters.
             setClause = `date_time = date_time + ${this.buildDateTimeInterval(change)}, entry_user_id = ${userId}`;
         } else {
             if (typeof change.toValue === 'string') {
@@ -436,12 +446,6 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sql, params };
     }
 
-
-
-    private buildDateTimeInterval(change: PkChangeSpecDto): string {
-        return `INTERVAL '${change.shiftAmount} ${change.shiftUnit}'`;
-    }
-
     private buildTargetPkJoinConditions(change: PkChangeSpecDto, sourceAlias: string, targetAlias: string, startParamIndex: number): { sql: string; params: any[] } {
         const pkColumns = ['station_id', 'element_id', 'level', 'date_time', 'interval', 'source_id'];
         const conditions: string[] = [];
@@ -451,6 +455,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         for (const col of pkColumns) {
             if (col === change.field) {
                 if (change.field === PkFieldEnum.DATE_TIME) {
+                    // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
+                    // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
+                    // validated non-zero integer and shiftUnit is a DateTimeShiftUnitEnum, string interpolation
+                    // here is safe and avoids the extra casting needed when using parameters.
                     conditions.push(`${targetAlias}.${col} = ${sourceAlias}.${col} + ${this.buildDateTimeInterval(change)}`);
                 } else {
                     conditions.push(`${targetAlias}.${col} = $${paramIndex}`);
@@ -464,6 +472,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         const sql: string = conditions.join(' AND ');
         return { sql, params };
+    }
+
+    private buildDateTimeInterval(change: PkChangeSpecDto): string {
+        return `INTERVAL '${change.shiftAmount} ${change.shiftUnit}'`;
     }
 
 }

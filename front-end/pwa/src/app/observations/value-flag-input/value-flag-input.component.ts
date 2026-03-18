@@ -41,10 +41,16 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input() public observationEntry!: ObservationEntry;
 
   /**
- * Determines whether the value input by user will be scaled or not. (by using the element entry factor).
+ *  will be scaled or not. (by using the element entry factor).
  * Also determines whether value Flag displayed will be in scaled (e.g 10.5) or unscaled (e.g 105) format. 
  */
-  @Input() public scaleUserInputValue: boolean = true;
+
+  /**
+   * Determines whether element entry scale factor will be applied to the value input by user or not.
+   * When true, 10.5 will be 105
+   * When false 10.5 remain 10.5
+   */
+  @Input() public applyEntryScaleFactor: boolean = false;
 
   @Input() public displayExtraInfoOption: boolean = false;
 
@@ -117,7 +123,7 @@ export class ValueFlagInputComponent implements OnChanges {
     // If scaling is on and entry scale factor is >=10 then just add zero.
     if (value === null) {
       valueStr = '';
-    } else if (this.scaleUserInputValue) {
+    } else if (this.applyEntryScaleFactor) {
       valueStr = FormEntryDefinition.getUnScaledValue(this.element, value).toString();
 
       if (this.element.entryScaleFactor === 10 && valueStr.length === 1) {
@@ -255,7 +261,7 @@ export class ValueFlagInputComponent implements OnChanges {
     return viewObservationLog.map(item => {
       const viewLog: ViewObservationLogModel = { ...item };
       // Display the values in scaled form 
-      if (this.scaleUserInputValue && viewLog.value && this.element.entryScaleFactor) {
+      if (this.applyEntryScaleFactor && viewLog.value && this.element.entryScaleFactor) {
         // To remove rounding errors number utils round off
         viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
       }
@@ -295,7 +301,7 @@ export class ValueFlagInputComponent implements OnChanges {
     // Extract and set the value and flag 
 
     let valueInput: number | null;
-    if (this.scaleUserInputValue && validatedInput.value !== null) {
+    if (this.applyEntryScaleFactor && validatedInput.value !== null) {
       valueInput = this.element.entryScaleFactor ? (validatedInput.value / this.element.entryScaleFactor) : validatedInput.value;
     } else {
       valueInput = validatedInput.value;
@@ -305,7 +311,7 @@ export class ValueFlagInputComponent implements OnChanges {
     if (valueInput !== null && this.rangeThresholdToUse) {
       // Get the scale factor to use. 
       // if no need to scale the value or the element does not have a scale factor. Just use 1 to show real threshold otherwise multiple by the scale factor
-      const scaleFactor: number = this.scaleUserInputValue && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
+      const scaleFactor: number = this.applyEntryScaleFactor && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
 
       if (valueInput < this.rangeThresholdToUse.lowerThreshold) {
         this.validationWarningMessage = `Value less than lower limit ${this.rangeThresholdToUse.lowerThreshold * scaleFactor}`;
@@ -339,7 +345,8 @@ export class ValueFlagInputComponent implements OnChanges {
       errorMessage: '', value: null, flag: null
     };
 
-    // 1. Check if it matches a flag. This should be a first step because some flags can be numeric and also some flags don't need values
+    // Step 1.
+    // Check if it matches a flag. This should be a first step because some flags can be numeric and also some flags don't need values
     const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(input);
     if (flagFound) {
       response.flag = flagFound;
@@ -347,37 +354,83 @@ export class ValueFlagInputComponent implements OnChanges {
       return response;
     }
 
-    // 2. Check if it's a pure integer (no decimals). key entry form does not expect decimals
-    if (/^\d+$/.test(input)) {
-      response.flag = null;
-      response.value = parseInt(input, 10);
-      return response;
-    }
+    if (this.applyEntryScaleFactor) {
+      // This block us used by data entry forms which do not expect decimals
 
-    // 3. Check if it starts with digits followed by alphanumeric/special chars. Values should strictly follow the number first then character format.
-    const mixed = input.match(/^(\d+)([^0-9].*)$/);
-    if (mixed) {
-      const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(mixed[2]);
-      if (flagFound) {
-        const isMissing = flagFound.name.toLowerCase() === 'missing';
-        if (!this.cachedMetadataService.getSource(this.observationEntry.observation.sourceId).allowMissingValue && isMissing) {
-          response.errorMessage = 'Missing value not allowed';
-          return response;
-        }
-
-        if (isMissing) {
-          response.errorMessage = 'Invalid Flag. Missing is used for missing observations ONLY e.g when no observation was made.';
-          return response;
-        }
-
-        response.flag = flagFound;
-        response.value = parseInt(mixed[1], 10);
-        return response;
-      } else {
-        response.errorMessage = 'Invalid Flag';
-
+      // Step 2.
+      // Check if it's a pure integer (no decimals). 
+      if (/^\d+$/.test(input)) {
+        response.flag = null;
+        response.value = parseInt(input, 10);
         return response;
       }
+
+      // Step 3.
+      // Check if it starts with digits followed by alphanumeric/special chars. 
+      // Values should strictly follow the number first then character format.
+      const mixed = input.match(/^(\d+)([^0-9].*)$/);
+      if (mixed) {
+        const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(mixed[2]);
+        if (flagFound) {
+          const isMissing = flagFound.name.toLowerCase() === 'missing';
+          if (!this.cachedMetadataService.getSource(this.observationEntry.observation.sourceId).allowMissingValue && isMissing) {
+            response.errorMessage = 'Missing value not allowed';
+            return response;
+          }
+
+          if (isMissing) {
+            response.errorMessage = 'Invalid Flag. Missing is used for missing observations ONLY e.g when no observation was made.';
+            return response;
+          }
+
+          response.value = parseInt(mixed[1], 10);
+          response.flag = flagFound;
+          return response;
+        } else {
+          response.errorMessage = 'Invalid Flag';
+          return response;
+        }
+      }
+    } else {
+
+      // This block is used by data correction and qc assessment. It accepts the value flag with decimals
+
+      // Check if it starts with digits followed by alphanumeric/special chars. 
+      // Values should strictly follow the number first then character format.
+      const mixed: [number | null, string | null] = [null, null];
+      const numberPatternRegExp: RegExp = /[+-]?\d+(\.\d+)?/;  // Regular expression to match numbers with optional decimal points.
+      const matches: RegExpMatchArray | null = input.match(numberPatternRegExp);
+
+      mixed[0] = matches ? Number(matches[0]) : null;
+      mixed[1] = input.replace(numberPatternRegExp, '');
+      if (StringUtils.isNullOrEmpty(mixed[1], true)) {
+        mixed[1] = null;
+      }
+
+      // Check for valid flag if it exists
+      let flagFound: ViewFlagModel | undefined = undefined;
+      if (mixed[1]) {
+        flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(mixed[1]);
+        if (flagFound) {
+          const isMissing = flagFound.name.toLowerCase() === 'missing';
+          if (!this.cachedMetadataService.getSource(this.observationEntry.observation.sourceId).allowMissingValue && isMissing) {
+            response.errorMessage = 'Missing value not allowed';
+            return response;
+          }
+
+          if (isMissing) {
+            response.errorMessage = 'Invalid Flag. Missing is used for missing observations ONLY e.g when no observation was made.';
+            return response;
+          }
+        } else {
+          response.errorMessage = 'Invalid Flag';
+          return response;
+        }
+      }
+
+      response.value = mixed[0];
+      response.flag = flagFound ?? null;
+      return response;
     }
 
     response.errorMessage = 'Incorrect input format not allowed';

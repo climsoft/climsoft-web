@@ -1,0 +1,202 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Bulk Update Primary Key'" [displayOkOption]="false"
+        [displayDeleteOption]="false" (cancelClick)="closeDialog()">
+
+        <!-- Step 1: Configure -->
+        <div *ngIf="step === 'configure'">
+            <div class="mb-3">
+                <label class="form-label fw-bold">PK Field to Change</label>
+                <select class="form-select form-select-sm" [(ngModel)]="selectedField">
+                    <option [ngValue]="null">-- Select --</option>
+                    <option *ngFor="let f of pkFields" [ngValue]="f.value">{{f.label}}</option>
+                </select>
+            </div>
+
+            <!-- Station: selector inputs -->
+            <div *ngIf="selectedField === PkFieldEnum.STATION_ID">
+                <div class="mb-3">
+                    <app-station-selector-single [id]="'fromStation'" [label]="'Current Value'"
+                        [(selectedId)]="fromStationId" />
+                </div>
+                <div class="mb-3">
+                    <app-station-selector-single [id]="'toStation'" [label]="'New Value'"
+                        [(selectedId)]="toStationId" />
+                </div>
+            </div>
+
+            <!-- Element: selector inputs -->
+            <div *ngIf="selectedField === PkFieldEnum.ELEMENT_ID">
+                <div class="mb-3">
+                    <app-element-selector-single [id]="'fromElement'" [label]="'Current Value'"
+                        [(selectedId)]="fromElementId" />
+                </div>
+                <div class="mb-3">
+                    <app-element-selector-single [id]="'toElement'" [label]="'New Value'"
+                        [(selectedId)]="toElementId" />
+                </div>
+            </div>
+
+            <!-- Level: plain number inputs -->
+            <div *ngIf="selectedField === PkFieldEnum.LEVEL">
+                <div class="mb-3">
+                    <label class="form-label">Current Value</label>
+                    <input type="number" class="form-control form-control-sm" [(ngModel)]="fromLevel" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Value</label>
+                    <input type="number" class="form-control form-control-sm" [(ngModel)]="toLevel" />
+                </div>
+            </div>
+
+            <!-- Interval: selector inputs -->
+            <div *ngIf="selectedField === PkFieldEnum.INTERVAL">
+                <div class="mb-3">
+                    <app-interval-selector-single [id]="'fromInterval'" [label]="'Current Value'"
+                        [(selectedId)]="fromIntervalId" />
+                </div>
+                <div class="mb-3">
+                    <app-interval-selector-single [id]="'toInterval'" [label]="'New Value'"
+                        [(selectedId)]="toIntervalId" />
+                </div>
+            </div>
+
+            <!-- Source: selector inputs -->
+            <div *ngIf="selectedField === PkFieldEnum.SOURCE_ID">
+                <div class="mb-3">
+                    <app-source-selector-single [id]="'fromSource'" [label]="'Current Value'"
+                        [(selectedId)]="fromSourceId" />
+                </div>
+                <div class="mb-3">
+                    <app-source-selector-single [id]="'toSource'" [label]="'New Value'"
+                        [(selectedId)]="toSourceId" />
+                </div>
+            </div>
+
+            <!-- Datetime: Shift amount/unit -->
+            <div *ngIf="selectedField === PkFieldEnum.DATE_TIME">
+                <div class="mb-3">
+                    <label class="form-label">Shift Amount</label>
+                    <input type="number" class="form-control form-control-sm" [(ngModel)]="shiftAmount" />
+                    <div class="form-text">Use negative values to subtract (e.g. -1 to go back)</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Shift Unit</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="shiftUnit">
+                        <option *ngFor="let u of shiftUnits" [ngValue]="u.value">{{u.label}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-sm btn-primary" [disabled]="!isConfigValid" (click)="onCheck()">
+                    Check for Conflicts
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Checking spinner -->
+        <div *ngIf="step === 'checking'" class="text-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Checking for conflicts...</p>
+        </div>
+
+        <!-- Step 3: Conflicts / Confirmation -->
+        <div *ngIf="step === 'conflicts' && checkResponse">
+            <div class="alert alert-info py-2">
+                <strong>{{checkResponse.totalMatchingRows}}</strong> observation{{checkResponse.totalMatchingRows === 1
+                ? '' : 's'}} match your filter.
+            </div>
+
+            <div *ngIf="checkResponse.totalMatchingRows === 0" class="alert alert-warning py-2">
+                No observations found matching the criteria.
+            </div>
+
+            <div *ngIf="checkResponse.totalMatchingRows > 0">
+                <div *ngIf="checkResponse.conflictCount === 0" class="alert alert-success py-2">
+                    No conflicts found. Safe to proceed.
+                </div>
+
+                <div *ngIf="checkResponse.conflictCount > 0">
+                    <div class="alert alert-warning py-2">
+                        <strong>{{checkResponse.conflictCount}}</strong> conflict{{checkResponse.conflictCount === 1 ?
+                        '' : 's'}} detected.
+                    </div>
+
+                    <!-- Conflict preview table -->
+                    <div *ngIf="checkResponse.previewData" class="table-responsive mb-2"
+                        style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th *ngFor="let col of checkResponse.previewData.columns" class="small">{{col}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of checkResponse.previewData.rows">
+                                    <td *ngFor="let cell of row" class="small">{{cell}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div *ngIf="checkResponse.previewData" class="text-muted small mb-2">
+                        Showing {{checkResponse.previewData.rows.length}} of
+                        {{checkResponse.previewData.totalRowCount}} conflict{{checkResponse.previewData.totalRowCount
+                        === 1 ? '' : 's'}}
+                    </div>
+
+                    <button class="btn btn-sm btn-outline-secondary mb-3" (click)="onDownloadConflicts()">
+                        <i class="bi bi-download me-1"></i>Download Conflicts CSV
+                    </button>
+
+                    <!-- Conflict resolution -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">How to handle conflicts?</label>
+                        <select class="form-select form-select-sm" [(ngModel)]="conflictResolution">
+                            <option [ngValue]="ConflictResolutionEnum.SKIP">Skip conflicting rows</option>
+                            <option [ngValue]="ConflictResolutionEnum.OVERWRITE">Overwrite (soft-delete existing, then
+                                update)
+                            </option>                            
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" (click)="onBack()">Back</button>
+                    <button class="btn btn-sm btn-primary" (click)="onExecute()">
+                        {{checkResponse.conflictCount === 0 ? 'Execute Update' : 'Execute'}}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Executing spinner -->
+        <div *ngIf="step === 'executing'" class="text-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Executing bulk update...</p>
+        </div>
+
+        <!-- Step 5: Result -->
+        <div *ngIf="step === 'result' && executeResponse">
+            <div class="alert alert-success py-2">
+                <p class="mb-1"><strong>{{executeResponse.updatedCount}}</strong>
+                    observation{{executeResponse.updatedCount === 1 ? '' : 's'}} updated.</p>
+                <p *ngIf="executeResponse.skippedCount > 0" class="mb-1">
+                    {{executeResponse.skippedCount}} skipped (conflicts).
+                </p>
+                <p *ngIf="executeResponse.overwrittenCount > 0" class="mb-0 text-danger">
+                    {{executeResponse.overwrittenCount}} existing record{{executeResponse.overwrittenCount === 1 ? '' :
+                    's'}} soft-deleted (overwritten).
+                </p>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-sm btn-primary" (click)="closeDialog()">Close</button>
+            </div>
+        </div>
+
+    </app-dialog>
+</ng-container>

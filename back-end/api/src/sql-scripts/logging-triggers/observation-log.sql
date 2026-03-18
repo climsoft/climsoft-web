@@ -3,27 +3,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     log_entry JSONB;
 BEGIN
-    -- Track data column changes (existing behavior)
-    IF (
-        NEW.value IS DISTINCT FROM OLD.value OR
-        NEW.flag_id IS DISTINCT FROM OLD.flag_id OR
-        NEW.qc_status IS DISTINCT FROM OLD.qc_status OR
-        NEW.comment IS DISTINCT FROM OLD.comment OR
-        NEW.deleted IS DISTINCT FROM OLD.deleted
-    ) THEN
-        log_entry := jsonb_build_object(
-            'value', OLD.value,
-            'flagId', OLD.flag_id,
-            'qcStatus', OLD.qc_status,
-            'comment', OLD.comment,
-            'entryUserId', OLD.entry_user_id,
-            'deleted', OLD.deleted,
-            'entryDateTime', OLD.entry_date_time
-        );
-        NEW.log := COALESCE(OLD.log, '[]'::JSONB) || log_entry;
-    END IF;
-
-    -- Track PK column changes
+    -- Track PK column changes (includes all old values + pkChange)
     IF (
         NEW.station_id IS DISTINCT FROM OLD.station_id OR
         NEW.element_id IS DISTINCT FROM OLD.element_id OR
@@ -48,6 +28,24 @@ BEGIN
                 'oldInterval', OLD.interval,
                 'oldSourceId', OLD.source_id
             )
+        );
+        NEW.log := COALESCE(OLD.log, '[]'::JSONB) || log_entry;
+    -- Track data column changes only
+    ELSIF (
+        NEW.value IS DISTINCT FROM OLD.value OR
+        NEW.flag_id IS DISTINCT FROM OLD.flag_id OR
+        NEW.qc_status IS DISTINCT FROM OLD.qc_status OR
+        NEW.comment IS DISTINCT FROM OLD.comment OR
+        NEW.deleted IS DISTINCT FROM OLD.deleted
+    ) THEN
+        log_entry := jsonb_build_object(
+            'value', OLD.value,
+            'flagId', OLD.flag_id,
+            'qcStatus', OLD.qc_status,
+            'comment', OLD.comment,
+            'entryUserId', OLD.entry_user_id,
+            'deleted', OLD.deleted,
+            'entryDateTime', OLD.entry_date_time
         );
         NEW.log := COALESCE(OLD.log, '[]'::JSONB) || log_entry;
     END IF;
