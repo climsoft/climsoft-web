@@ -115,6 +115,14 @@ export interface ObservationLogVo extends BaseLogVo {
   qcStatus: QCStatusEnum;
   comment: string | null;
   deleted: boolean;
+  pkChange?: {
+    oldStationId: string;
+    oldElementId: number;
+    oldLevel: number;
+    oldDateTime: string;
+    oldInterval: number;
+    oldSourceId: number;
+  };
 }
 
 export interface QCTestLogVo {

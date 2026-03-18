@@ -14,6 +14,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { BulkPkUpdateDialogComponent } from './bulk-pk-update-dialog/bulk-pk-update-dialog.component';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-data-correction',
@@ -22,6 +24,7 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -35,6 +38,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   private allMetadataLoaded: boolean = false;
   protected useUnstackedViewer: boolean = false;
   protected changedCount: number = 0;
+    protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -43,8 +47,17 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
     private route: ActivatedRoute,
+        private appAuthService: AppAuthService,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
+
+     // Check on allowed options
+        this.appAuthService.user.pipe(
+          takeUntil(this.destroy$),
+        ).subscribe(user => {
+          if (!user) return;
+          this.isSystemAdmin = user.isSystemAdmin;
+        });
   }
 
   ngOnInit(): void {
@@ -176,6 +189,10 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   protected deleteAll(): void {
     this.dlgDeleteAllConfirm.openDialog();
+  }
+
+  protected onBulkPkUpdate(): void {
+    this.dlgBulkPkUpdate.openDialog(this.queryFilter);
   }
 
   protected onDeleteAllConfirm(): void {

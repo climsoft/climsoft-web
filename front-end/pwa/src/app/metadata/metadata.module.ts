@@ -36,6 +36,8 @@ import { QCTestSpikeParamsComponent } from './qc-tests/qc-test-input-dialog/qc-t
 import { QCTestRelationalParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
 import { QCTestContextualParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { QCTestConditionInputComponent } from './qc-tests/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
+import { QCTestDiurnalParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-diurnal-params/qc-test-diurnal-params.component';
+import { QCTestSpatialParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-spatial-params/qc-test-spatial-params.component';
 import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
@@ -186,6 +188,8 @@ import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-s
     QCTestRelationalParamsComponent,
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
+    QCTestDiurnalParamsComponent,
+    QCTestSpatialParamsComponent,
 
     ViewExportSpecificationsComponent,
     ExportSpecificationInputDialogComponent,

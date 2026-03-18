@@ -13,6 +13,9 @@
                 <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll( )">
                     Delete All
                 </button>
+                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-warning ms-2" (click)="onBulkPkUpdate()">
+                    Bulk PK Update
+                </button>
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
                 <div *ngIf="changedCount" class="d-flex align-items-center">
@@ -69,3 +72,5 @@
         </div>
     </app-dialog>
 </ng-container>
+
+<app-bulk-pk-update-dialog #dlgBulkPkUpdate (done)="loadData()" />
