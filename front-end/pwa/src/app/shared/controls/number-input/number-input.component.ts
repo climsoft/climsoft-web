@@ -20,9 +20,9 @@ export class NumberInputComponent implements OnChanges {
   @Input() public max!: number;
   @Input() public min!: number;
   @Input() public value!: number | null | undefined;
-  @Input() public numValue!: number | undefined;
+  @Input() public numValue!: number | undefined | null;
   @Input() public simulateTabOnEnter: boolean = true;
-  @Output() public valueChange = new EventEmitter<number | null >();
+  @Output() public valueChange = new EventEmitter<number | null>();
   @Output() public numValueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
   @Output() public inputEnterKeyPress = new EventEmitter<number | null>();
