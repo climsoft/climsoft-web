@@ -23,7 +23,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
     private readonly logger: Logger = new Logger(MetadataImportPreviewService.name);
     private readonly sessions: Map<string, PreviewSession> = new Map();
     private readonly MAX_PREVIEW_ROWS = 200;
-    private readonly SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+    private readonly SESSION_TTL_MS = 60 * 60 * 1000; // 60 minutes
 
     constructor(
         private fileIOService: FileIOService,
@@ -32,7 +32,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
     ) { }
 
     public async onModuleDestroy() {
-        for (const sessionId of this.sessions.keys()) {
+        for (const [sessionId] of this.sessions) {
             await this.destroySession(sessionId);
         }
     }
@@ -76,7 +76,6 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const session = this.getSession(sessionId);
         session.rowsToSkip = rowsToSkip;
         session.delimiter = delimiter;
-        session.lastAccessedAt = Date.now();
 
         return this.previewRawData(session);
     }
@@ -102,7 +101,6 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
     public async previewTransformedStationData(sessionId: string, stnMapping: StationColumnMappingDto): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
-        session.lastAccessedAt = Date.now();
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
@@ -152,7 +150,6 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
     public async previewTransformedElementsData(sessionId: string, elementMapping: ElementColumnMappingDto): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
-        session.lastAccessedAt = Date.now();
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
@@ -227,6 +224,8 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         if (!session) {
             throw new NotFoundException(`Preview session not found: ${sessionId}. It may have expired.`);
         }
+        session.lastAccessedAt = Date.now();
+
         return session;
     }
 

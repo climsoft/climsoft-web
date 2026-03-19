@@ -65,12 +65,14 @@ export class PkChangeSpecDto {
     @IsOptional()
     @ValidateIf(o => typeof o.fromValue === 'string')
     @IsString()
+    @IsNotEmpty()
     fromValue?: string | number;
 
     // For non-datetime fields: the new value to set
     @IsOptional()
     @ValidateIf(o => typeof o.toValue === 'string')
     @IsString()
+    @IsNotEmpty()
     toValue?: string | number;
 
     // For datetime shifts: positive = add, negative = subtract
@@ -117,6 +119,5 @@ export interface BulkPkUpdateCheckResponse {
 export interface BulkPkUpdateExecuteResponse {
     updatedCount: number;
     skippedCount: number;
-    overwrittenCount: number;
     permanentDeleteCount: number;
 }

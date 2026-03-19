@@ -62,6 +62,5 @@ export interface BulkPkUpdateCheckResponse {
 export interface BulkPkUpdateExecuteResponse {
     updatedCount: number;
     skippedCount: number;
-    overwrittenCount: number;
     permanentDeleteCount: number;
 }

@@ -35,7 +35,7 @@ interface BulkPkUpdateSession {
 export class BulkPkUpdateService implements OnModuleDestroy {
     private readonly logger = new Logger(BulkPkUpdateService.name);
     private readonly sessions: Map<string, BulkPkUpdateSession> = new Map();
-    private readonly SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+    private readonly SESSION_TTL_MS = 60 * 60 * 1000; // 60 minutes
     private readonly MAX_PREVIEW_ROWS = 200;
 
     constructor(
@@ -184,7 +184,6 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
     private buildConflictSelectQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const selectParams: any[] = [];
-        let paramIndex: number = 1;
 
         // Build target value expression for display
         let targetValueExpr: string;
@@ -195,9 +194,8 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             // here is safe and avoids the extra casting needed when using parameters.
             targetValueExpr = `o.date_time + ${this.buildDateTimeInterval(change)} AS target_date_time`;
         } else {
-            targetValueExpr = `$${paramIndex} AS target_${change.field}`;
+            targetValueExpr = `$1 AS target_${change.field}`;
             selectParams.push(change.toValue);
-            paramIndex++;
         }
 
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', selectParams.length + 1);
@@ -236,40 +234,31 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         await queryRunner.startTransaction();
 
         try {
-            const { filter, change, conflictCount } = session;
-            let permanentDeleteCount = 0;
-            let temporaryDeleteOverwrittenCount = 0;
-            let skippedCount = 0;
+            const isOverwrite = dto.conflictResolution === ConflictResolutionEnum.OVERWRITE && session.conflictCount > 0;
+            const isSkip = dto.conflictResolution === ConflictResolutionEnum.SKIP && session.conflictCount > 0;
 
-            // Hard-delete the aready soft deleted records
-            const permanentDeleteSql = this.buildPermanentDeleteQuery(filter, change);
-            const temporaryDeleteResult = await queryRunner.query(permanentDeleteSql.sql, permanentDeleteSql.params);
-            permanentDeleteCount = temporaryDeleteResult[1] ?? 0; // affected rows count from DELETE
-
-            // If OVERWRITE: soft-delete existing rows at the target PK first
-            if (dto.conflictResolution === ConflictResolutionEnum.OVERWRITE && conflictCount > 0) {
-                const temporaryDeleteOverwriteSql = this.buildOverwriteTemporaryDeleteQuery(filter, change, userId);
-                const temporaryDeleteOverwriteResult = await queryRunner.query(temporaryDeleteOverwriteSql.sql, temporaryDeleteOverwriteSql.params);
-                temporaryDeleteOverwrittenCount = temporaryDeleteOverwriteResult[1] ?? 0; // affected rows count from UPDATE
-            }
+            // Permanent-delete target rows at the destination PK to free PK slots.
+            // SKIP: removes only deleted targets; 
+            // OVERWRITE: removes all targets (deleted + non-deleted)
+            const permanentDeleteSql = this.buildPermanentDeleteQuery(session.filter, session.change, isOverwrite);
+            const permanentDeleteResult = await queryRunner.query(permanentDeleteSql.sql, permanentDeleteSql.params);
+            const permanentDeleteCount: number = permanentDeleteResult[1] ?? 0;
 
             // Build the main UPDATE
-            const updateSql = this.buildUpdateQuery(
-                filter, change, userId, dto.conflictResolution === ConflictResolutionEnum.SKIP && conflictCount > 0
-            );
+            const updateSql = this.buildUpdateQuery(session.filter, session.change, userId, isSkip);
             const updateResult = await queryRunner.query(updateSql.sql, updateSql.params);
             const updatedCount = updateResult[1] ?? 0;
 
-            if (dto.conflictResolution === ConflictResolutionEnum.SKIP && conflictCount > 0) {
-                skippedCount = session.totalMatchingRows - updatedCount;
-            }
+            // Compute the skipped rows
+            const skippedCount = isSkip ? session.totalMatchingRows - updatedCount : 0;
 
             await queryRunner.commitTransaction();
 
             this.eventEmitter.emit('observations.saved');
+
             await this.destroySession(dto.sessionId);
 
-            return { updatedCount, skippedCount, overwrittenCount: temporaryDeleteOverwrittenCount, permanentDeleteCount };
+            return { updatedCount, skippedCount, permanentDeleteCount };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw error;
@@ -279,42 +268,22 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     }
 
 
-    private buildOverwriteTemporaryDeleteQuery(
-        filter: BulkPkUpdateFilterDto,
-        change: PkChangeSpecDto,
-        userId: number,
-    ): { sql: string; params: any[] } {
-        const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
-        const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
-
-        // Soft-delete existing rows that sit at the target PK
-        const sql = `
-            UPDATE observations existing
-            SET deleted = true, entry_user_id = ${userId}
-            FROM observations o
-            WHERE ${joinConditions.sql}
-            AND o.deleted = false AND existing.deleted = false
-            ${whereClause.sql}
-        `;
-        const params: any[] = [...joinConditions.params, ...whereClause.params];
-
-        return { sql, params };
-    }
-
     private buildPermanentDeleteQuery(
         filter: BulkPkUpdateFilterDto,
         change: PkChangeSpecDto,
+        includeNonDeleted: boolean,
     ): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
 
-        // Permanent-delete temporary-deleted target rows at the destination PK for non-deleted
-        // source rows that will be updated. Only targets for actual updates are cleared.
+        // Permanent-delete target rows at the destination PK for non-deleted source rows to free PK slots
+        // existing.deleted = true only removes deleted targets. Without it aLL targets (deleted + non-deleted) will be  removed
+        const deletedFilter = includeNonDeleted ? '' : ' AND existing.deleted = true';
         const sql = `
             DELETE FROM observations AS existing
             USING observations o
             WHERE ${joinConditions.sql}
-            AND o.deleted = false AND existing.deleted = true
+            AND o.deleted = false${deletedFilter}
             ${whereClause.sql}
         `;
         const params: any[] = [...joinConditions.params, ...whereClause.params];
@@ -328,9 +297,9 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         userId: number,
         excludeConflicts: boolean,
     ): { sql: string; params: any[] } {
-        const whereClause = this.buildFilterWhereClause(filter, change, 'observations', 1);
 
         let setClause: string;
+        const setParams: any[] = [];
         if (change.field === PkFieldEnum.DATE_TIME) {
             // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
             // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
@@ -338,29 +307,29 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             // here is safe and avoids the extra casting needed when using parameters.
             setClause = `date_time = date_time + ${this.buildDateTimeInterval(change)}, entry_user_id = ${userId}`;
         } else {
-            if (typeof change.toValue === 'string') {
-                setClause = `${change.field} = '${change.toValue}', entry_user_id = ${userId}`;
-            } else {
-                setClause = `${change.field} = ${change.toValue}, entry_user_id = ${userId}`;
-            }
+            setClause = `${change.field} = $1, entry_user_id = ${userId}`;
+            setParams.push(change.toValue);
         }
+
+        const whereClause = this.buildFilterWhereClause(filter, change, 'observations', setParams.length + 1);
 
         let excludeClause = '';
         let existsConditionsParams: any[] = [];
         if (excludeConflicts) {
-            const existsConditions = this.buildTargetPkJoinConditions(change, 'observations', 'ex', whereClause.params.length + 1);
+            const existsConditions = this.buildTargetPkJoinConditions(change, 'observations', 'ex', setParams.length + whereClause.params.length + 1);
             excludeClause = ` AND NOT EXISTS (SELECT 1 FROM observations ex WHERE ${existsConditions.sql} AND ex.deleted = false)`;
             existsConditionsParams = existsConditions.params;
         }
 
         const sql = `UPDATE observations SET ${setClause} WHERE deleted = false ${whereClause.sql} ${excludeClause}`;
-        const params: any[] = [...whereClause.params, ...existsConditionsParams];
+        const params: any[] = [...setParams, ...whereClause.params, ...existsConditionsParams];
 
         return { sql, params };
     }
 
     public async downloadConflictCsv(sessionId: string): Promise<StreamableFile> {
         const session = this.getSession(sessionId);
+
         if (!session.conflictCsvFile) {
             throw new BadRequestException('No conflict file available for this session');
         }
@@ -478,7 +447,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             paramIndex++;
         }
 
-        // For datetime, no fromValue filter — shift applies to all matching rows
+        // For datetime, no fromValue filter because shift applies to all matching rows
         if (change.field !== PkFieldEnum.DATE_TIME) {
             const dbColumn = change.field; // enum values match DB column names 
             conditions.push(`${tableAlias}.${dbColumn} = $${paramIndex}`);

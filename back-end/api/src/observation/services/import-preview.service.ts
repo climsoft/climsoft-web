@@ -27,7 +27,7 @@ export class ImportPreviewService implements OnModuleDestroy {
     private readonly logger: Logger = new Logger(ImportPreviewService.name);
     private readonly sessions: Map<string, PreviewSession> = new Map();
     private readonly MAX_PREVIEW_ROWS = 200;
-    private readonly SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+    private readonly SESSION_TTL_MS = 60 * 60 * 1000; // 60 minutes
 
     constructor(
         private fileIOService: FileIOService,
@@ -37,7 +37,7 @@ export class ImportPreviewService implements OnModuleDestroy {
     ) { }
 
     public async onModuleDestroy() {
-        for (const sessionId of this.sessions.keys()) {
+        for (const [sessionId] of this.sessions) {
             await this.destroySession(sessionId);
         }
     }
@@ -92,7 +92,6 @@ export class ImportPreviewService implements OnModuleDestroy {
         const session = this.getSession(sessionId);
         session.rowsToSkip = rowsToSkip;
         session.delimiter = delimiter;
-        session.lastAccessedAt = Date.now();
 
         return this.previewRawData(session);
     }
@@ -116,7 +115,6 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     public async previewTransformedData(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
-        session.lastAccessedAt = Date.now();
 
         // Reset table to raw state for idempotent processing
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
@@ -169,6 +167,8 @@ export class ImportPreviewService implements OnModuleDestroy {
         if (!session) {
             throw new NotFoundException(`Preview session not found: ${sessionId}. It may have expired.`);
         }
+        session.lastAccessedAt = Date.now();
+
         return session;
     }
 
