@@ -202,11 +202,11 @@ export class BulkPkUpdateService implements OnModuleDestroy {
                     targetJoin = `LEFT JOIN stations ts ON ts.id = $1`;
                     break;
                 case PkFieldEnum.ELEMENT_ID:
-                    targetValueExpr = `$1::text || ' - ' || te.abbreviation AS target_element`;
+                    targetValueExpr = `$1 || ' - ' || te.abbreviation AS target_element`;
                     targetJoin = `LEFT JOIN elements te ON te.id = $1`;
                     break;
                 case PkFieldEnum.SOURCE_ID:
-                    targetValueExpr = `$1::text || ' - ' || tsrc.name AS target_source`;
+                    targetValueExpr = `$1 || ' - ' || tsrc.name AS target_source`;
                     targetJoin = `LEFT JOIN source_templates tsrc ON tsrc.id = $1`;
                     break;
                 default:
@@ -221,11 +221,11 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         const sql = `
             SELECT
                 o.station_id || ' - ' || s.name AS source_station,
-                o.element_id::text || ' - ' || e.abbreviation AS source_element,
+                o.element_id || ' - ' || e.abbreviation AS source_element,
                 o.level AS source_level,
                 o.date_time AS source_date_time,
                 o.interval AS source_interval,
-                o.source_id::text || ' - ' || src.name AS source_source,
+                o.source_id || ' - ' || src.name AS source_source,
                 o.value AS source_value,
                 sf.abbreviation AS source_flag,
                 ${targetValueExpr},
