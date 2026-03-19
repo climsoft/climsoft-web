@@ -32,8 +32,8 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected toStationId: string | null = null;
   protected fromElementId: number | null = null;
   protected toElementId: number | null = null;
-  protected fromLevel: string = '';
-  protected toLevel: string = '';
+  protected fromLevel: number | null = 0;
+  protected toLevel: number | null = 0;
   protected fromIntervalId: number | null = null;
   protected toIntervalId: number | null = null;
   protected fromSourceId: number | null = null;
@@ -107,7 +107,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
       case PkFieldEnum.ELEMENT_ID:
         return this.fromElementId !== null && this.toElementId !== null && this.fromElementId !== this.toElementId;
       case PkFieldEnum.LEVEL:
-        return this.fromLevel !== '' && this.toLevel !== '' && this.fromLevel !== this.toLevel;
+        return this.fromLevel !== null && this.toLevel !== null && this.fromLevel !== this.toLevel;
       case PkFieldEnum.INTERVAL:
         return this.fromIntervalId !== null && this.toIntervalId !== null && this.fromIntervalId !== this.toIntervalId;
       case PkFieldEnum.SOURCE_ID:
@@ -219,8 +219,8 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     this.toStationId = null;
     this.fromElementId = null;
     this.toElementId = null;
-    this.fromLevel = '';
-    this.toLevel = '';
+    this.fromLevel = null;
+    this.toLevel = null;
     this.fromIntervalId = null;
     this.toIntervalId = null;
     this.fromSourceId = null;
