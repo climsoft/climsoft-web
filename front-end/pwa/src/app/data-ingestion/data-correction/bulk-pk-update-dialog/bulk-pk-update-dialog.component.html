@@ -122,14 +122,12 @@
                         </div>
 
                         <!-- Conflict preview table -->
-                        <div *ngIf="checkResponse.previewData" class="mb-3" >
+                        <div *ngIf="checkResponse.previewData" class="mb-3">
                             <app-import-preview-table [title]="'Showing Conflicts'"
-                                [columns]="checkResponse.previewData.columns"
-                                [rows]="checkResponse.previewData.rows"
+                                [columns]="checkResponse.previewData.columns" [rows]="checkResponse.previewData.rows"
                                 [totalRowCount]="checkResponse.previewData.totalRowCount"
-                                [hasFile]="!!checkResponse.sessionId"
-                                [noFileMessage]="'no conflicts detected'"
-                                [maxHeight]="'40vh'"  />
+                                [hasFile]="!!checkResponse.sessionId" [noFileMessage]="'no conflicts detected'"
+                                [maxHeight]="'40vh'" />
                         </div>
 
                         <button type="button" class="btn btn-sm btn-outline-secondary mb-3"
@@ -149,12 +147,7 @@
             </div>
 
             <!-- Step 4: Executing spinner -->
-            <div *ngIf="step === 'executing'" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Executing bulk update...</p>
-            </div>
+            <app-spinner *ngIf="step === 'executing'" [message]="'Executing bulk update...'" />
 
             <!-- Step 5: Result -->
             <div *ngIf="step === 'result' && executeResponse">
@@ -176,9 +169,9 @@
     </app-dialog>
 
     <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Primary Key Update'" [okButtonLabel]="'Yes'"
-        [cancelButtonLabel]="'No'" (deleteConfirmed)="onExecute()">
+        [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
         <div>
-            Are you sure ou want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
+            Are you sure you want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
                 observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>
         </div>
     </app-confirmation-dialog>

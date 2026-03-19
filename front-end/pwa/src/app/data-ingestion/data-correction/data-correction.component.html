@@ -13,7 +13,8 @@
                 <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll( )">
                     Delete All
                 </button>
-                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2" (click)="onBulkPkUpdate()">
+                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
+                    (click)="onBulkPkUpdate()">
                     Bulk PK Update
                 </button>
                 <div class="vr mx-2"></div>
@@ -59,18 +60,17 @@
 <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'"
     [deleteButtonLabel]="'Ok'" (deleteConfirmed)="onDeleteAllConfirm()" />
 
-<ng-container *ngIf="saveConfirmOpen">
-    <app-dialog [(open)]="saveConfirmOpen" [title]="'Confirm Changes'" [okButtonLabel]="'Confirm'"
-        [displayDeleteOption]="false" (okClick)="onSaveConfirm()">
-        <div>
-            <p *ngIf="saveSummary.updatedCount > 0">
-                {{saveSummary.updatedCount}} observation{{saveSummary.updatedCount === 1 ? '' : 's'}} will be updated.
-            </p>
-            <p *ngIf="saveSummary.deletedCount > 0" class="text-danger">
-                {{saveSummary.deletedCount}} observation{{saveSummary.deletedCount === 1 ? '' : 's'}} will be deleted.
-            </p>
-        </div>
-    </app-dialog>
-</ng-container>
+<app-confirmation-dialog #dlgSaveConfirm [title]="'Confirm Changes'" [okButtonLabel]="'Yes'" [cancelButtonLabel]="'No'"
+    (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
+    <div>
+        <p *ngIf="saveSummary.updatedCount > 0">
+            {{saveSummary.updatedCount}} observation{{saveSummary.updatedCount === 1 ? '' : 's'}} will be updated.
+        </p>
+        <p *ngIf="saveSummary.deletedCount > 0" class="text-danger">
+            {{saveSummary.deletedCount}} observation{{saveSummary.deletedCount === 1 ? '' : 's'}} will be deleted.
+        </p>
+    </div>
+</app-confirmation-dialog>
+
 
 <app-bulk-pk-update-dialog #dlgBulkPkUpdate (done)="loadData()" />
