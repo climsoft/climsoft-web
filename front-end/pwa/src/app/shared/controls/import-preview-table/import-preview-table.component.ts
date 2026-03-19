@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { PreviewError } from '../../models/import-preview.model';  
+import { PreviewError } from '../../../metadata/source-specifications/models/import-preview.model';  
 
 @Component({
     selector: 'app-import-preview-table',

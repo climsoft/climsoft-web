@@ -1,4 +1,5 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { BulkPkUpdateService } from '../../services/bulk-pk-update.service';
@@ -21,6 +22,7 @@ type DialogStep = 'configure' | 'checking' | 'conflicts' | 'executing' | 'result
   styleUrls: ['./bulk-pk-update-dialog.component.scss']
 })
 export class BulkPkUpdateDialogComponent implements OnDestroy {
+  @ViewChild('dlgConfirmExecute') dlgConfirmExecute!: DeleteConfirmationDialogComponent;
   @Output() done = new EventEmitter<void>();
 
   protected open = false;
@@ -143,8 +145,8 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
           change.toValue = this.toElementId!;
           break;
         case PkFieldEnum.LEVEL:
-          change.fromValue = Number(this.fromLevel);
-          change.toValue = Number(this.toLevel);
+          change.fromValue = this.fromLevel!;
+          change.toValue = this.toLevel!;
           break;
         case PkFieldEnum.INTERVAL:
           change.fromValue = this.fromIntervalId!;
@@ -233,7 +235,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected onOkClick(): void {
     switch (this.step) {
       case 'configure': this.onCheck(); break;
-      case 'conflicts': this.onExecute(); break;
+      case 'conflicts': this.dlgConfirmExecute.openDialog(); break;
       case 'result': this.closeDialog(); break;
     }
   }

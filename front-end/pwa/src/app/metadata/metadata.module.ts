@@ -26,7 +26,6 @@ import { ImportSourceLevelDetailComponent } from './source-specifications/import
 import { ImportSourceCommentDetailComponent } from './source-specifications/import-source-input-dialog/import-source-comment-detail/import-source-comment-detail.component';
 import { ImportSourceMissingValueDetailComponent } from './source-specifications/import-source-input-dialog/import-source-missing-value-detail/import-source-missing-value-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-input-dialog/import-source-flag-detail/import-source-flag-detail.component';
-import { ImportPreviewTableComponent } from './source-specifications/import-source-input-dialog/import-preview-table/import-preview-table.component';
 import { ElementInputDialogComponent } from './elements/element-input-dialog/element-input-dialog.component';
 import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
@@ -157,7 +156,6 @@ import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-s
     ImportSourceMissingValueDetailComponent,
     ImportSourceValueDetailComponent,
     ImportSourceFlagDetailComponent,
-    ImportPreviewTableComponent,
 
     ElementInputDialogComponent,
     ImportElementsDialogComponent,
@@ -272,7 +270,7 @@ import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-s
 
     ConnectorSpecificationSelectorSingleComponent,
 
-    ImportPreviewTableComponent,
+ 
     FlagSelectorSingleComponent,
 
   ]

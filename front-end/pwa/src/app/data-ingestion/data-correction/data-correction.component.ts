@@ -16,6 +16,7 @@ import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { BulkPkUpdateDialogComponent } from './bulk-pk-update-dialog/bulk-pk-update-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-data-correction',
@@ -24,14 +25,14 @@ import { AppAuthService } from 'src/app/app-auth.service';
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
+    @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
   @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected loading: boolean = false;
-  protected saveConfirmOpen: boolean = false;
+  protected loading: boolean = false; 
   protected saveSummary: { updatedCount: number; deletedCount: number } = { updatedCount: 0, deletedCount: 0 };
 
   protected queryFilter!: ViewObservationQueryModel;
@@ -237,15 +238,10 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     }
 
     this.saveSummary = { updatedCount, deletedCount };
-    this.saveConfirmOpen = true;
+    this.dlgSaveConfirm.openDialog();
   }
 
   protected onSaveConfirm(): void {
-    this.saveConfirmOpen = false;
-    this.doSave();
-  }
-
-  private doSave(): void {
     const deletedObs: DeleteObservationModel[] = [];
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {

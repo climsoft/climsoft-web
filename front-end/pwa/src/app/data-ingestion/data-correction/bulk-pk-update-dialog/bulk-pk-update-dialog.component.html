@@ -96,8 +96,7 @@
             <div *ngIf="step === 'conflicts' && checkResponse">
                 <div class="alert alert-info py-2">
                     <strong>{{checkResponse.totalMatchingRows}}</strong> observation{{checkResponse.totalMatchingRows
-                    === 1
-                    ? '' : 's'}} match your filter.
+                    === 1 ? '' : 's'}} match your filter.
                 </div>
 
                 <div *ngIf="checkResponse.totalMatchingRows === 0" class="alert alert-warning py-2">
@@ -119,35 +118,22 @@
                     <div *ngIf="checkResponse.conflictCount > 0">
                         <div class="alert alert-warning py-2">
                             <strong>{{checkResponse.conflictCount}}</strong> conflict{{checkResponse.conflictCount === 1
-                            ?
-                            '' : 's'}} detected.
+                            ? '' : 's'}} detected.
                         </div>
 
                         <!-- Conflict preview table -->
-                        <div *ngIf="checkResponse.previewData" class="app-table-container"
-                            style="max-height: 250px;">
-                            <table class="table table-sm table-bordered table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th *ngFor="let col of checkResponse.previewData.columns" class="small">{{col}}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr *ngFor="let row of checkResponse.previewData.rows">
-                                        <td *ngFor="let cell of row" class="small">{{cell}}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div *ngIf="checkResponse.previewData" class="text-muted small mb-2">
-                            Showing {{checkResponse.previewData.rows.length}} of
-                            {{checkResponse.previewData.totalRowCount}}
-                            conflict{{checkResponse.previewData.totalRowCount
-                            === 1 ? '' : 's'}}
+                        <div *ngIf="checkResponse.previewData" class="mb-3" >
+                            <app-import-preview-table [title]="'Showing Conflicts'"
+                                [columns]="checkResponse.previewData.columns"
+                                [rows]="checkResponse.previewData.rows"
+                                [totalRowCount]="checkResponse.previewData.totalRowCount"
+                                [hasFile]="!!checkResponse.sessionId"
+                                [noFileMessage]="'no conflicts detected'"
+                                [maxHeight]="'40vh'"  />
                         </div>
 
-                        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" (click)="onDownloadConflicts()">
+                        <button type="button" class="btn btn-sm btn-outline-secondary mb-3"
+                            (click)="onDownloadConflicts()">
                             <i class="bi bi-download me-1"></i>Download Conflicts CSV
                         </button>
 
@@ -173,19 +159,28 @@
             <!-- Step 5: Result -->
             <div *ngIf="step === 'result' && executeResponse">
                 <div class="alert alert-success py-2">
-                    <p class="mb-1"><strong>{{executeResponse.updatedCount}}</strong>
-                        observation{{executeResponse.updatedCount === 1 ? '' : 's'}} updated.</p>
+                    <p class="mb-1">
+                        <strong>{{executeResponse.updatedCount}}</strong> observation{{executeResponse.updatedCount ===
+                        1 ? '' : 's'}} updated.
+                    </p>
                     <p *ngIf="executeResponse.skippedCount > 0" class="mb-1">
                         {{executeResponse.skippedCount}} skipped (conflicts).
                     </p>
                     <p *ngIf="executeResponse.permanentDeleteCount > 0" class="mb-0 text-danger">
-                        {{executeResponse.permanentDeleteCount}} existing
-                        record{{executeResponse.permanentDeleteCount === 1 ? '' : 's'}} at the target primary key
-                        permanently
-                        deleted.
+                        {{executeResponse.permanentDeleteCount}} existing record{{executeResponse.permanentDeleteCount
+                        === 1 ? '' : 's'}} at the target primary key permanently deleted.
                     </p>
                 </div>
             </div>
         </div>
     </app-dialog>
+
+    <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Primary Key Update'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (deleteConfirmed)="onExecute()">
+        <div>
+            Are you sure ou want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
+                observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>
+        </div>
+    </app-confirmation-dialog>
+
 </ng-container>

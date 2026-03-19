@@ -46,6 +46,9 @@ import { DeleteConfirmationDialogComponent } from './controls/delete-confirmatio
 import { ToggleDisabledConfirmationDialogComponent } from './controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { FileInputComponent } from './controls/file-input/file-input.component';
 import { DelimeterSelectorComponent } from './controls/delimeter-selector/delimeter-selector.component';
+import { ConfirmationDialogComponent } from './controls/confirmation-dialog/confirmation-dialog.component';
+import { SpinnerComponent } from './controls/spinner/spinner.component';
+import { ImportPreviewTableComponent } from './controls/import-preview-table/import-preview-table.component';
 
 //--------------------------------
 
@@ -81,7 +84,7 @@ const controlsComponents = [
   YearMonthInputComponent,
   IntervalSelectorSingleComponent,
 
-  DropDownButtonComponent, 
+  DropDownButtonComponent,
   PageInputComponent,
   DropDownContainerComponent,
 
@@ -100,10 +103,14 @@ const controlsComponents = [
 
   ErrorSelectorSingleComponent,
   CronInputComponent,
+  ConfirmationDialogComponent,
   DeleteConfirmationDialogComponent,
   ToggleDisabledConfirmationDialogComponent,
   FileInputComponent,
   DelimeterSelectorComponent,
+
+  SpinnerComponent,
+  ImportPreviewTableComponent,
 ];
 
 const directives = [
