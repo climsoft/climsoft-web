@@ -78,7 +78,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
             this.sessions.set(sessionId, session);
-            return { sessionId, totalMatchingRows: 0, conflictCount: 0 };
+            return { sessionId, totalMatchingRows: 0, conflictCount: 0, permanentDeleteCount: 0 };
         }
 
         // Count conflicts
@@ -138,10 +138,12 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             this.sessions.set(sessionId, session);
         }
 
-        // TODO. Count permanent deletes by using function `buildPermanentDeleteCountQuery` and include it in the response
+        // Count soft-deleted target rows that will be permanently deleted
+        const permanentDeleteSql = this.buildPermanentDeleteCountQuery(dto.filter, dto.change);
+        const permanentDeleteResult = await this.dataSource.query(permanentDeleteSql.sql, permanentDeleteSql.params);
+        const permanentDeleteCount: number = permanentDeleteResult[0]?.cnt ?? 0;
 
-
-        return { sessionId, totalMatchingRows, conflictCount, previewData };
+        return { sessionId, totalMatchingRows, conflictCount, permanentDeleteCount, previewData };
     }
 
     private buildMatchingRowsQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto,): { sql: string; params: any[] } {
@@ -165,14 +167,14 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sql, params };
     }
 
-     private buildPermanentDeleteCountQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
+    private buildPermanentDeleteCountQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
         const sql = `
             SELECT COUNT(*)::int AS cnt
             FROM observations o
             INNER JOIN observations existing ON ${joinConditions.sql}
-            WHERE o.deleted = true AND existing.deleted = true
+            WHERE o.deleted = false AND existing.deleted = true
             ${whereClause.sql}
         `;
         const params: any[] = [...joinConditions.params, ...whereClause.params];
@@ -235,14 +237,14 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         try {
             const { filter, change, conflictCount } = session;
-            let hardDeleteCount = 0;
+            let permanentDeleteCount = 0;
             let temporaryDeleteOverwrittenCount = 0;
             let skippedCount = 0;
 
             // Hard-delete the aready soft deleted records
-            const permanentDeleteSql = this.buildHardDeleteQuery(filter, change);
+            const permanentDeleteSql = this.buildPermanentDeleteQuery(filter, change);
             const temporaryDeleteResult = await queryRunner.query(permanentDeleteSql.sql, permanentDeleteSql.params);
-            hardDeleteCount = temporaryDeleteResult[1] ?? 0; // affected rows count from DELETE
+            permanentDeleteCount = temporaryDeleteResult[1] ?? 0; // affected rows count from DELETE
 
             // If OVERWRITE: soft-delete existing rows at the target PK first
             if (dto.conflictResolution === ConflictResolutionEnum.OVERWRITE && conflictCount > 0) {
@@ -253,8 +255,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
             // Build the main UPDATE
             const updateSql = this.buildUpdateQuery(
-                filter, change, userId,
-                dto.conflictResolution === ConflictResolutionEnum.SKIP && conflictCount > 0
+                filter, change, userId, dto.conflictResolution === ConflictResolutionEnum.SKIP && conflictCount > 0
             );
             const updateResult = await queryRunner.query(updateSql.sql, updateSql.params);
             const updatedCount = updateResult[1] ?? 0;
@@ -268,9 +269,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             this.eventEmitter.emit('observations.saved');
             await this.destroySession(dto.sessionId);
 
-            // TODO. Include permanent deletes in the response
-
-            return { updatedCount, skippedCount, overwrittenCount: temporaryDeleteOverwrittenCount };
+            return { updatedCount, skippedCount, overwrittenCount: temporaryDeleteOverwrittenCount, permanentDeleteCount };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw error;
@@ -302,20 +301,20 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sql, params };
     }
 
-    private buildHardDeleteQuery(
+    private buildPermanentDeleteQuery(
         filter: BulkPkUpdateFilterDto,
         change: PkChangeSpecDto,
     ): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
 
-        // Hard-delete existing rows at the target PK; the source rows' trigger
-        // log preserves the PK change audit trail via pkChange.
+        // Permanent-delete temporary-deleted target rows at the destination PK for non-deleted
+        // source rows that will be updated. Only targets for actual updates are cleared.
         const sql = `
             DELETE FROM observations AS existing
             USING observations o
             WHERE ${joinConditions.sql}
-            AND existing.deleted = true
+            AND o.deleted = false AND existing.deleted = true
             ${whereClause.sql}
         `;
         const params: any[] = [...joinConditions.params, ...whereClause.params];

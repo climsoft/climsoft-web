@@ -51,6 +51,7 @@ export interface BulkPkUpdateCheckResponse {
     sessionId: string;
     totalMatchingRows: number;
     conflictCount: number;
+    permanentDeleteCount: number;
     previewData?: {
         columns: string[];
         rows: string[][];
@@ -62,4 +63,5 @@ export interface BulkPkUpdateExecuteResponse {
     updatedCount: number;
     skippedCount: number;
     overwrittenCount: number;
+    permanentDeleteCount: number;
 }
