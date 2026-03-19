@@ -5,7 +5,7 @@
         <!-- Step 1: Configure -->
         <div *ngIf="step === 'configure'">
             <div class="mb-3">
-                <label class="form-label fw-bold">PK Field to Change</label>
+                <label class="form-label fw-bold">Primary Key Field to Change</label>
                 <select class="form-select form-select-sm" [(ngModel)]="selectedField">
                     <option [ngValue]="null">-- Select --</option>
                     <option *ngFor="let f of pkFields" [ngValue]="f.value">{{f.label}}</option>
@@ -39,12 +39,10 @@
             <!-- Level: plain number inputs -->
             <div *ngIf="selectedField === PkFieldEnum.LEVEL">
                 <div class="mb-3">
-                    <label class="form-label">Current Value</label>
-                    <input type="number" class="form-control form-control-sm" [(ngModel)]="fromLevel" />
+                    <app-number-input [id]="'fromLevel'" [label]="'Current Value'" [(numValue)]="fromLevel" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">New Value</label>
-                    <input type="number" class="form-control form-control-sm" [(ngModel)]="toLevel" />
+                    <app-number-input [id]="'toLevel'" [label]="'New Value'" [(numValue)]="toLevel" />
                 </div>
             </div>
 
@@ -67,16 +65,14 @@
                         [(selectedId)]="fromSourceId" />
                 </div>
                 <div class="mb-3">
-                    <app-source-selector-single [id]="'toSource'" [label]="'New Value'"
-                        [(selectedId)]="toSourceId" />
+                    <app-source-selector-single [id]="'toSource'" [label]="'New Value'" [(selectedId)]="toSourceId" />
                 </div>
             </div>
 
             <!-- Datetime: Shift amount/unit -->
             <div *ngIf="selectedField === PkFieldEnum.DATE_TIME">
                 <div class="mb-3">
-                    <label class="form-label">Shift Amount</label>
-                    <input type="number" class="form-control form-control-sm" [(ngModel)]="shiftAmount" />
+                    <app-number-input [id]="'shiftAmount'" [label]="'Shift Amount'" [(numValue)]="shiftAmount" />
                     <div class="form-text">Use negative values to subtract (e.g. -1 to go back)</div>
                 </div>
                 <div class="mb-3">
@@ -163,9 +159,7 @@
                         <label class="form-label fw-bold">How to handle conflicts?</label>
                         <select class="form-select form-select-sm" [(ngModel)]="conflictResolution">
                             <option [ngValue]="ConflictResolutionEnum.SKIP">Skip conflicting rows</option>
-                            <option [ngValue]="ConflictResolutionEnum.OVERWRITE">Overwrite (soft-delete existing, then
-                                update)
-                            </option>                            
+                            <option [ngValue]="ConflictResolutionEnum.OVERWRITE">Overwrite conflicting rows </option>
                         </select>
                     </div>
                 </div>
@@ -197,7 +191,8 @@
                 </p>
                 <p *ngIf="executeResponse.permanentDeleteCount > 0" class="mb-0 text-danger">
                     {{executeResponse.permanentDeleteCount}} existing
-                    record{{executeResponse.permanentDeleteCount === 1 ? '' : 's'}} at the target primary key permanently
+                    record{{executeResponse.permanentDeleteCount === 1 ? '' : 's'}} at the target primary key
+                    permanently
                     deleted.
                 </p>
             </div>
