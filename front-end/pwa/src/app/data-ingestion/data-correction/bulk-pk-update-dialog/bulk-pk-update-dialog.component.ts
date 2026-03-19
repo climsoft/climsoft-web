@@ -27,7 +27,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected step: DialogStep = 'configure';
 
   // Configuration
-  protected selectedField: PkFieldEnum | null = null;
+  protected selectedPkField: { value: PkFieldEnum; label: string } | null = null;
   protected fromStationId: string | null = null;
   protected toStationId: string | null = null;
   protected fromElementId: number | null = null;
@@ -39,11 +39,11 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected fromSourceId: number | null = null;
   protected toSourceId: number | null = null;
   protected shiftAmount: number = 1;
-  protected shiftUnit: DateTimeShiftUnitEnum = DateTimeShiftUnitEnum.DAYS;
+  protected selectedShiftUnit: { value: DateTimeShiftUnitEnum; label: string } | null = null;
 
   // Check result
   protected checkResponse: BulkPkUpdateCheckResponse | null = null;
-  protected conflictResolution: ConflictResolutionEnum = ConflictResolutionEnum.SKIP;
+  protected selectedConflictResolution: { value: ConflictResolutionEnum; label: string } | null = null;
 
   // Execute result
   protected executeResponse: BulkPkUpdateExecuteResponse | null = null;
@@ -53,8 +53,6 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
 
   // Enums for template
   protected PkFieldEnum = PkFieldEnum;
-  protected DateTimeShiftUnitEnum = DateTimeShiftUnitEnum;
-  protected ConflictResolutionEnum = ConflictResolutionEnum;
 
   protected pkFields = [
     { value: PkFieldEnum.STATION_ID, label: 'Station ID' },
@@ -71,6 +69,13 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     { value: DateTimeShiftUnitEnum.DAYS, label: 'Days' },
     { value: DateTimeShiftUnitEnum.HOURS, label: 'Hours' },
   ];
+
+  protected conflictResolutions = [
+    { value: ConflictResolutionEnum.SKIP, label: 'Skip conflicting rows' },
+    { value: ConflictResolutionEnum.OVERWRITE, label: 'Overwrite conflicting rows' },
+  ];
+
+  protected optionLabelFn = (option: { label: string }) => option.label;
 
   constructor(
     private bulkPkUpdateService: BulkPkUpdateService,
@@ -97,11 +102,12 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   }
 
   protected get isConfigValid(): boolean {
-    if (!this.selectedField) return false;
-    if (this.selectedField === PkFieldEnum.DATE_TIME) {
-      return this.shiftAmount !== 0;
+    if (!this.selectedPkField) return false;
+    const field = this.selectedPkField.value;
+    if (field === PkFieldEnum.DATE_TIME) {
+      return this.shiftAmount !== 0 && this.selectedShiftUnit !== null;
     }
-    switch (this.selectedField) {
+    switch (field) {
       case PkFieldEnum.STATION_ID:
         return this.fromStationId !== null && this.toStationId !== null && this.fromStationId !== this.toStationId;
       case PkFieldEnum.ELEMENT_ID:
@@ -118,15 +124,16 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   }
 
   protected onCheck(): void {
-    if (!this.selectedField) return;
+    if (!this.selectedPkField) return;
 
-    const change: PkChangeSpec = { field: this.selectedField };
+    const field = this.selectedPkField.value;
+    const change: PkChangeSpec = { field };
 
-    if (this.selectedField === PkFieldEnum.DATE_TIME) {
+    if (field === PkFieldEnum.DATE_TIME) {
       change.shiftAmount = this.shiftAmount;
-      change.shiftUnit = this.shiftUnit;
+      change.shiftUnit = this.selectedShiftUnit!.value;
     } else {
-      switch (this.selectedField) {
+      switch (field) {
         case PkFieldEnum.STATION_ID:
           change.fromValue = this.fromStationId!;
           change.toValue = this.toStationId!;
@@ -154,9 +161,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     this.bulkPkUpdateService.check({ filter: this.filter, change }).pipe(take(1)).subscribe({
       next: (response) => {
         this.checkResponse = response;
-        this.conflictResolution = response.conflictCount > 0
-          ? ConflictResolutionEnum.SKIP
-          : ConflictResolutionEnum.SKIP; // default
+        this.selectedConflictResolution = this.conflictResolutions[0]; // default to Skip
         this.step = 'conflicts';
       },
       error: (err) => {
@@ -176,7 +181,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     this.step = 'executing';
     this.bulkPkUpdateService.execute({
       sessionId: this.checkResponse.sessionId,
-      conflictResolution: this.conflictResolution,
+      conflictResolution: this.selectedConflictResolution!.value,
     }).pipe(take(1)).subscribe({
       next: (response) => {
         this.executeResponse = response;
@@ -199,14 +204,56 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     window.open(url, '_blank');
   }
 
-  protected closeDialog(): void {
+  // Dialog button configuration per step
+  protected get displayOkOption(): boolean {
+    return this.step === 'configure' || this.step === 'conflicts' || this.step === 'result';
+  }
+
+  protected get disableOkOption(): boolean {
+    return this.step === 'configure' && !this.isConfigValid;
+  }
+
+  protected get okButtonLabel(): string {
+    switch (this.step) {
+      case 'configure': return 'Check for Conflicts';
+      case 'conflicts': return this.checkResponse?.conflictCount === 0 ? 'Execute Update' : 'Execute';
+      case 'result': return 'Close';
+      default: return 'Ok';
+    }
+  }
+
+  protected get displayCancelOption(): boolean {
+    return this.step === 'configure' || this.step === 'conflicts';
+  }
+
+  protected get cancelButtonLabel(): string {
+    return this.step === 'conflicts' ? 'Back' : 'Cancel';
+  }
+
+  protected onOkClick(): void {
+    switch (this.step) {
+      case 'configure': this.onCheck(); break;
+      case 'conflicts': this.onExecute(); break;
+      case 'result': this.closeDialog(); break;
+    }
+  }
+
+  protected onCancelClick(): void {
+    if (this.step === 'conflicts') {
+      this.onBack();
+    } else {
+      this.closeDialog();
+    }
+  }
+
+  private closeDialog(): void {
     this.open = false;
     if (this.executeResponse && this.executeResponse.updatedCount > 0) {
       this.done.emit();
     }
   }
 
-  protected onBack(): void {
+  private onBack(): void {
     this.cleanupSession();
     this.checkResponse = null;
     this.executeResponse = null;
@@ -214,7 +261,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   }
 
   private resetForm(): void {
-    this.selectedField = null;
+    this.selectedPkField = null;
     this.fromStationId = null;
     this.toStationId = null;
     this.fromElementId = null;
@@ -226,10 +273,10 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     this.fromSourceId = null;
     this.toSourceId = null;
     this.shiftAmount = 1;
-    this.shiftUnit = DateTimeShiftUnitEnum.DAYS;
+    this.selectedShiftUnit = null;
     this.checkResponse = null;
     this.executeResponse = null;
-    this.conflictResolution = ConflictResolutionEnum.SKIP;
+    this.selectedConflictResolution = null;
   }
 
   private cleanupSession(): void {
