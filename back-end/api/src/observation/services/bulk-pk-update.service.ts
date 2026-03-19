@@ -185,8 +185,9 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     private buildConflictSelectQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const selectParams: any[] = [];
 
-        // Build target value expression for display
+        // Build target value expression with metadata enrichment
         let targetValueExpr: string;
+        let targetJoin = '';
         if (change.field === PkFieldEnum.DATE_TIME) {
             // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
             // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
@@ -194,8 +195,24 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             // here is safe and avoids the extra casting needed when using parameters.
             targetValueExpr = `o.date_time + ${this.buildDateTimeInterval(change)} AS target_date_time`;
         } else {
-            targetValueExpr = `$1 AS target_${change.field}`;
             selectParams.push(change.toValue);
+            switch (change.field) {
+                case PkFieldEnum.STATION_ID:
+                    targetValueExpr = `$1 || ' - ' || ts.name AS target_station`;
+                    targetJoin = `LEFT JOIN stations ts ON ts.id = $1`;
+                    break;
+                case PkFieldEnum.ELEMENT_ID:
+                    targetValueExpr = `$1::text || ' - ' || te.abbreviation AS target_element`;
+                    targetJoin = `LEFT JOIN elements te ON te.id = $1`;
+                    break;
+                case PkFieldEnum.SOURCE_ID:
+                    targetValueExpr = `$1::text || ' - ' || tsrc.name AS target_source`;
+                    targetJoin = `LEFT JOIN source_templates tsrc ON tsrc.id = $1`;
+                    break;
+                default:
+                    targetValueExpr = `$1 AS target_${change.field}`;
+                    break;
+            }
         }
 
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', selectParams.length + 1);
@@ -203,20 +220,26 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         const sql = `
             SELECT
-                o.station_id AS source_station_id,
-                o.element_id AS source_element_id,
+                o.station_id || ' - ' || s.name AS source_station,
+                o.element_id::text || ' - ' || e.abbreviation AS source_element,
                 o.level AS source_level,
                 o.date_time AS source_date_time,
                 o.interval AS source_interval,
-                o.source_id AS source_source_id,
+                o.source_id::text || ' - ' || src.name AS source_source,
                 o.value AS source_value,
-                o.flag_id AS source_flag_id,
+                sf.abbreviation AS source_flag,
                 ${targetValueExpr},
                 existing.value AS existing_value,
-                existing.flag_id AS existing_flag_id,
+                ef.abbreviation AS existing_flag,
                 existing.qc_status AS existing_qc_status
             FROM observations o
             INNER JOIN observations existing ON ${joinConditions.sql}
+            LEFT JOIN stations s ON s.id = o.station_id
+            LEFT JOIN elements e ON e.id = o.element_id
+            LEFT JOIN source_templates src ON src.id = o.source_id
+            LEFT JOIN flags sf ON sf.id = o.flag_id
+            LEFT JOIN flags ef ON ef.id = existing.flag_id
+            ${targetJoin}
             WHERE o.deleted = false AND existing.deleted = false
             ${whereClause.sql}
             ORDER BY o.date_time ASC, o.station_id ASC
