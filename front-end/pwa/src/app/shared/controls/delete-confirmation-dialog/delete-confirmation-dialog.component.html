@@ -1,4 +1,4 @@
-<app-dialog [(open)]="open" [title]="'Delete ' + itemType" [okButtonLabel]="'Delete'"
+<app-dialog [(open)]="open" [title]="'Delete ' + itemType" [okButtonLabel]="deleteButtonLabel"
     [displayDeleteOption]="false" (okClick)="onDeleteConfirm()">
     <div>
         <p>Are you sure you want to delete the {{ itemType }} <strong>{{ itemName }}</strong>?</p>

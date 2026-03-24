@@ -1,6 +1,5 @@
 import { Type } from "class-transformer";
 import { IsInt, IsOptional, IsString, Min, ValidateNested } from "class-validator";
-import { FlagEnum } from "src/observation/enums/flag.enum";
 
 
 /**
@@ -41,7 +40,7 @@ export class FlagDefinition {
     flagColumnPosition: number;
 
     @IsOptional()
-    flagsToFetch?: { sourceId: string; databaseId: FlagEnum }[];
+    flagsToFetch?: { sourceId: string; databaseId: number }[];
 }
 
 export class ValueDefinition {

@@ -1,0 +1,14 @@
+<div>
+    <div class="mt-2">
+        <app-number-input [label]="'Max distance (km)'" [min]="0"
+            [(numValue)]="spatialQCTestParameters.maxDistanceKm" />
+    </div>
+    <div class="mt-2">
+        <app-number-input [label]="'Min neighbours'" [min]="1"
+            [(numValue)]="spatialQCTestParameters.minNeighbours" />
+    </div>
+    <div class="mt-2">
+        <app-number-input [label]="'Max deviation'" [min]="0"
+            [(numValue)]="spatialQCTestParameters.maxDeviation" />
+    </div>
+</div>

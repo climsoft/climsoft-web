@@ -1,4 +1,4 @@
-<div *ngIf="groupedEntries  && elementColumns" class="app-table-container">
+<div *ngIf="groupedEntries  && elementColumns" class="app-table-container" style="max-height: 58vh;">
     <table class="table table-hover table-sm">
         <thead>
             <tr>
@@ -33,7 +33,7 @@
                     <div *ngIf="getObservation(element, groupedEntryKV.value) as ev"
                         class="app-value-flag-container">
                         <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
-                            [displayExtraInfoOption]="true" [scaleUserInputValue]="false" [observationEntry]="ev"
+                            [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false" [observationEntry]="ev"
                             [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>

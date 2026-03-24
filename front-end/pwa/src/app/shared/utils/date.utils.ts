@@ -135,7 +135,7 @@ export class DateUtils {
     public static getHourBasedOnUTCOffset(hour: number, utcOffset: number, operation: 'subtract' | 'add'): number {
         if (utcOffset === 0) return hour;
 
-        // Important wrap negative adjusted hours to positive before wrapping the hoour to 24 hour range
+        // Important wrap negative adjusted hours to positive before wrapping the hour to 24 hour range
         if (operation === 'subtract') {
             return ((hour - utcOffset) + 24) % 24;
         } else {

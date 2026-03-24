@@ -12,6 +12,8 @@ import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.
 import { LastStationActivityObservation } from 'src/app/data-ingestion/models/last-station-activity-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { StationStatusDataQueryModel } from '../models/station-status-data-query.model';
+import { FlagsCacheService } from 'src/app/metadata/flags/services/flags-cache.service';
+import { ViewFlagModel } from 'src/app/metadata/flags/models/view-flag.model';
 
 
 interface ObservationView extends LastStationActivityObservation {
@@ -41,6 +43,7 @@ export class StationDataComponent implements OnDestroy {
   protected elements!: ElementCacheModel[];
   protected sources!: ViewSourceModel[];
   private utcOffset: number = 0;
+  private flags: ViewFlagModel[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -49,6 +52,7 @@ export class StationDataComponent implements OnDestroy {
     private sourcesCacheService: SourcesCacheService,
     private generalSettingsService: GeneralSettingsCacheService,
     private observationsService: ObservationsService,
+    private flagsCacheService: FlagsCacheService,
   ) {
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
@@ -60,6 +64,12 @@ export class StationDataComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.sources = data;
+    });
+
+    this.flagsCacheService.cachedFlags.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
+      this.flags = data;
     });
 
     // Get the climsoft time zone display setting
@@ -91,8 +101,9 @@ export class StationDataComponent implements OnDestroy {
         if (!element) throw new Error('element not found');
         if (!source) throw new Error('source not found');
 
-        const valueStr: string = observation.value === null ? '' : `${observation.value}`;;
-        const flagStr: string = observation.flag === null ? '' : `${observation.flag[0].toUpperCase()}`;
+        const valueStr: string = observation.value === null ? '' : `${observation.value}`;
+        const flag = observation.flagId !== null ? this.flags.find(f => f.id === observation.flagId) : null;
+        const flagStr: string = flag ? flag.abbreviation : '';
         return {
           ...observation,
           elementId: element.id,

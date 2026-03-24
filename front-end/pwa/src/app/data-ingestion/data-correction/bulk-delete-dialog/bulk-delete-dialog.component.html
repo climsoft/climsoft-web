@@ -1,0 +1,84 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Bulk Delete Observations'" [displayOkOption]="displayOkOption"
+        [disableOkOption]="disableOkOption" [okButtonLabel]="okButtonLabel" [closeOnOkClick]="false"
+        [displayCancelOption]="displayCancelOption" [cancelButtonLabel]="cancelButtonLabel" [closeOnCancelClick]="false"
+        [displayDeleteOption]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+        <div style="min-height: 70vh;">
+
+            <!-- Step 1: Configure -->
+            <div *ngIf="step === 'configure'">
+                <div class="alert alert-info py-2 mb-3">
+                    Optionally narrow by hour. Leave blank to delete all observations matching the current filter.
+                </div>
+
+                <div class="mb-3">
+                    <app-selector-single-input [id]="'hourFilter'" [label]="'Narrow by Hour'"
+                        [options]="hourOptions" [optionDisplayFn]="optionLabelFn" [displayCancelOption]="true"
+                        [(selectedOption)]="selectedHour" />
+                    <div class="form-text">
+                        Select a specific hour to delete only observations recorded at that hour across the date range.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Checking spinner -->
+            <div *ngIf="step === 'checking'" class="text-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Counting matching observations...</p>
+            </div>
+
+            <!-- Step 3: Confirmation with preview -->
+            <div *ngIf="step === 'confirmation' && checkResponse">
+                <div class="alert alert-info py-2">
+                    <strong>{{ checkResponse.totalMatchingRows }}</strong>
+                    observation{{ checkResponse.totalMatchingRows === 1 ? '' : 's' }} match your filter.
+                </div>
+
+                <div *ngIf="checkResponse.totalMatchingRows === 0" class="alert alert-warning py-2">
+                    No observations found matching the criteria.
+                </div>
+
+                <div *ngIf="checkResponse.totalMatchingRows > 0">
+                    <div class="alert alert-danger py-2">
+                        These observations will be soft-deleted (marked as deleted). This action can be undone by
+                        restoring from the Deleted Data view.
+                    </div>
+
+                    <!-- Preview table -->
+                    <div *ngIf="checkResponse.previewData" class="mb-3">
+                        <app-import-preview-table [title]="'Preview of Observations to Delete'"
+                            [columns]="checkResponse.previewData.columns"
+                            [rows]="checkResponse.previewData.rows"
+                            [totalRowCount]="checkResponse.previewData.totalRowCount"
+                            [hasFile]="true"
+                            [noFileMessage]="'No matching observations'"
+                            [maxHeight]="'30vh'" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Executing spinner -->
+            <app-spinner *ngIf="step === 'executing'" [message]="'Deleting observations...'" />
+
+            <!-- Step 5: Result -->
+            <div *ngIf="step === 'result' && executeResponse">
+                <div class="alert alert-success py-2">
+                    <strong>{{ executeResponse.deletedCount }}</strong>
+                    observation{{ executeResponse.deletedCount === 1 ? '' : 's' }} deleted.
+                </div>
+            </div>
+
+        </div>
+    </app-dialog>
+
+    <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Delete'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
+        <div>
+            Are you sure you want to delete <strong>{{ checkResponse?.totalMatchingRows + '
+                observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>?
+        </div>
+    </app-confirmation-dialog>
+
+</ng-container>

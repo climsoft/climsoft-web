@@ -14,6 +14,8 @@ import { RelationalQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc
 import { ContextualQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/contextual-qc-test-params.model";
 import { IntervalsUtil } from "src/app/shared/controls/interval-selector/Intervals.util";
 import { FlatLineQCTestParamsModel } from "../models/qc-test-parameters/flat-line-qc-test-params.model";
+import { DiurnalQCTestParamsModel } from "../models/qc-test-parameters/diurnal-qc-test-params.model";
+import { SpatialQCTestParamsModel } from "../models/qc-test-parameters/spatial-qc-test-params.model";
 
 export interface QCTestCacheModel {
     id: number;
@@ -91,7 +93,11 @@ export class QCSpecificationsCacheService {
                     formattedParameters = `{ Condition : ${relationalParams.condition} } { Reference Element : ${relationalParams.referenceElementId} }`;
                     break;
                 case QCTestTypeEnum.DIURNAL:
-                    // TODO
+                    const diurnalParams = elementQCTest.parameters as DiurnalQCTestParamsModel;
+                    const periodsStr = diurnalParams.periods.map(p =>
+                        `${p.trend} ${p.startHour}h-${p.endHour}h (±${p.tolerance})`
+                    ).join(', ');
+                    formattedParameters = `{ Periods: ${periodsStr} }`;
                     break;
                 case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
                     const contextualParams = elementQCTest.parameters as ContextualQCTestParamsModel;
@@ -101,7 +107,8 @@ export class QCSpecificationsCacheService {
                     // TODO
                     break;
                 case QCTestTypeEnum.SPATIAL_CONSISTENCY:
-                    // TODO
+                    const spatialParams = elementQCTest.parameters as SpatialQCTestParamsModel;
+                    formattedParameters = `{ Max distance: ${spatialParams.maxDistanceKm} km } { Min neighbours: ${spatialParams.minNeighbours} } { Max deviation: ${spatialParams.maxDeviation} }`;
                     break;
                 default:
                     throw new Error('Developer error. QC test type not supported.')

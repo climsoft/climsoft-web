@@ -9,7 +9,7 @@
         <div class="mb-3">
             <ul class="nav nav-tabs">
                 <li class="nav-item" *ngFor="let step of wizardSteps">
-                    <button class="nav-link d-flex align-items-center gap-1" [class.active]="activeStep === step"
+                    <button type="button" class="nav-link d-flex align-items-center gap-1" [class.active]="activeStep === step"
                         [class.disabled]="isStepDisabled(step)" (click)="onStepTabClick(step)">
                         <span class="step-badge"
                             [class.bg-success]="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step"
@@ -228,12 +228,12 @@
 
                 <!-- Navigation buttons -->
                 <div *ngIf="showNavigation" class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
-                    <button *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
+                    <button type="button" *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
                         (click)="onPrevious()">
                         Previous
                     </button>
 
-                    <button *ngIf="activeStep !== 'review'" class="btn btn-sm btn-outline-primary" (click)="onNext()">
+                    <button type="button" *ngIf="activeStep !== 'review'" class="btn btn-sm btn-outline-primary" (click)="onNext()">
                         Next
                     </button>
                 </div>

@@ -332,7 +332,7 @@ export class FormEntryDefinition {
             level: 0,
             datetime: '',
             value: null,
-            flag: null,
+            flagId: null,
             interval: this.formMetadata.interval,
             comment: null,
             qcStatus: QCStatusEnum.NONE,

@@ -66,16 +66,11 @@ export class PerformQCDialogComponent {
     ).subscribe({
       next: data => {
         this.open = false;
-        if (data.qcFails > 0) {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: `Some observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
-        } else {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: `No observation failed qc tests`, type: ToastEventTypeEnum.SUCCESS });
-        }
         this.ok.emit();
       },
       error: err => {
         this.open = false;
-        this.pagesDataService.showToast({ title: "QC Tests", message: `Error in saving qc test - ${err}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        this.pagesDataService.showToast({ title: "QC Tests", message:  err.error?.message || `Error in performing qc test`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }

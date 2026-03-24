@@ -1,5 +1,3 @@
-import { FlagEnum } from "./flag.enum"; 
-
 export interface CreateObservationModel {
     stationId: string;
     elementId: number;
@@ -8,6 +6,6 @@ export interface CreateObservationModel {
     datetime: string;
     interval: number;
     value: number | null;
-    flag: FlagEnum | null; 
+    flagId: number | null;
     comment: string | null;
 }

@@ -29,7 +29,6 @@ import { LabelInputComponent } from './controls/label-input/label-input.componen
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
-import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 import { MapComponent } from './controls/map/map.component';
@@ -47,6 +46,9 @@ import { DeleteConfirmationDialogComponent } from './controls/delete-confirmatio
 import { ToggleDisabledConfirmationDialogComponent } from './controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { FileInputComponent } from './controls/file-input/file-input.component';
 import { DelimeterSelectorComponent } from './controls/delimeter-selector/delimeter-selector.component';
+import { ConfirmationDialogComponent } from './controls/confirmation-dialog/confirmation-dialog.component';
+import { SpinnerComponent } from './controls/spinner/spinner.component';
+import { ImportPreviewTableComponent } from './controls/import-preview-table/import-preview-table.component';
 
 //--------------------------------
 
@@ -83,7 +85,6 @@ const controlsComponents = [
   IntervalSelectorSingleComponent,
 
   DropDownButtonComponent,
-  FlagSingleInputComponent,
   PageInputComponent,
   DropDownContainerComponent,
 
@@ -102,10 +103,14 @@ const controlsComponents = [
 
   ErrorSelectorSingleComponent,
   CronInputComponent,
+  ConfirmationDialogComponent,
   DeleteConfirmationDialogComponent,
   ToggleDisabledConfirmationDialogComponent,
   FileInputComponent,
   DelimeterSelectorComponent,
+
+  SpinnerComponent,
+  ImportPreviewTableComponent,
 ];
 
 const directives = [

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { Observable, take } from 'rxjs';
+import { take } from 'rxjs';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -68,15 +68,15 @@ export class ElementInputDialogComponent {
   protected onOkClick(): void {
     // TODO. Do more validations
     if (!this.element.abbreviation) {
-      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element abbreviation required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Element Details', message: 'Element abbreviation required', type: ToastEventTypeEnum.ERROR });
       return;
     }
     if (!this.element.name) {
-      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element name required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Element Details', message: 'Element name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
     if (!this.element.typeId) {
-      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element type required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Element Details', message: 'Element type required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
@@ -90,28 +90,32 @@ export class ElementInputDialogComponent {
       comment: this.element.comment || undefined
     }
 
-    let saveSubscription: Observable<CreateViewElementModel>;
     if (this.element.id === 0) {
-      saveSubscription = this.elementsCacheService.add({ ...updatedElement, id: this.element.id });
+      this.elementsCacheService.add({ ...updatedElement, id: this.element.id }).pipe(
+        take(1)
+      ).subscribe({
+        next: (data) => {
+          this.pagesDataService.showToast({ title: 'Element Details', message: `${data.name} created`, type: ToastEventTypeEnum.SUCCESS });
+          this.ok.emit();
+        },
+        error: (err) => {
+          this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
+        }
+      });
     } else {
-      saveSubscription = this.elementsCacheService.update(this.element.id, updatedElement);
+      this.elementsCacheService.update(this.element.id, updatedElement).pipe(
+        take(1)
+      ).subscribe({
+        next: (data) => {
+          this.pagesDataService.showToast({ title: 'Element Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
+          this.ok.emit();
+        },
+        error: (err) => {
+          this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
+        }
+      });
     }
 
-    saveSubscription.pipe(
-      take(1)
-    ).subscribe((data) => {
-      let message: string;
-      let messageType: ToastEventTypeEnum;
-      if (data) {
-        message = this.element.id === 0 ? `${data.name} created` : `${data.name} updated`;
-        messageType = ToastEventTypeEnum.SUCCESS;
-      } else {
-        message = "Error in saving element";
-        messageType = ToastEventTypeEnum.ERROR
-      }
-      this.pagesDataService.showToast({ title: "Element Characteristics", message: message, type: messageType });
-      this.ok.emit();
-    });
   }
 
   protected onCancelClick(): void {

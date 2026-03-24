@@ -1,0 +1,179 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Bulk Update Primary Key'" [displayOkOption]="displayOkOption"
+        [disableOkOption]="disableOkOption" [okButtonLabel]="okButtonLabel" [closeOnOkClick]="false"
+        [displayCancelOption]="displayCancelOption" [cancelButtonLabel]="cancelButtonLabel" [closeOnCancelClick]="false"
+        [displayDeleteOption]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+        <div style="min-height: 70vh;">
+            <!-- Step 1: Configure -->
+            <div *ngIf="step === 'configure'">
+                <div class="mb-3">
+                    <app-selector-single-input [id]="'pkField'" [label]="'Primary Key Field to Change'"
+                        [options]="pkFields" [optionDisplayFn]="optionLabelFn" [displayCancelOption]="true"
+                        [(selectedOption)]="selectedPkField" />
+                </div>
+
+                <!-- Station: selector inputs -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.STATION_ID">
+                    <div class="mb-3">
+                        <app-station-selector-single [id]="'fromStation'" [label]="'Current Value'"
+                            [(selectedId)]="fromStationId" />
+                    </div>
+                    <div class="mb-3">
+                        <app-station-selector-single [id]="'toStation'" [label]="'New Value'"
+                            [(selectedId)]="toStationId" />
+                    </div>
+                </div>
+
+                <!-- Element: selector inputs -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.ELEMENT_ID">
+                    <div class="mb-3">
+                        <app-element-selector-single [id]="'fromElement'" [label]="'Current Value'"
+                            [(selectedId)]="fromElementId" />
+                    </div>
+                    <div class="mb-3">
+                        <app-element-selector-single [id]="'toElement'" [label]="'New Value'"
+                            [(selectedId)]="toElementId" />
+                    </div>
+                </div>
+
+                <!-- Level: plain number inputs -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.LEVEL">
+                    <div class="mb-3">
+                        <app-number-input [id]="'fromLevel'" [label]="'Current Value'" [(numValue)]="fromLevel" />
+                    </div>
+                    <div class="mb-3">
+                        <app-number-input [id]="'toLevel'" [label]="'New Value'" [(numValue)]="toLevel" />
+                    </div>
+                </div>
+
+                <!-- Interval: selector inputs -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.INTERVAL">
+                    <div class="mb-3">
+                        <app-interval-selector-single [id]="'fromInterval'" [label]="'Current Value'"
+                            [(selectedId)]="fromIntervalId" />
+                    </div>
+                    <div class="mb-3">
+                        <app-interval-selector-single [id]="'toInterval'" [label]="'New Value'"
+                            [(selectedId)]="toIntervalId" />
+                    </div>
+                </div>
+
+                <!-- Source: selector inputs -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.SOURCE_ID">
+                    <div class="mb-3">
+                        <app-source-selector-single [id]="'fromSource'" [label]="'Current Value'"
+                            [(selectedId)]="fromSourceId" />
+                    </div>
+                    <div class="mb-3">
+                        <app-source-selector-single [id]="'toSource'" [label]="'New Value'"
+                            [(selectedId)]="toSourceId" />
+                    </div>
+                </div>
+
+                <!-- Datetime: Shift amount/unit -->
+                <div *ngIf="selectedPkField?.value === PkFieldEnum.DATE_TIME">
+                    <div class="mb-3">
+                        <app-number-input [id]="'shiftAmount'" [label]="'Shift Amount'" [(numValue)]="shiftAmount" />
+                        <div class="form-text">Use negative values to subtract (e.g. -1 to go back)</div>
+                    </div>
+                    <div class="mb-3">
+                        <app-selector-single-input [id]="'shiftUnit'" [label]="'Shift Unit'" [options]="shiftUnits"
+                            [optionDisplayFn]="optionLabelFn" [(selectedOption)]="selectedShiftUnit" />
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Step 2: Checking spinner -->
+            <div *ngIf="step === 'checking'" class="text-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Checking for conflicts...</p>
+            </div>
+
+            <!-- Step 3: Conflicts / Confirmation -->
+            <div *ngIf="step === 'conflicts' && checkResponse">
+                <div class="alert alert-info py-2">
+                    <strong>{{checkResponse.totalMatchingRows}}</strong> observation{{checkResponse.totalMatchingRows
+                    === 1 ? '' : 's'}} match your filter.
+                </div>
+
+                <div *ngIf="checkResponse.totalMatchingRows === 0" class="alert alert-warning py-2">
+                    No observations found matching the criteria.
+                </div>
+
+                <div *ngIf="checkResponse.totalMatchingRows > 0">
+                    <div *ngIf="checkResponse.permanentDeleteCount > 0" class="alert alert-danger py-2">
+                        <strong>{{checkResponse.permanentDeleteCount}}</strong> previously deleted
+                        record{{checkResponse.permanentDeleteCount === 1 ? '' : 's'}} at the target primary key will be
+                        permanently removed. Consider reviewing deleted records before proceeding.
+                    </div>
+
+                    <div *ngIf="checkResponse.conflictCount === 0 && checkResponse.permanentDeleteCount === 0"
+                        class="alert alert-success py-2">
+                        No conflicts found. Safe to proceed.
+                    </div>
+
+                    <div *ngIf="checkResponse.conflictCount > 0">
+                        <div class="alert alert-warning py-2">
+                            <strong>{{checkResponse.conflictCount}}</strong> conflict{{checkResponse.conflictCount === 1
+                            ? '' : 's'}} detected.
+                        </div>
+
+                        <!-- Conflict preview table -->
+                        <div *ngIf="checkResponse.previewData" class="mb-3">
+                            <app-import-preview-table [title]="'Showing Conflicts'"
+                                [columns]="checkResponse.previewData.columns" [rows]="checkResponse.previewData.rows"
+                                [totalRowCount]="checkResponse.previewData.totalRowCount"
+                                [hasFile]="!!checkResponse.sessionId" [noFileMessage]="'no conflicts detected'"
+                                [maxHeight]="'20vh'" />
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-secondary mb-3"
+                            (click)="onDownloadConflicts()">
+                            <i class="bi bi-download me-1"></i>Download Conflicts CSV
+                        </button>
+
+                        <!-- Conflict resolution -->
+                        <div class="mb-3">
+                            <app-selector-single-input [id]="'conflictResolution'" [label]="'How to handle conflicts?'"
+                                [options]="conflictResolutions" [optionDisplayFn]="optionLabelFn"
+                                [(selectedOption)]="selectedConflictResolution" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Step 4: Executing spinner -->
+            <app-spinner *ngIf="step === 'executing'" [message]="'Executing bulk update...'" />
+
+            <!-- Step 5: Result -->
+            <div *ngIf="step === 'result' && executeResponse">
+                <div class="alert alert-success py-2">
+                    <p class="mb-1">
+                        <strong>{{executeResponse.updatedCount}}</strong> observation{{executeResponse.updatedCount ===
+                        1 ? '' : 's'}} updated.
+                    </p>
+                    <p *ngIf="executeResponse.skippedCount > 0" class="mb-1">
+                        {{executeResponse.skippedCount}} skipped (conflicts).
+                    </p>
+                    <p *ngIf="executeResponse.permanentDeleteCount > 0" class="mb-0 text-danger">
+                        {{executeResponse.permanentDeleteCount}} existing record{{executeResponse.permanentDeleteCount
+                        === 1 ? '' : 's'}} at the target primary key permanently deleted.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </app-dialog>
+
+    <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Primary Key Update'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
+        <div>
+            Are you sure you want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
+                observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>
+        </div>
+    </app-confirmation-dialog>
+
+</ng-container>

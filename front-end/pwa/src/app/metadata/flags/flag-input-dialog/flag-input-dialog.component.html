@@ -1,0 +1,36 @@
+<ng-container *ngIf="open && viewFlag">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+        [displayDeleteOption]="viewFlag.id > 0" [closeOnDeleteClick]="false" (okClick)="onSaveClick()"
+        (deleteClick)="onDeleteClick()">
+
+        <div>
+            <app-text-input [label]="'Abbreviation'" [(value)]="viewFlag.abbreviation" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="viewFlag.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="viewFlag.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewFlag.comment" />
+        </div>
+
+        <div *ngIf="errorMessage">
+            <hr />
+            <div class="text-danger">
+                {{ errorMessage }}
+            </div>
+        </div>
+
+    </app-dialog>
+</ng-container>

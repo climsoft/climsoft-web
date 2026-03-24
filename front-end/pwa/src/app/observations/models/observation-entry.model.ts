@@ -14,4 +14,5 @@ export interface ObservationEntry {
   formattedDatetime?: string;
   intervalName?: string;
   qcTestsFailed?: QCTestCacheModel[];
+  qcTestLogItems?: ViewObservationModel['qcTestLog'];
 }

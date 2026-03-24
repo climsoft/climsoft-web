@@ -11,6 +11,7 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ObservationImportService } from './observations-import.service';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
 
 export interface PreviewSession {
     sessionId: string;
@@ -26,16 +27,17 @@ export class ImportPreviewService implements OnModuleDestroy {
     private readonly logger: Logger = new Logger(ImportPreviewService.name);
     private readonly sessions: Map<string, PreviewSession> = new Map();
     private readonly MAX_PREVIEW_ROWS = 200;
-    private readonly SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+    private readonly SESSION_TTL_MS = 60 * 60 * 1000; // 60 minutes
 
     constructor(
         private fileIOService: FileIOService,
         private observationImportService: ObservationImportService,
         private elementsService: ElementsService,
+        private flagsService: FlagsService,
     ) { }
 
     public async onModuleDestroy() {
-        for (const sessionId of this.sessions.keys()) {
+        for (const [sessionId] of this.sessions) {
             await this.destroySession(sessionId);
         }
     }
@@ -90,7 +92,6 @@ export class ImportPreviewService implements OnModuleDestroy {
         const session = this.getSession(sessionId);
         session.rowsToSkip = rowsToSkip;
         session.delimiter = delimiter;
-        session.lastAccessedAt = Date.now();
 
         return this.previewRawData(session);
     }
@@ -114,7 +115,6 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     public async previewTransformedData(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
-        session.lastAccessedAt = Date.now();
 
         // Reset table to raw state for idempotent processing
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
@@ -123,7 +123,8 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         // Apply transformations based on the source definition.
         const elements: CreateViewElementDto[] = this.elementsService.find();
-        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, stationId);
+        const flags = this.flagsService.find();
+        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, flags, stationId);
 
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
@@ -166,6 +167,8 @@ export class ImportPreviewService implements OnModuleDestroy {
         if (!session) {
             throw new NotFoundException(`Preview session not found: ${sessionId}. It may have expired.`);
         }
+        session.lastAccessedAt = Date.now();
+
         return session;
     }
 

@@ -1,9 +1,8 @@
-import { FlagEnum } from "../enums/flag.enum";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 
 export class ViewObservationLogDto {
   value: number | null;
-  flag: FlagEnum | null;
+  flagId: number | null;
   qcStatus: QCStatusEnum;
   comment: string | null;
   deleted: boolean;

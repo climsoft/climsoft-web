@@ -9,6 +9,8 @@ import { GeneralSettingsCacheService } from "src/app/admin/general-settings/serv
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
 import { ViewGeneralSettingModel } from "src/app/admin/general-settings/models/view-general-setting.model";
+import { FlagsCacheService } from "../flags/services/flags-cache.service";
+import { ViewFlagModel } from "../flags/models/view-flag.model";
 
 
 @Injectable({
@@ -20,6 +22,7 @@ export class CachedMetadataService {
     private _sourcesMetadata!: ViewSourceModel[];
     private _qcTestsMetadata!: QCTestCacheModel[];
     private _generalSettingsMetadata!: ViewGeneralSettingModel[];
+    private _flagsMetadata!: ViewFlagModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private checkingForUpdates: boolean = false;
 
@@ -29,6 +32,7 @@ export class CachedMetadataService {
         private sourcesCacheService: SourcesCacheService,
         private qcTestsCacheService: QCSpecificationsCacheService,
         private generalSettingsCacheService: GeneralSettingsCacheService,
+        private flagsCacheService: FlagsCacheService,
     ) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
@@ -55,6 +59,11 @@ export class CachedMetadataService {
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
+
+        this.flagsCacheService.cachedFlags.subscribe(data => {
+            this._flagsMetadata = data;
+            this.setMetadataLoaded();
+        });
     }
 
     private setMetadataLoaded(): void {
@@ -62,7 +71,8 @@ export class CachedMetadataService {
             && this._elementsMetadata && this._elementsMetadata.length > 0
             && this._sourcesMetadata && this._sourcesMetadata.length > 0
             && this._qcTestsMetadata
-            && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
+            && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0
+            && this._flagsMetadata && this._flagsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
     }
@@ -74,6 +84,7 @@ export class CachedMetadataService {
             this.sourcesCacheService.checkForUpdates();
             this.qcTestsCacheService.checkForUpdates();
             this.generalSettingsCacheService.checkForUpdates();
+            this.flagsCacheService.checkForUpdates();
 
             // Disable the checking of all metadata for 5 seconds.
             // this reduces the number of round trips to the server
@@ -188,6 +199,25 @@ export class CachedMetadataService {
             throw new Error(`Developer error: General setting not found. ${settingId}`);
         }
         return metadata;
+    }
+
+    public getFlag(flagId: number): ViewFlagModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. Flags not usable.`);
+        }
+        const metadata = this._flagsMetadata.find(item => item.id === flagId);
+        if (!metadata) {
+            throw new Error(`Developer error: Flag not found. ${flagId}`);
+        }
+        return metadata;
+    }
+
+    public getFlagByAbbreviationOrName(abbreviationOrName: string): ViewFlagModel | undefined {
+        return this._flagsMetadata.find(item => item.abbreviation.toLowerCase() === abbreviationOrName.toLowerCase() || item.name.toLowerCase() === abbreviationOrName.toLowerCase());
+    }
+
+    public getMissingFlag(): ViewFlagModel | undefined {
+        return this._flagsMetadata.find(item => item.name.toLowerCase() === 'missing');
     }
 
 }

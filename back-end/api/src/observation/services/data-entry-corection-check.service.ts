@@ -211,7 +211,7 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
             // Check for valid value and flag
             //-------------------------------------------------------------------------------
             const tempDto = dto as CreateObservationDto
-            if (tempDto.value === null && tempDto.flag === null) {
+            if (tempDto.value === null && tempDto.flagId === null) {
                 errorMessage = { message: 'Both value and flag are missing, not allowed.', dto: dto };
                 this.logger.error(JSON.stringify(errorMessage));
                 throw new BadRequestException(errorMessage);

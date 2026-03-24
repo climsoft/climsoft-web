@@ -7,6 +7,13 @@ export interface ViewObservationModel extends CreateObservationModel {
     qcTestLog: {
         qcTestId: number;
         qcStatus: QCStatusEnum;
+        context?: {
+            testName: string;
+            testType: string;
+            specification: Record<string, any>;
+            observedValue: number;
+            [key: string]: any;
+        };
     }[] | null;
     log: ViewObservationLogModel[];
     entryDatetime: string;

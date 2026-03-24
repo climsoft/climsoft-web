@@ -31,7 +31,8 @@ DECLARE
         'station_observation_focuses',
         'stations',
         'user_groups',
-        'users'
+        'users',
+        'flags'
     ]; 
 BEGIN
     FOREACH table_name IN ARRAY table_names LOOP

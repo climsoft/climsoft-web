@@ -38,7 +38,7 @@
     <hr class="border border-secondary border-1">
 
     <div>
-      <app-number-input [label]="'Entry scale factor'" [value]="element.entryScaleFactor"
+      <app-number-input [label]="'Entry scale factor'" [labelSuperScript]="'(e.g 25 to 2.5)'" [title]="'Value entered by user will be divided by this factor before storage'" [value]="element.entryScaleFactor"
         (valueChange)="onEntryScaleFactorChange($event)" />
     </div>
 

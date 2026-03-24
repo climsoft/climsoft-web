@@ -415,7 +415,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
           interval: obsEntry.observation.interval,
           value: obsEntry.observation.value,
-          flag: obsEntry.observation.flag,
+          flagId: obsEntry.observation.flagId,
           comment: obsEntry.observation.comment,
         });
       } else if (obsEntry.change === 'invalid_change') {

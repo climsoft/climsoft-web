@@ -11,6 +11,8 @@ import { ImportSelectionComponent } from './import-entry/import-source-selection
 import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
 import { MissingDataComponent } from './missing-data/missing-data.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
+import { BulkPkUpdateDialogComponent } from './data-correction/bulk-pk-update-dialog/bulk-pk-update-dialog.component';
+import { BulkDeleteDialogComponent } from './data-correction/bulk-delete-dialog/bulk-delete-dialog.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';  
@@ -29,6 +31,8 @@ import { ObservationsModule } from '../observations/observations.module';
     DataCorrectionComponent,   
     MissingDataComponent,
     DeletedDataComponent,
+    BulkPkUpdateDialogComponent,
+    BulkDeleteDialogComponent,
   ],
   imports: [
     DataIngestionRoutingModule,

@@ -25,31 +25,31 @@ RETURNS TABLE(
 AS $$
 DECLARE
     _sql TEXT;
-    _where_conditions TEXT := ''; 
+    _where_conditions TEXT := '';
 BEGIN
-    -- Build WHERE clause conditions dynamically 
+    -- Build WHERE clause conditions dynamically
 	 _where_conditions := 'o.deleted = FALSE';
 
     IF p_station_ids IS NOT NULL THEN
         _where_conditions := _where_conditions || ' AND o.station_id = ANY($1)';
     END IF;
-    
+
     IF p_element_ids IS NOT NULL THEN
          _where_conditions := _where_conditions || ' AND o.element_id = ANY($2)';
     END IF;
-    
+
     IF p_level IS NOT NULL THEN
         _where_conditions := _where_conditions || ' AND o.level = $3';
     END IF;
-    
+
     IF p_interval IS NOT NULL THEN
-        _where_conditions := _where_conditions || ' AND o."interval" = $4'; 
+        _where_conditions := _where_conditions || ' AND o."interval" = $4';
     END IF;
-    
+
     IF p_from_date IS NOT NULL THEN
          _where_conditions := _where_conditions || ' AND o.date_time >= $5';
     END IF;
-    
+
     IF p_to_date IS NOT NULL THEN
         _where_conditions := _where_conditions || ' AND o.date_time <= $6';
     END IF;
@@ -58,9 +58,9 @@ BEGIN
    _sql := format($q$
 					WITH observation_groups AS (
 									SELECT
-										o.station_id, 
-										o.element_id, 
-										o.level, 
+										o.station_id,
+										o.element_id,
+										o.level,
 										o."interval"
 									FROM observations o
 									WHERE %s
@@ -68,23 +68,23 @@ BEGIN
 					),
 					time_series AS (
 									SELECT
-										og.station_id, 
-										og.element_id, 
+										og.station_id,
+										og.element_id,
 										og.level, og.
-										"interval", 
+										"interval",
 										generate_series($5, $6, (og."interval" || ' minutes')::interval) AS date_time
 									FROM observation_groups og
 					),
 					infilled_data AS (
 									SELECT
-										ts.station_id, 
-										ts.element_id, 
-										ts.level, 
-										ts."interval", 
+										ts.station_id,
+										ts.element_id,
+										ts.level,
+										ts."interval",
 										ts.date_time,
-										o.source_id, 
-										o.value, 
-										o.flag, 
+										o.source_id,
+										o.value,
+										o.flag_id,
 										o.qc_status
 									FROM time_series ts
 									LEFT JOIN observations o
@@ -95,17 +95,17 @@ BEGIN
 									AND o.date_time  = ts.date_time
 					)
 					SELECT
-						id.station_id, 
-						id.element_id, 
-						id.level, 
-						id."interval", 
-						MIN(id.date_time) AS from_date, 
+						id.station_id,
+						id.element_id,
+						id.level,
+						id."interval",
+						MIN(id.date_time) AS from_date,
 						MAX(id.date_time) AS to_date,
 						COUNT(*) AS expected,
 						COUNT(*) FILTER (WHERE id.value IS NOT NULL) AS non_missing,
-						COUNT(*) FILTER (WHERE id.flag = 'missing') AS confirmed_missing,
-						COUNT(*) FILTER (WHERE id.value IS NULL AND id.flag IS NULL) AS gaps,
-						( COUNT(*) FILTER (WHERE id.flag = 'missing') + COUNT(*) FILTER (WHERE id.value IS NULL AND id.flag IS NULL) ) AS gaps_plus_missing,
+						COUNT(*) FILTER (WHERE id.flag_id = (SELECT f.id FROM flags f WHERE LOWER(f.name) = 'missing' LIMIT 1)) AS confirmed_missing,
+						COUNT(*) FILTER (WHERE id.value IS NULL AND id.flag_id IS NULL) AS gaps,
+						( COUNT(*) FILTER (WHERE id.flag_id = (SELECT f.id FROM flags f WHERE LOWER(f.name) = 'missing' LIMIT 1)) + COUNT(*) FILTER (WHERE id.value IS NULL AND id.flag_id IS NULL) ) AS gaps_plus_missing,
 						COUNT(*) FILTER (WHERE id.qc_status = 'none') AS qc_nones,
 						COUNT(*) FILTER (WHERE id.qc_status = 'passed') AS qc_passes,
 						COUNT(*) FILTER (WHERE id.qc_status = 'failed') AS qc_fails

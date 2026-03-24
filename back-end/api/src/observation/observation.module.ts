@@ -19,6 +19,10 @@ import { DataEntryAndCorrectionCheckService } from './services/data-entry-corect
 import { BufrExportService } from './services/bufr-export.service';
 import { ImportPreviewService } from './services/import-preview.service';
 import { ImportPreviewController } from './controllers/import-preview.controller';
+import { BulkPkUpdateService } from './services/bulk-pk-update.service';
+import { BulkPkUpdateController } from './controllers/bulk-pk-update.controller';
+import { BulkDeleteService } from './services/bulk-delete.service';
+import { BulkDeleteController } from './controllers/bulk-delete.controller';
 
 @Module({
   imports: [
@@ -33,6 +37,8 @@ import { ImportPreviewController } from './controllers/import-preview.controller
     QualityControlController,
     ClimsoftV4Controller,
     ImportPreviewController,
+    BulkPkUpdateController,
+    BulkDeleteController,
   ],
   providers: [
     ObservationsService,
@@ -45,6 +51,8 @@ import { ImportPreviewController } from './controllers/import-preview.controller
     ClimsoftWebToV4SyncService,
     ClimsoftV4ToWebSyncService,
     ImportPreviewService,
+    BulkPkUpdateService,
+    BulkDeleteService,
   ],
   exports: [
     ObservationImportService,

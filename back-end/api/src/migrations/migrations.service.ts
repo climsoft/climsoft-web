@@ -16,14 +16,18 @@ import { QCTestTypeEnum } from 'src/metadata/qc-specifications/entities/qc-test-
 import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-specifications/dtos/qc-test-parameters/range-qc-test-params.dto';
 import { GeneralSettingParameters } from 'src/settings/dtos/update-general-setting-params.dto';
 import { ViewGeneralSettingModel } from 'src/settings/dtos/view-general-setting.model';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
+import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.4'; // TODO. Should come from a versioning file. 
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.4'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
     @InjectRepository(DatabaseVersionEntity) private dbVersionRepo: Repository<DatabaseVersionEntity>,
+    private dataSource: DataSource,
     private sqlScriptsService: SqlScriptsLoaderService,
     private userService: UsersService,
     private elementSubdomainsService: ElementSubdomainsService,
@@ -31,7 +35,9 @@ export class MigrationsService {
     private stationObsEnvService: StationObsEnvService,
     private stationObsFocusesService: StationObsFocusesService,
     private generalSettingsService: GeneralSettingsService,
-    private qcTestsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
+    private flagsService: FlagsService,
+    private elementsService: ElementsService,
+    private qcSpecsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
 
   ) { }
 
@@ -45,6 +51,7 @@ export class MigrationsService {
     if (lastDBVersion) {
       if (lastDBVersion.version === this.SUPPORTED_DB_VERSION) {
         // DB version same so return.
+        this.logger.log('DB version is the same. So no migration');
         return;
       } else if (!this.isVersionGreater(this.SUPPORTED_DB_VERSION, lastDBVersion.version)) {
         const errorMessage = `Database version ${lastDBVersion.version} is greater than the supported version ${this.SUPPORTED_DB_VERSION}.`;
@@ -54,11 +61,18 @@ export class MigrationsService {
 
     }
 
+    const startTime: number = Date.now();
+
+    this.logger.log('Starting DB migration');
+
     // Depending on the version the seeding will be different
     await this.seedDatabase();
 
+    // Migrate observation flag column to flag_id
+    await this.migrateObservationFlagsToFlagId();
+
     // TODO. Temporary solution for preview 1 to 2.0.3 installations. Once all met services have preview 2.0.5 remove this
-    this.changeUpperAndLowerLimitQCStructure();
+    await this.changeUpperAndLowerLimitQCStructure();
 
     // After successful migrations, then add the new database version
     const newDBVersion = this.dbVersionRepo.create({
@@ -67,6 +81,7 @@ export class MigrationsService {
     });
     await this.dbVersionRepo.save(newDBVersion);
 
+    this.logger.log(`Ending DB migration. Time taken: ${Date.now() - startTime} `);
   }
 
   private isVersionGreater(currentVersion: string, lastVersion: string): boolean {
@@ -99,7 +114,7 @@ export class MigrationsService {
   }
 
   private async seedFirstUser() {
-    const count = await this.userService.count();
+    const count: number = this.userService.count();
     if (count === 0) {
       const newUser = await this.userService.create(
         {
@@ -123,29 +138,36 @@ export class MigrationsService {
   private async seedMetadata() {
     let count: number;
     // Elements metadata
-    count = await this.elementSubdomainsService.count();
+    count = this.elementSubdomainsService.count();
     if (count === 0) {
       await this.elementSubdomainsService.bulkPut(MetadataDefaults.ELEMENT_SUBDOMAINS, 1);
       this.logger.log('element subdomains added');
     }
 
-    count = await this.elementTypesService.count();
+    count = this.elementTypesService.count();
     if (count === 0) {
       await this.elementTypesService.bulkPut(MetadataDefaults.ELEMENT_TYPES, 1);
       this.logger.log('element types added');
     }
 
     // Stations metadata 
-    count = await this.stationObsEnvService.count();
+    count = this.stationObsEnvService.count();
     if (count === 0) {
       await this.stationObsEnvService.bulkPut(MetadataDefaults.STATION_ENVIRONMENTS, 1);
       this.logger.log('station observations environments added');
     }
 
-    count = await this.stationObsFocusesService.count();
+    count = this.stationObsFocusesService.count();
     if (count === 0) {
       await this.stationObsFocusesService.bulkPut(MetadataDefaults.STATION_FOCUS, 1);
       this.logger.log('station observations focuses added');
+    }
+
+    // Flags metadata
+    count = this.flagsService.count();
+    if (count === 0) {
+      await this.flagsService.bulkPut(MetadataDefaults.FLAGS, 1);
+      this.logger.log('flags added');
     }
 
   }
@@ -164,9 +186,62 @@ export class MigrationsService {
     this.logger.log(`All general settings updated`);
   }
 
-  // TODO. Temporary function to upgrade preview 2.0.4 and below releases
+  /**
+   * Migrate existing observation flag enum values to flag_id integers.
+   * Adds flag_id column if missing, copies data from flag → flag_id, then drops flag column and enum type.
+   */
+  private async migrateObservationFlagsToFlagId(): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    try {
+      // Check if old 'flag_id' column still exists
+      const flagIdColumnExists = await queryRunner.query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'observations' AND column_name = 'flag_id'
+      `);
+
+      if (flagIdColumnExists.length > 0) {
+        this.logger.log('Flag id already exists so flags already migrated');
+        return; // Already migrated
+      }
+
+      this.logger.log('Migrating observation flag enum to flag_id...');
+
+      // Copy data from flag enum to flag_id using abbreviation mapping
+      await queryRunner.query(`
+        UPDATE observations SET flag_id = f.id
+        FROM flags f
+        WHERE observations.flag IS NOT NULL
+        AND observations.flag_id IS NULL
+        AND f.abbreviation = CASE observations.flag::text
+          WHEN 'missing' THEN 'M'
+          WHEN 'estimate' THEN 'E'
+          WHEN 'dubious' THEN 'D'
+          WHEN 'generated' THEN 'G'
+          WHEN 'cumulative' THEN 'C'
+          WHEN 'trace' THEN 'T'
+          WHEN 'obscured' THEN 'O'
+          WHEN 'variable' THEN 'V'
+        END
+      `);
+
+      // TODO. Drop the old flag column. No need as subsequent preview release should do this automatically
+      //await queryRunner.query(`ALTER TABLE observations DROP COLUMN IF EXISTS flag`);
+
+      // TODO. Drop the old enum type. Investigate if this is needed or if TypeORM will automaticall drop it
+      //await queryRunner.query(`DROP TYPE IF EXISTS observations_flag_enum`);
+
+      this.logger.log('Observation flag migration completed');
+    } catch (error) {
+      this.logger.error('Error migrating observation flags', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+   // TODO. Temporary function to upgrade preview 2.0.4 and below releases
   private async changeUpperAndLowerLimitQCStructure() {
-    const rangeQcs = await this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
+    const rangeQcs = this.qcSpecsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
 
     for (const qc of rangeQcs) {
       const oldThresholdParams: any = qc.parameters;
@@ -178,7 +253,7 @@ export class MigrationsService {
           }
         };
 
-        await this.qcTestsService.update(qc.id, { ...qc, parameters: newThresholdParams }, 1);
+        await this.qcSpecsService.update(qc.id, { ...qc, parameters: newThresholdParams }, 1);
 
         this.logger.log(`Range threshold updated -  ${qc.id} - ${qc.name}`)
       }

@@ -14,6 +14,7 @@ import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError } from '../dtos/import-preview.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
 
 @Injectable()
 export class ObservationImportService {
@@ -24,6 +25,7 @@ export class ObservationImportService {
         private dataSource: DataSource,
         private sourcesService: SourceSpecificationsService,
         private elementsService: ElementsService,
+        private flagsService: FlagsService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -82,7 +84,8 @@ export class ObservationImportService {
 
         // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
         const elements: CreateViewElementDto[] = this.elementsService.find();
-        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, stationId, userId);
+        const flags = this.flagsService.find();
+        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, flags, stationId, userId);
 
         // TODO. throw errors if any.
         if (errors) {
@@ -132,7 +135,7 @@ export class ObservationImportService {
                         ${TabularImportTransformer.INTERVAL_PROPERTY_NAME} INTEGER NOT NULL,
                         ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER NOT NULL,
                         ${TabularImportTransformer.VALUE_PROPERTY_NAME} DOUBLE PRECISION,
-                        ${TabularImportTransformer.FLAG_PROPERTY_NAME} VARCHAR,
+                        ${TabularImportTransformer.FLAG_PROPERTY_NAME} INTEGER,
                         ${TabularImportTransformer.COMMENT_PROPERTY_NAME} VARCHAR,
                         ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER NOT NULL
                     ) ON COMMIT DROP;
@@ -151,10 +154,9 @@ export class ObservationImportService {
 
             // Step 3: Insert from staging to observations with ON CONFLICT handling
             // If duplicate exists, update the existing record with new values
-            // Cast flag from VARCHAR to observations_flag_enum type
             const upsertQuery = `
                     INSERT INTO observations (${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME})
-                    SELECT ${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}::observations_flag_enum, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME}
+                    SELECT ${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME}
                     FROM ${stagingTableName}
                     ON CONFLICT (${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME})
                     DO UPDATE SET

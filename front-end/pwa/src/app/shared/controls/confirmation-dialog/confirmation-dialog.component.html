@@ -1,0 +1,5 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="okButtonLabel" [cancelButtonLabel]="cancelButtonLabel"
+    [displayDeleteOption]="false" (okClick)="onOkConfirm()" (cancelClick)="onCancelConfirm()">
+    <ng-content></ng-content>
+    <p *ngIf="displayCannotBeUndone" class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>This action cannot be undone.</p>
+</app-dialog>

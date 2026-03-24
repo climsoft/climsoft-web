@@ -56,6 +56,12 @@
 
                         <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
                             [contextualQCTestParameters]="contextualConsistentyParam" />
+
+                        <app-qc-test-diurnal-params *ngIf="isDiurnal"
+                            [diurnalQCTestParameters]="diurnalParam" />
+
+                        <app-qc-test-spatial-params *ngIf="isSpatialConsistency"
+                            [spatialQCTestParameters]="spatialConsistencyParam" />
                     </div>
 
                     <div *ngIf="displayNotYetSupported" class="fw-bold text-info">
