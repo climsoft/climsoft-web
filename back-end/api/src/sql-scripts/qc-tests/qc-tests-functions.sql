@@ -36,7 +36,11 @@ BEGIN
                     qc_test_log := func_perform_relational_comparison_test(observation_record, qc_test);
                 WHEN 'contextual_consistency' THEN
                     qc_test_log := func_perform_contextual_consistency_test(observation_record, qc_test);
-				ELSE 
+				WHEN 'diurnal' THEN
+                    qc_test_log := func_perform_diurnal_test(observation_record, qc_test);
+				WHEN 'spatial_consistency' THEN
+                    qc_test_log := func_perform_spatial_consistency_test(observation_record, qc_test);
+				ELSE
 					RAISE EXCEPTION 'Unsupported QC test type: %', qc_test.qc_test_type;
             END CASE;
 
@@ -362,6 +366,227 @@ BEGIN
                 'specification', qc_test.parameters,
                 'observedValue', observation_record.value,
                 'referenceValue', reference_value));
+    ELSE
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
+    END IF;
+
+    RETURN qc_test_log;
+END;
+$$ LANGUAGE plpgsql;
+
+---
+--- Diurnal QC Test — Monotonic Trend Check
+---
+--- Validates that observations follow the expected daily (diurnal) cycle for the element.
+--- The day is divided into user-defined periods, each with an expected trend direction.
+--- For each observation, the test compares it against the immediately preceding value
+--- and checks whether the direction of change matches the expected trend for that hour.
+---
+--- Parameters (from qc_test.parameters JSONB):
+---   periods: array of { trend, startHour, endHour, tolerance }
+---     - trend:     'rising' (values should increase) or 'falling' (values should decrease)
+---     - startHour: start of the period (0-23 inclusive)
+---     - endHour:   end of the period (0-23 inclusive), supports wrap-around
+---     - tolerance: allowed counter-trend deviation before flagging
+---
+--- Example — Temperature diurnal cycle:
+---   periods: [
+---     { trend: "rising",  startHour: 6,  endHour: 14, tolerance: 0.5 },
+---     { trend: "falling", startHour: 18, endHour: 5,  tolerance: 0.5 }
+---   ]
+---
+---   Observation at 10:00 (within "rising" period 6h–14h):
+---     Previous value: 22.0°C, Current value: 20.0°C → change = -2.0
+---     Expected "rising" but value dropped by 2.0 (exceeds tolerance of 0.5) → FAIL
+---
+---   Observation at 20:00 (within "falling" period 18h–5h):
+---     Previous value: 28.0°C, Current value: 26.5°C → change = -1.5
+---     Expected "falling" and value dropped → PASS
+---
+---   Observation at 16:00 (not covered by any period):
+---     Test is skipped — hour is outside all defined periods.
+---
+--- Wrap-around: startHour: 18, endHour: 5 covers hours 18..23 and 0..5.
+--- If no previous observation exists, the test is skipped (cannot determine trend).
+---
+CREATE OR REPLACE FUNCTION func_perform_diurnal_test(
+    observation_record RECORD,
+    qc_test RECORD
+) RETURNS JSONB AS $$
+DECLARE
+    params JSONB;
+    obs_hour INT;
+    period JSONB;
+    matched_period JSONB := NULL;
+    expected_trend VARCHAR;
+    tolerance FLOAT8;
+    start_hour INT;
+    end_hour INT;
+    previous_value FLOAT8;
+    value_change FLOAT8;
+    qc_test_log JSONB;
+BEGIN
+    params := qc_test.parameters;
+    obs_hour := EXTRACT(HOUR FROM observation_record.date_time);
+
+    -- Find the period that contains this hour
+    FOR period IN SELECT * FROM jsonb_array_elements(params->'periods')
+    LOOP
+        start_hour := (period->>'startHour')::INT;
+        end_hour := (period->>'endHour')::INT;
+
+        -- Handle wrap-around (e.g., 18 to 5 means 18..23, 0..5)
+        IF start_hour <= end_hour THEN
+            IF obs_hour >= start_hour AND obs_hour <= end_hour THEN
+                matched_period := period;
+                EXIT;
+            END IF;
+        ELSE
+            IF obs_hour >= start_hour OR obs_hour <= end_hour THEN
+                matched_period := period;
+                EXIT;
+            END IF;
+        END IF;
+    END LOOP;
+
+    -- If no period covers this hour, skip (not applicable)
+    IF matched_period IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    expected_trend := (matched_period->>'trend')::VARCHAR;
+    tolerance := (matched_period->>'tolerance')::FLOAT8;
+
+    -- Get the immediately preceding observation value (same pattern as spike test)
+    SELECT value INTO previous_value
+    FROM observations
+    WHERE station_id = observation_record.station_id
+      AND element_id = observation_record.element_id
+      AND level = observation_record.level
+      AND interval = observation_record.interval
+      AND date_time < observation_record.date_time
+    ORDER BY date_time DESC
+    LIMIT 1;
+
+    -- If no previous value, cannot check trend — skip
+    IF previous_value IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    value_change := observation_record.value - previous_value;
+
+    -- Check trend: rising means value_change should not drop beyond tolerance, falling means it should not rise beyond tolerance
+    IF (expected_trend = 'rising' AND value_change < -tolerance) OR
+       (expected_trend = 'falling' AND value_change > tolerance) THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'previousValue', previous_value,
+                'valueChange', value_change,
+                'expectedTrend', expected_trend,
+                'hour', obs_hour,
+                'tolerance', tolerance));
+    ELSE
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
+    END IF;
+
+    RETURN qc_test_log;
+END;
+$$ LANGUAGE plpgsql;
+
+---
+--- Spatial Consistency QC Test — Neighbour Mean Deviation Check
+---
+--- Compares an observation's value against the mean of the same element observed at
+--- neighbouring stations at the same datetime. Neighbours are found dynamically using
+--- PostGIS ST_DWithin distance calculations on the stations' location geometry column.
+---
+--- Parameters (from qc_test.parameters JSONB):
+---   maxDistanceKm: maximum search radius in kilometres
+---   minNeighbours: minimum number of neighbouring stations required (skip if fewer)
+---   maxDeviation:  maximum allowed |observed - neighbourMean| before flagging
+---
+--- Example — Temperature spatial check:
+---   maxDistanceKm: 50, minNeighbours: 3, maxDeviation: 5.0
+---
+---   Station A reports temperature = 45.2°C at 2024-01-15 12:00
+---   3 neighbouring stations within 50 km report: [24.8, 25.0, 25.5]
+---   Neighbour mean = 25.1°C
+---   Deviation = |45.2 - 25.1| = 20.1 > maxDeviation of 5.0 → FAIL
+---
+---   If only 2 neighbours are found (below minNeighbours of 3), the test is skipped
+---   (not enough evidence to flag the observation).
+---
+---   If Station A has no location set, the test is also skipped.
+---
+CREATE OR REPLACE FUNCTION func_perform_spatial_consistency_test(
+    observation_record RECORD,
+    qc_test RECORD
+) RETURNS JSONB AS $$
+DECLARE
+    params JSONB;
+    max_distance_m FLOAT8;
+    min_neighbours INT4;
+    max_deviation FLOAT8;
+    station_location GEOMETRY;
+    neighbour_mean FLOAT8;
+    neighbour_count INT4;
+    neighbour_values FLOAT8[];
+    deviation FLOAT8;
+    qc_test_log JSONB;
+BEGIN
+    params := qc_test.parameters;
+    max_distance_m := (params->>'maxDistanceKm')::FLOAT8 * 1000; -- convert km to meters
+    min_neighbours := (params->>'minNeighbours')::INT4;
+    max_deviation := (params->>'maxDeviation')::FLOAT8;
+
+    -- Get the current station's location
+    SELECT location INTO station_location
+    FROM stations
+    WHERE id = observation_record.station_id;
+
+    -- If station has no location, skip the test
+    IF station_location IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    -- Find neighbouring stations' values for the same element/level/interval/datetime
+    SELECT AVG(o.value), COUNT(o.value), ARRAY_AGG(o.value)
+    INTO neighbour_mean, neighbour_count, neighbour_values
+    FROM observations o
+    JOIN stations s ON o.station_id = s.id
+    WHERE o.element_id = observation_record.element_id
+      AND o.level = observation_record.level
+      AND o.interval = observation_record.interval
+      AND o.date_time = observation_record.date_time
+      AND o.station_id <> observation_record.station_id
+      AND o.value IS NOT NULL
+      AND o.deleted = FALSE
+      AND s.location IS NOT NULL
+      AND ST_DWithin(s.location::geography, station_location::geography, max_distance_m);
+
+    -- If not enough neighbours, skip the test
+    IF neighbour_count IS NULL OR neighbour_count < min_neighbours THEN
+        RETURN NULL;
+    END IF;
+
+    deviation := ABS(observation_record.value - neighbour_mean);
+
+    -- Check if the observation deviates too much from neighbours' mean
+    IF deviation > max_deviation THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'neighbourMean', ROUND(neighbour_mean::NUMERIC, 2),
+                'neighbourCount', neighbour_count,
+                'deviation', ROUND(deviation::NUMERIC, 2),
+                'neighbourValues', to_jsonb(neighbour_values)));
     ELSE
         qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;

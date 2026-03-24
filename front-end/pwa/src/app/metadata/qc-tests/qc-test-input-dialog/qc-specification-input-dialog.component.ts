@@ -6,6 +6,8 @@ import { QCTestParamConditionEnum } from 'src/app/metadata/qc-tests/models/qc-te
 import { RangeThresholdQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model';
 import { RelationalQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/relational-qc-test-params.model';
 import { SpikeQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/spike-qc-test-params.model';
+import { DiurnalQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/diurnal-qc-test-params.model';
+import { SpatialQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/spatial-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.enum';
 import { ViewQCTestModel } from 'src/app/metadata/qc-tests/models/view-qc-test.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -115,6 +117,22 @@ export class QCSpecificationInputDialogComponent {
     return this.updateQcTest.parameters as ContextualQCTestParamsModel;
   }
 
+  protected get isDiurnal(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.DIURNAL;
+  }
+
+  protected get diurnalParam(): DiurnalQCTestParamsModel {
+    return this.updateQcTest.parameters as DiurnalQCTestParamsModel;
+  }
+
+  protected get isSpatialConsistency(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.SPATIAL_CONSISTENCY;
+  }
+
+  protected get spatialConsistencyParam(): SpatialQCTestParamsModel {
+    return this.updateQcTest.parameters as SpatialQCTestParamsModel;
+  }
+
   protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum): void {
 
     this.displayNotYetSupported = false;
@@ -137,8 +155,13 @@ export class QCSpecificationInputDialogComponent {
         this.updateQcTest.parameters = relational;
         break;
       case QCTestTypeEnum.DIURNAL:
-        this.updateQcTest.parameters = { isValid: () => true }
-        this.displayNotYetSupported = true;
+        const diurnal: DiurnalQCTestParamsModel = {
+          periods: [
+            { trend: 'rising', startHour: 6, endHour: 14, tolerance: 0 },
+            { trend: 'falling', startHour: 18, endHour: 5, tolerance: 0 }
+          ]
+        };
+        this.updateQcTest.parameters = diurnal;
         break;
       case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
         const contextual: ContextualQCTestParamsModel = {
@@ -147,6 +170,10 @@ export class QCSpecificationInputDialogComponent {
           primaryCheck: { condition: QCTestParamConditionEnum.GREAT_THAN, value: 0 }
         };
         this.updateQcTest.parameters = contextual;
+        break;
+      case QCTestTypeEnum.SPATIAL_CONSISTENCY:
+        const spatial: SpatialQCTestParamsModel = { maxDistanceKm: 50, minNeighbours: 3, maxDeviation: 0 };
+        this.updateQcTest.parameters = spatial;
         break;
       default:
         this.displayNotYetSupported = true;

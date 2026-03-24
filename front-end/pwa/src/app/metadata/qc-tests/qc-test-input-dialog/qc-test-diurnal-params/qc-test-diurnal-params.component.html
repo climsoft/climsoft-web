@@ -1,0 +1,44 @@
+<div>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Trend</th>
+                <th>Start Hour</th>
+                <th>End Hour</th>
+                <th>Tolerance</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            <tr *ngFor="let period of diurnalQCTestParameters.periods; let i = index">
+                <td>
+                    <select class="form-select form-select-sm" [ngModel]="period.trend"
+                        (ngModelChange)="onTrendChange(period, $event)">
+                        <option *ngFor="let opt of trendOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                </td>
+                <td>
+                    <app-number-input [id]="i + '_diurnal_start_hour'" [min]="0" [max]="23"
+                        [(numValue)]="period.startHour" />
+                </td>
+                <td>
+                    <app-number-input [id]="i + '_diurnal_end_hour'" [min]="0" [max]="23"
+                        [(numValue)]="period.endHour" />
+                </td>
+                <td>
+                    <app-number-input [id]="i + '_diurnal_tolerance'" [min]="0"
+                        [(numValue)]="period.tolerance" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" title="Remove period"
+                        (click)="onRemovePeriod(i)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onAddPeriod()">
+        Add Period
+    </button>
+</div>

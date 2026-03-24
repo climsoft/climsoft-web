@@ -21,6 +21,8 @@ import { ImportPreviewService } from './services/import-preview.service';
 import { ImportPreviewController } from './controllers/import-preview.controller';
 import { BulkPkUpdateService } from './services/bulk-pk-update.service';
 import { BulkPkUpdateController } from './controllers/bulk-pk-update.controller';
+import { BulkDeleteService } from './services/bulk-delete.service';
+import { BulkDeleteController } from './controllers/bulk-delete.controller';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { BulkPkUpdateController } from './controllers/bulk-pk-update.controller'
     ClimsoftV4Controller,
     ImportPreviewController,
     BulkPkUpdateController,
+    BulkDeleteController,
   ],
   providers: [
     ObservationsService,
@@ -49,6 +52,7 @@ import { BulkPkUpdateController } from './controllers/bulk-pk-update.controller'
     ClimsoftV4ToWebSyncService,
     ImportPreviewService,
     BulkPkUpdateService,
+    BulkDeleteService,
   ],
   exports: [
     ObservationImportService,

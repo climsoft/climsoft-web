@@ -80,7 +80,7 @@
                                         <td>
                                             <div class="app-value-flag-container">
                                                 <app-value-flag-input [id]="i + '_vf'"
-                                                    [displayExtraInfoOption]="true" [scaleUserInputValue]="false"
+                                                    [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false"
                                                     [observationEntry]="obsEntry"
                                                     [disableValueFlagEntry]="obsEntry.confirmAsCorrect || obsEntry.delete"
                                                     (userInputVF)="onUserInput()" />
@@ -96,7 +96,9 @@
                                                     'bg-info': qcTestLogItem.qcTestType === 'flat_line',
                                                     'bg-warning text-dark': qcTestLogItem.qcTestType === 'spike',
                                                     'bg-secondary': qcTestLogItem.qcTestType === 'relational_comparison',
-                                                    'bg-success': qcTestLogItem.qcTestType === 'contextual_consistency'
+                                                    'bg-success': qcTestLogItem.qcTestType === 'contextual_consistency',
+                                                    'bg-danger': qcTestLogItem.qcTestType === 'diurnal',
+                                                    'bg-dark': qcTestLogItem.qcTestType === 'spatial_consistency'
                                                 }" (click)="onQCTestBadgeClick(obsEntry, j)">
                                                     {{ qcTestLogItem.name }}
                                                 </span>

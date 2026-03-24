@@ -9,7 +9,9 @@
                 'bg-info': testType === 'flat_line',
                 'bg-warning text-dark': testType === 'spike',
                 'bg-secondary': testType === 'relational_comparison',
-                'bg-success': testType === 'contextual_consistency'
+                'bg-success': testType === 'contextual_consistency',
+                'bg-danger': testType === 'diurnal',
+                'bg-dark': testType === 'spatial_consistency'
             }">{{ testName }}</span>
         </div>
 
@@ -170,6 +172,78 @@
                     <tr>
                         <th>Result</th>
                         <td class="text-danger fw-bold">Both conditions satisfied simultaneously</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Diurnal -->
+        <div *ngIf="hasContext && testType === 'diurnal'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Observed Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Previous Value</th>
+                        <td>{{ context.previousValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Value Change</th>
+                        <td class="text-danger fw-bold">{{ context.valueChange }}</td>
+                    </tr>
+                    <tr>
+                        <th>Expected Trend</th>
+                        <td>{{ context.expectedTrend }}</td>
+                    </tr>
+                    <tr>
+                        <th>Hour</th>
+                        <td>{{ context.hour }}:00</td>
+                    </tr>
+                    <tr>
+                        <th>Tolerance</th>
+                        <td>&plusmn; {{ context.tolerance }}</td>
+                    </tr>
+                    <tr>
+                        <th>Result</th>
+                        <td class="text-danger fw-bold">
+                            Value {{ context.valueChange >= 0 ? 'rose' : 'dropped' }} by {{ context.valueChange >= 0 ?
+                            context.valueChange : -context.valueChange }} during expected {{ context.expectedTrend }}
+                            period
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Spatial Consistency -->
+        <div *ngIf="hasContext && testType === 'spatial_consistency'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Observed Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Neighbour Mean</th>
+                        <td>{{ context.neighbourMean }}</td>
+                    </tr>
+                    <tr>
+                        <th>Deviation</th>
+                        <td class="text-danger fw-bold">{{ context.deviation }}</td>
+                    </tr>
+                    <tr>
+                        <th>Max Deviation (threshold)</th>
+                        <td>{{ context.specification?.maxDeviation }}</td>
+                    </tr>
+                    <tr>
+                        <th>Neighbour Count</th>
+                        <td>{{ context.neighbourCount }}</td>
+                    </tr>
+                    <tr>
+                        <th>Neighbour Values</th>
+                        <td>{{ context.neighbourValues?.join(', ') }}</td>
                     </tr>
                 </tbody>
             </table>

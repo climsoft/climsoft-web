@@ -15,6 +15,7 @@ import { ObservationEntry } from 'src/app/observations/models/observation-entry.
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { BulkPkUpdateDialogComponent } from './bulk-pk-update-dialog/bulk-pk-update-dialog.component';
+import { BulkDeleteDialogComponent } from './bulk-delete-dialog/bulk-delete-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
@@ -27,6 +28,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
     @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
   @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
+  @ViewChild('dlgBulkDelete') dlgBulkDelete!: BulkDeleteDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -194,6 +196,10 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   protected onBulkPkUpdate(): void {
     this.dlgBulkPkUpdate.openDialog(this.queryFilter);
+  }
+
+  protected onBulkDelete(): void {
+    this.dlgBulkDelete.openDialog(this.queryFilter);
   }
 
   protected onDeleteAllConfirm(): void {
