@@ -35,6 +35,7 @@ export interface BulkPkUpdateFilter {
     sourceIds?: number[];
     fromDate?: string;
     toDate?: string;
+    hour?: number;
 }
 
 export interface BulkPkUpdateCheckRequest {

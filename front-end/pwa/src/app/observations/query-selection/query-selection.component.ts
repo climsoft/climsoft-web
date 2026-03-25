@@ -26,6 +26,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public displayIntervalSelector: boolean = true;
   @Input() public displayObservationDateSelector: boolean = true;
   @Input() public displayEntryDateSelector: boolean = true;
+  @Input() public displayHourSelector: boolean = false;
   @Input() public displayFilterHeader: boolean = true;
   @Input() public inputFilter!: ViewObservationQueryModel;
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>();
@@ -37,6 +38,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected intervals: number[] = [];
   protected level: number | null | undefined = 0;
   protected dateRange: DateRange;
+  protected hour: number | null | undefined = null;
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
@@ -92,12 +94,13 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
     if (this.outputFilter.stationIds) this.stationIds = this.outputFilter.stationIds;
     if (this.outputFilter.elementIds) this.elementIds = this.outputFilter.elementIds;
-    if (this.outputFilter.level) this.level = this.outputFilter.level;
+    this.level = this.outputFilter.level ?? null;
     if (this.outputFilter.intervals) this.intervals = this.outputFilter.intervals;
     if (this.outputFilter.sourceIds) this.sourceIds = this.outputFilter.sourceIds;
     if (this.outputFilter.useEntryDate !== undefined) this.useEntryDate = this.outputFilter.useEntryDate;
     if (this.outputFilter.fromDate) this.dateRange.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.utcOffset, 'add').split('T')[0];
     if (this.outputFilter.toDate) this.dateRange.toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.utcOffset, 'add').split('T')[0];
+    this.hour = this.outputFilter.hour ?? null;
   }
 
   private setStationsAllowed(): void {
@@ -172,6 +175,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.intervals.length > 0) this.outputFilter.intervals = this.intervals;
     if (this.level !== null) this.outputFilter.level = this.level;
     if (this.sourceIds.length > 0) this.outputFilter.sourceIds = this.sourceIds;
+    if (this.hour !== null) this.outputFilter.hour = this.hour;
     if (this.useEntryDate) this.outputFilter.useEntryDate = this.useEntryDate;
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
@@ -187,7 +191,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   // TODO.
   // Temporary made public because of QC assessment. 
-  // After refactoring this componenent, ot can be changed back to protected.
+  // After refactoring this componenent, it can be changed back to protected.
   public getFilter(): ViewObservationQueryModel {
     const outputFilter: ViewObservationQueryModel = { deleted: false };
     // Get the data based on the selection filter 
@@ -197,6 +201,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.intervals.length > 0) outputFilter.intervals = this.intervals;
     if (this.level !== null) outputFilter.level = this.level;
     if (this.sourceIds.length > 0) outputFilter.sourceIds = this.sourceIds;
+    if (this.hour !== null) outputFilter.hour = this.hour;
     if (this.useEntryDate) outputFilter.useEntryDate = this.useEntryDate;
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus

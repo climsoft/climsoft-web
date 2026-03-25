@@ -473,9 +473,15 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             paramIndex++;
         }
 
+        if (filter.hour !== undefined) {
+            conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = $${paramIndex}`);
+            params.push(filter.hour);
+            paramIndex++;
+        }
+
         // For datetime, no fromValue filter because shift applies to all matching rows
         if (change.field !== PkFieldEnum.DATE_TIME) {
-            const dbColumn = change.field; // enum values match DB column names 
+            const dbColumn = change.field; // enum values match DB column names
             conditions.push(`${tableAlias}.${dbColumn} = $${paramIndex}`);
             params.push(change.fromValue);
             paramIndex++;

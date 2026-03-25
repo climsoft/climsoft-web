@@ -10,7 +10,7 @@ import {
   BulkDeleteFilter,
 } from '../../models/bulk-delete.model';
 
-type DialogStep = 'configure' | 'checking' | 'confirmation' | 'executing' | 'result';
+type DialogStep = 'checking' | 'confirmation' | 'executing' | 'result';
 
 @Component({
   selector: 'app-bulk-delete-dialog',
@@ -22,10 +22,7 @@ export class BulkDeleteDialogComponent implements OnDestroy {
   @Output() done = new EventEmitter<void>();
 
   protected open = false;
-  protected step: DialogStep = 'configure';
-
-  // Hour filter
-  protected selectedHour: { value: number; label: string } | null = null;
+  protected step: DialogStep = 'checking';
 
   // Check result
   protected checkResponse: BulkDeleteCheckResponse | null = null;
@@ -35,14 +32,6 @@ export class BulkDeleteDialogComponent implements OnDestroy {
 
   // Filter from parent
   private parentFilter: BulkDeleteFilter = {};
-
-  // Hour options for dropdown
-  protected hourOptions = Array.from({ length: 24 }, (_, i) => ({
-    value: i,
-    label: `${i.toString().padStart(2, '0')}:00`,
-  }));
-
-  protected optionLabelFn = (option: { label: string }) => option.label;
 
   constructor(
     private bulkDeleteService: BulkDeleteService,
@@ -55,8 +44,8 @@ export class BulkDeleteDialogComponent implements OnDestroy {
 
   public openDialog(queryFilter: ViewObservationQueryModel): void {
     this.open = true;
-    this.step = 'configure';
-    this.resetForm();
+    this.checkResponse = null;
+    this.executeResponse = null;
     this.parentFilter = {
       stationIds: queryFilter.stationIds,
       elementIds: queryFilter.elementIds,
@@ -65,24 +54,20 @@ export class BulkDeleteDialogComponent implements OnDestroy {
       sourceIds: queryFilter.sourceIds,
       fromDate: queryFilter.fromDate,
       toDate: queryFilter.toDate,
+      hour: queryFilter.hour,
     };
+    this.onCheck();
   }
 
-  protected onCheck(): void {
-    const filter: BulkDeleteFilter = { ...this.parentFilter };
-
-    if (this.selectedHour !== null) {
-      filter.hour = this.selectedHour.value;
-    }
-
+  private onCheck(): void {
     this.step = 'checking';
-    this.bulkDeleteService.check({ filter }).pipe(take(1)).subscribe({
+    this.bulkDeleteService.check({ filter: this.parentFilter }).pipe(take(1)).subscribe({
       next: (response) => {
         this.checkResponse = response;
         this.step = 'confirmation';
       },
       error: (err) => {
-        this.step = 'configure';
+        this.open = false;
         this.pagesDataService.showToast({
           title: 'Bulk Delete',
           message: err.error?.message || 'Failed to check for matching observations',
@@ -122,7 +107,7 @@ export class BulkDeleteDialogComponent implements OnDestroy {
 
   // Dialog button configuration per step
   protected get displayOkOption(): boolean {
-    return this.step === 'configure' || this.step === 'confirmation' || this.step === 'result';
+    return this.step === 'confirmation' || this.step === 'result';
   }
 
   protected get disableOkOption(): boolean {
@@ -134,7 +119,6 @@ export class BulkDeleteDialogComponent implements OnDestroy {
 
   protected get okButtonLabel(): string {
     switch (this.step) {
-      case 'configure': return 'Check';
       case 'confirmation': return 'Delete Observations';
       case 'result': return 'Close';
       default: return 'Ok';
@@ -142,47 +126,30 @@ export class BulkDeleteDialogComponent implements OnDestroy {
   }
 
   protected get displayCancelOption(): boolean {
-    return this.step === 'configure' || this.step === 'confirmation';
+    return this.step === 'confirmation';
   }
 
   protected get cancelButtonLabel(): string {
-    return this.step === 'confirmation' ? 'Back' : 'Cancel';
+    return 'Cancel';
   }
 
   protected onOkClick(): void {
     switch (this.step) {
-      case 'configure': this.onCheck(); break;
       case 'confirmation': this.dlgConfirmExecute.openDialog(); break;
       case 'result': this.closeDialog(); break;
     }
   }
 
   protected onCancelClick(): void {
-    if (this.step === 'confirmation') {
-      this.onBack();
-    } else {
-      this.closeDialog();
-    }
+    this.closeDialog();
   }
 
   private closeDialog(): void {
+    this.cleanupSession();
     this.open = false;
     if (this.executeResponse && this.executeResponse.deletedCount > 0) {
       this.done.emit();
     }
-  }
-
-  private onBack(): void {
-    this.cleanupSession();
-    this.checkResponse = null;
-    this.executeResponse = null;
-    this.step = 'configure';
-  }
-
-  private resetForm(): void {
-    this.selectedHour = null;
-    this.checkResponse = null;
-    this.executeResponse = null;
   }
 
   private cleanupSession(): void {

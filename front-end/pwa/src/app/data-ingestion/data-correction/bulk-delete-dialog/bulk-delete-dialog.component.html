@@ -5,23 +5,7 @@
         [displayDeleteOption]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
         <div style="min-height: 70vh;">
 
-            <!-- Step 1: Configure -->
-            <div *ngIf="step === 'configure'">
-                <div class="alert alert-info py-2 mb-3">
-                    Optionally narrow by hour. Leave blank to delete all observations matching the current filter.
-                </div>
-
-                <div class="mb-3">
-                    <app-selector-single-input [id]="'hourFilter'" [label]="'Narrow by Hour'"
-                        [options]="hourOptions" [optionDisplayFn]="optionLabelFn" [displayCancelOption]="true"
-                        [(selectedOption)]="selectedHour" />
-                    <div class="form-text">
-                        Select a specific hour to delete only observations recorded at that hour across the date range.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 2: Checking spinner -->
+            <!-- Step 1: Checking spinner -->
             <div *ngIf="step === 'checking'" class="text-center my-4">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -29,7 +13,7 @@
                 <p class="mt-2">Counting matching observations...</p>
             </div>
 
-            <!-- Step 3: Confirmation with preview -->
+            <!-- Step 2: Confirmation with preview -->
             <div *ngIf="step === 'confirmation' && checkResponse">
                 <div class="alert alert-info py-2">
                     <strong>{{ checkResponse.totalMatchingRows | number:'1.0-0' }}</strong>
@@ -63,10 +47,10 @@
                 </div>
             </div>
 
-            <!-- Step 4: Executing spinner -->
+            <!-- Step 3: Executing spinner -->
             <app-spinner *ngIf="step === 'executing'" [message]="'Deleting observations...'" />
 
-            <!-- Step 5: Result -->
+            <!-- Step 4: Result -->
             <div *ngIf="step === 'result' && executeResponse">
                 <div class="alert alert-success py-2">
                     <strong>{{ executeResponse.deletedCount | number:'1.0-0' }}</strong>

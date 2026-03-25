@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
+import { And, Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Raw, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -103,6 +103,15 @@ export class ObservationsService {
         }
 
         this.setProcessedObsDateFilter(queryDto, whereOptions);
+
+        if (queryDto.hour !== undefined) {
+            const hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = :hour`, { hour: queryDto.hour });
+            if (whereOptions.datetime) {
+                whereOptions.datetime = And(whereOptions.datetime as FindOperator<Date>, hourOp);
+            } else {
+                whereOptions.datetime = hourOp;
+            }
+        }
 
         if (queryDto.qcStatus) {
             whereOptions.qcStatus = queryDto.qcStatus;
