@@ -17,6 +17,9 @@ import {
     PkChangeSpecDto,
     PkFieldEnum,
 } from '../dtos/bulk-pk-update.dto';
+import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
+import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 
 interface BulkPkUpdateSession {
     sessionId: string;
@@ -40,6 +43,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,
+        private generalSettingsService: GeneralSettingsService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -216,13 +220,13 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', selectParams.length + 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', selectParams.length + joinConditions.params.length + 1);
-
+        const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
         const sql = `
             SELECT
                 o.station_id AS source_station_id, s.name AS source_station_name,
                 o.element_id As source_element_id, e.abbreviation AS source_element_name,
                 o.level AS source_level,
-                o.date_time AS source_date_time,
+                (o.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS source_date_time,
                 o.interval AS source_interval,
                 src.name AS source_source_name,
                 o.value AS source_value,

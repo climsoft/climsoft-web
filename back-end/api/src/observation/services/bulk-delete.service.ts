@@ -14,6 +14,9 @@ import {
     BulkDeleteExecuteResponse,
     BulkDeleteFilterDto,
 } from '../dtos/bulk-delete.dto';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
+import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 
 interface BulkDeleteSession {
     sessionId: string;
@@ -35,6 +38,7 @@ export class BulkDeleteService implements OnModuleDestroy {
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,
+        private generalSettingsService: GeneralSettingsService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -200,12 +204,13 @@ export class BulkDeleteService implements OnModuleDestroy {
 
     private buildPreviewSelectQuery(filter: BulkDeleteFilterDto): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
+        const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
         const sql = `
             SELECT
                 o.station_id AS station_id, s.name AS station_name,
                 o.element_id AS element_id, e.abbreviation AS element_name,
                 o.level,
-                o.date_time,
+                (o.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS date_time,
                 o.interval,
                 src.name AS source_name,
                 o.value,
