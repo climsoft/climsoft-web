@@ -219,12 +219,12 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         const sql = `
             SELECT
-                o.station_id || ' - ' || s.name AS source_station,
-                o.element_id || ' - ' || e.abbreviation AS source_element,
+                o.station_id AS source_station_id, s.name AS source_station_name,
+                o.element_id As source_element_id, e.abbreviation AS source_element_name,
                 o.level AS source_level,
                 o.date_time AS source_date_time,
                 o.interval AS source_interval,
-                o.source_id || ' - ' || src.name AS source_source,
+                src.name AS source_source_name,
                 o.value AS source_value,
                 sf.abbreviation AS source_flag,
                 ${targetValueExpr},

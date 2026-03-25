@@ -188,12 +188,12 @@ export class BulkDeleteService implements OnModuleDestroy {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
         const sql = `
             SELECT
-                o.station_id || ' - ' || s.name AS station,
-                o.element_id || ' - ' || e.abbreviation AS element,
+                o.station_id AS station_id, s.name AS station_name,
+                o.element_id AS element_id, e.abbreviation AS element_name,
                 o.level,
                 o.date_time,
                 o.interval,
-                o.source_id || ' - ' || src.name AS source,
+                src.name AS source_name,
                 o.value,
                 f.abbreviation AS flag,
                 o.comment,
