@@ -6,12 +6,7 @@
     </div>
 
     <!-- Loading spinner -->
-    <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <div class="mt-2 text-muted">Processing preview...</div>
-    </div>
+    <app-spinner *ngIf="loading" [message]="'Processing preview...'" />
 
     <!-- Errors -->
     <div *ngIf="error" class="alert alert-danger py-2 mb-2" role="alert">
@@ -25,7 +20,7 @@
     <div *ngFor="let warn of warnings" class="alert alert-warning py-2 mb-2" role="alert">
         {{ warn.message }}
         <span *ngIf="warn.affectedRowCount" class="badge bg-warning text-dark ms-1">
-            {{ warn.affectedRowCount }}
+            {{ warn.affectedRowCount | number:'1.0-0' }}
             row(s)
         </span>
     </div>
@@ -37,10 +32,7 @@
                 {{ title }}
             </div>
             <div>
-                Showing {{ rows.length }} of {{ totalRowCount }} row(s)
-                <span *ngIf="rowsDropped > 0" class="text-warning ms-2">
-                    ({{ rowsDropped }} row(s) removed)
-                </span>
+                Showing {{ rows.length }} of {{ totalRowCount | number:'1.0-0' }} row(s)
             </div>
         </div>
 

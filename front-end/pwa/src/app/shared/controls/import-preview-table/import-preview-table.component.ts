@@ -11,7 +11,6 @@ export class ImportPreviewTableComponent {
     @Input() columns: string[] = [];
     @Input() rows: string[][] = [];
     @Input() totalRowCount: number = 0;
-    @Input() rowsDropped: number = 0;
     @Input() warnings: any[] = []; // TODO.
     @Input() error: PreviewError | null | undefined ; // Todo remove null
     @Input() loading: boolean = false;

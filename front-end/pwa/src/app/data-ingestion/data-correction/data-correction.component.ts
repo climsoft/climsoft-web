@@ -25,7 +25,6 @@ import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmatio
   styleUrls: ['./data-correction.component.scss']
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
-  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
     @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
   @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
   @ViewChild('dlgBulkDelete') dlgBulkDelete!: BulkDeleteDialogComponent;
@@ -190,23 +189,12 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.useUnstackedViewer = !this.useUnstackedViewer;
   }
 
-  protected deleteAll(): void {
-    this.dlgDeleteAllConfirm.openDialog();
-  }
-
-  protected onBulkPkUpdate(): void {
+  protected onBulkUpdate(): void {
     this.dlgBulkPkUpdate.openDialog(this.queryFilter);
   }
 
   protected onBulkDelete(): void {
     this.dlgBulkDelete.openDialog(this.queryFilter);
-  }
-
-  protected onDeleteAllConfirm(): void {
-    for (const entry of this.observationsEntries) {
-      entry.delete = true;
-    }
-    this.changedCount = this.observationsEntries.length;
   }
 
   protected onUserInput() {

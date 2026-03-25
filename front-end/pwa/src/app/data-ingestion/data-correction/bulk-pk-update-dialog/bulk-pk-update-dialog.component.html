@@ -117,7 +117,7 @@
 
                     <div *ngIf="checkResponse.conflictCount > 0">
                         <div class="alert alert-warning py-2">
-                            <strong>{{checkResponse.conflictCount}}</strong> conflict{{checkResponse.conflictCount === 1
+                            <strong>{{ checkResponse.conflictCount | number:'1.0-0'  }}</strong> conflict{{checkResponse.conflictCount === 1
                             ? '' : 's'}} detected.
                         </div>
 

@@ -10,12 +10,9 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
                     Stack/Unstack
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll( )">
-                    Delete All
-                </button>
                 <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
-                    (click)="onBulkPkUpdate()">
-                    Bulk PK Update
+                    (click)="onBulkUpdate()">
+                    Bulk Update
                 </button>
                 <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-danger ms-2"
                     (click)="onBulkDelete()">
@@ -60,9 +57,6 @@
     </div>
 
 </div>
-
-<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'"
-    [deleteButtonLabel]="'Ok'" (deleteConfirmed)="onDeleteAllConfirm()" />
 
 <app-confirmation-dialog #dlgSaveConfirm [title]="'Confirm Changes'" [okButtonLabel]="'Yes'" [cancelButtonLabel]="'No'"
     (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">

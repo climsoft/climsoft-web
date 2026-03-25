@@ -32,7 +32,7 @@
             <!-- Step 3: Confirmation with preview -->
             <div *ngIf="step === 'confirmation' && checkResponse">
                 <div class="alert alert-info py-2">
-                    <strong>{{ checkResponse.totalMatchingRows }}</strong>
+                    <strong>{{ checkResponse.totalMatchingRows | number:'1.0-0' }}</strong>
                     observation{{ checkResponse.totalMatchingRows === 1 ? '' : 's' }} match your filter.
                 </div>
 
@@ -42,8 +42,7 @@
 
                 <div *ngIf="checkResponse.totalMatchingRows > 0">
                     <div class="alert alert-danger py-2">
-                        These observations will be soft-deleted (marked as deleted). This action can be undone by
-                        restoring from the Deleted Data view.
+                        These observations will be marked as deleted. This action can be undone by restoring from the Deleted Data view.
                     </div>
 
                     <!-- Preview table -->
@@ -65,7 +64,7 @@
             <!-- Step 5: Result -->
             <div *ngIf="step === 'result' && executeResponse">
                 <div class="alert alert-success py-2">
-                    <strong>{{ executeResponse.deletedCount }}</strong>
+                    <strong>{{ executeResponse.deletedCount | number:'1.0-0' }}</strong>
                     observation{{ executeResponse.deletedCount === 1 ? '' : 's' }} deleted.
                 </div>
             </div>
@@ -74,10 +73,9 @@
     </app-dialog>
 
     <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Delete'" [okButtonLabel]="'Yes'"
-        [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
+        [cancelButtonLabel]="'No'" [displayCannotBeUndone]="false" (okConfirmed)="onExecute()">
         <div>
-            Are you sure you want to delete <strong>{{ checkResponse?.totalMatchingRows + '
-                observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>?
+            Are you sure you want to delete <strong>{{ checkResponse?.totalMatchingRows | number:'1.0-0'  }}{{' observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>?
         </div>
     </app-confirmation-dialog>
 
