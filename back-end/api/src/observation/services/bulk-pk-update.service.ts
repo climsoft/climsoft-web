@@ -14,7 +14,6 @@ import {
     BulkPkUpdateExecuteResponse,
     BulkPkUpdateFilterDto,
     ConflictResolutionEnum,
-    DateTimeShiftUnitEnum,
     PkChangeSpecDto,
     PkFieldEnum,
 } from '../dtos/bulk-pk-update.dto';
@@ -23,7 +22,7 @@ interface BulkPkUpdateSession {
     sessionId: string;
     filter: BulkPkUpdateFilterDto;
     change: PkChangeSpecDto;
-    conflictCsvFile?: string;
+    conflictFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
     conflictCount: number;
@@ -124,7 +123,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
             const session: BulkPkUpdateSession = {
                 sessionId, filter: dto.filter, change: dto.change,
-                conflictCsvFile: apiCsvPath, duckDbTableName,
+                conflictFile: apiCsvPath, duckDbTableName,
                 totalMatchingRows, conflictCount,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -353,12 +352,12 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     public async downloadConflictCsv(sessionId: string): Promise<StreamableFile> {
         const session = this.getSession(sessionId);
 
-        if (!session.conflictCsvFile) {
+        if (!session.conflictFile) {
             throw new BadRequestException('No conflict file available for this session');
         }
 
-        const fileName = path.basename(session.conflictCsvFile);
-        return new StreamableFile(fs.createReadStream(session.conflictCsvFile), {
+        const fileName = path.basename(session.conflictFile);
+        return new StreamableFile(fs.createReadStream(session.conflictFile), {
             type: 'text/csv',
             disposition: `attachment; filename="${fileName}"`,
         });
@@ -378,11 +377,11 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         }
 
         // Delete conflict CSV
-        if (session.conflictCsvFile && fs.existsSync(session.conflictCsvFile)) {
+        if (session.conflictFile && fs.existsSync(session.conflictFile)) {
             try {
-                await fs.promises.unlink(session.conflictCsvFile);
+                await fs.promises.unlink(session.conflictFile);
             } catch (err) {
-                this.logger.warn(`Failed to delete conflict CSV ${session.conflictCsvFile}: ${err}`);
+                this.logger.warn(`Failed to delete conflict CSV ${session.conflictFile}: ${err}`);
             }
         }
 
