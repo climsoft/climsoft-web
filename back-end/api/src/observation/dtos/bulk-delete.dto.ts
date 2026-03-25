@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
 
 export class BulkDeleteFilterDto {
     @IsOptional()
@@ -40,6 +40,10 @@ export class BulkDeleteFilterDto {
     @Min(0)
     @Max(23)
     hour?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    useEntryDate?: boolean;
 }
 
 export class BulkDeleteCheckDto {

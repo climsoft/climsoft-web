@@ -101,6 +101,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
       fromDate: queryFilter.fromDate,
       toDate: queryFilter.toDate,
       hour: queryFilter.hour,
+      useEntryDate: queryFilter.useEntryDate,
     };
   }
 

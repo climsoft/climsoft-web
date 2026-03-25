@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
 
 export enum PkFieldEnum {
     STATION_ID = 'station_id',
@@ -61,6 +61,10 @@ export class BulkPkUpdateFilterDto {
     @Min(0)
     @Max(23)
     hour?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    useEntryDate?: boolean;
 }
 
 export class PkChangeSpecDto {

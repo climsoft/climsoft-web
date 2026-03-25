@@ -55,6 +55,7 @@ export class BulkDeleteDialogComponent implements OnDestroy {
       fromDate: queryFilter.fromDate,
       toDate: queryFilter.toDate,
       hour: queryFilter.hour,
+      useEntryDate: queryFilter.useEntryDate,
     };
     this.onCheck();
   }

@@ -270,21 +270,24 @@ export class BulkDeleteService implements OnModuleDestroy {
             paramIndex++;
         }
 
+        const dateColumn = filter.useEntryDate ? 'entry_date_time' : 'date_time';
+
         if (filter.fromDate && filter.toDate) {
-            conditions.push(`${tableAlias}.date_time BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
+            conditions.push(`${tableAlias}.${dateColumn} BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
             params.push(filter.fromDate, filter.toDate);
             paramIndex += 2;
         } else if (filter.fromDate) {
-            conditions.push(`${tableAlias}.date_time >= $${paramIndex}`);
+            conditions.push(`${tableAlias}.${dateColumn} >= $${paramIndex}`);
             params.push(filter.fromDate);
             paramIndex++;
         } else if (filter.toDate) {
-            conditions.push(`${tableAlias}.date_time <= $${paramIndex}`);
+            conditions.push(`${tableAlias}.${dateColumn} <= $${paramIndex}`);
             params.push(filter.toDate);
             paramIndex++;
         }
 
         if (filter.hour !== undefined) {
+            // Note. The hour filter should always use the observation date time not the entry date time
             conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = $${paramIndex}`);
             params.push(filter.hour);
             paramIndex++;

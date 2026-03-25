@@ -19,17 +19,21 @@
                 </div>
 
                 <div *ngIf="displayIntervalSelector" class="col-auto mb-2">
-                    <app-interval-selector-multiple [label]="'Interval'"  [(selectedIds)]="intervals" />
+                    <app-interval-selector-multiple [label]="'Interval'" [(selectedIds)]="intervals" />
                 </div>
 
                 <div *ngIf="displaySourceSelector" class="col-auto mb-2">
                     <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds" />
                 </div>
 
+                <div *ngIf="displayHourSelector" class="col-auto mb-2">
+                    <app-hour-single-input [id]="'hourFilter'" [label]="'Hour'" [selectedId]="hour" />
+                </div>
+
                 <div *ngIf="displayObservationDateSelector ||  displayEntryDateSelector" class="col-auto mb-2">
                     <div *ngIf="displayObservationDateSelector && displayEntryDateSelector" class="row">
                         <div class="col-auto">
-                            <app-radio-buttons-input [inline]="true" [asButtons]="false" [groupName]="'filter_dates'"
+                            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'filter_dates'"
                                 [groupItems]="[{ label:'Observation Date', checked:  true},{ label:'Entry Date'}]"
                                 (checkedValueChange)="onDateToUseSelection($event)" />
                         </div>
@@ -39,10 +43,6 @@
                         <app-date-range-input [id]="'observation_or_entry_date'" [(value)]="dateRange" />
                     </div>
 
-                </div>
-
-                <div *ngIf="displayHourSelector" class="col-auto mb-2">
-                    <app-hour-single-input [id]="'hourFilter'" [label]="'Hour'" [selectedId]="hour" />
                 </div>
             </div>
 

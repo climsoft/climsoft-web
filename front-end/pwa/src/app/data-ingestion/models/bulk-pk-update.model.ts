@@ -36,6 +36,7 @@ export interface BulkPkUpdateFilter {
     fromDate?: string;
     toDate?: string;
     hour?: number;
+    useEntryDate?: boolean;
 }
 
 export interface BulkPkUpdateCheckRequest {

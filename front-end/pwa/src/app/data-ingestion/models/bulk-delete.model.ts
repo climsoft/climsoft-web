@@ -7,6 +7,7 @@ export interface BulkDeleteFilter {
     fromDate?: string;
     toDate?: string;
     hour?: number;
+    useEntryDate?: boolean;
 }
 
 export interface BulkDeleteCheckRequest {

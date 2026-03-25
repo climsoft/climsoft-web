@@ -36,7 +36,7 @@ export class ObservationsService {
     ) {
     }
 
- 
+
 
     public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
@@ -105,6 +105,7 @@ export class ObservationsService {
         this.setProcessedObsDateFilter(queryDto, whereOptions);
 
         if (queryDto.hour !== undefined) {
+            // Note. The hour filter should always use the observation date time not the entry date time
             const hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = :hour`, { hour: queryDto.hour });
             if (whereOptions.datetime) {
                 whereOptions.datetime = And(whereOptions.datetime as FindOperator<Date>, hourOp);
