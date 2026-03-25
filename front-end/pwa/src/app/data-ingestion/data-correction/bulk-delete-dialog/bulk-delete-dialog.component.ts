@@ -114,6 +114,12 @@ export class BulkDeleteDialogComponent implements OnDestroy {
     });
   }
 
+  protected onDownloadPreview(): void {
+    if (!this.checkResponse) return;
+    const url = this.bulkDeleteService.getPreviewDownloadUrl(this.checkResponse.sessionId);
+    window.open(url, '_blank');
+  }
+
   // Dialog button configuration per step
   protected get displayOkOption(): boolean {
     return this.step === 'configure' || this.step === 'confirmation' || this.step === 'result';

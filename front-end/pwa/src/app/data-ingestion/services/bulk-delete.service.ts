@@ -28,6 +28,10 @@ export class BulkDeleteService {
         return this.http.post<BulkDeleteExecuteResponse>(`${this.endPointUrl}/execute`, request);
     }
 
+    getPreviewDownloadUrl(sessionId: string): string {
+        return `${this.endPointUrl}/preview-download/${sessionId}`;
+    }
+
     destroySession(sessionId: string): Observable<void> {
         return this.http.delete<void>(`${this.endPointUrl}/${sessionId}`);
     }

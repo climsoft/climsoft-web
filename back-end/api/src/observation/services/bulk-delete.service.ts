@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, StreamableFile } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -140,6 +140,20 @@ export class BulkDeleteService implements OnModuleDestroy {
         } finally {
             await queryRunner.release();
         }
+    }
+
+    public async downloadPreviewCsv(sessionId: string): Promise<StreamableFile> {
+        const session = this.getSession(sessionId);
+
+        if (!session.previewCsvFile) {
+            throw new BadRequestException('No preview file available for this session');
+        }
+
+        const fileName = path.basename(session.previewCsvFile);
+        return new StreamableFile(fs.createReadStream(session.previewCsvFile), {
+            type: 'text/csv',
+            disposition: `attachment; filename="${fileName}"`,
+        });
     }
 
     public async destroySession(sessionId: string): Promise<void> {
