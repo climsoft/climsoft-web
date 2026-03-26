@@ -164,12 +164,12 @@
         </div>
     </app-dialog>
 
-    <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Primary Key Update'" [okButtonLabel]="'Yes'"
+    <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Update'" [okButtonLabel]="'Yes'"
         [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
         <div>
-            <!-- TODO. This should mention the values being changed instead the word primary key -->
-            Are you sure you want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
-                observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>
+            Are you sure you want to <strong>{{ changeDescription }}</strong> for <strong>{{
+                checkResponse?.totalMatchingRows + ' observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's')
+                }}</strong>?
         </div>
     </app-confirmation-dialog>
 

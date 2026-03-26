@@ -230,6 +230,27 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     return this.step === 'configure' || this.step === 'conflicts';
   }
 
+  protected get changeDescription(): string {
+    if (!this.selectedPkField) return '';
+    const field = this.selectedPkField.value;
+    const label = this.selectedPkField.label;
+    if (field === PkFieldEnum.DATE_TIME) {
+      const sign = this.shiftAmount > 0 ? '+' : '';
+      const unit = this.selectedShiftUnit?.label ?? '';
+      return `shift ${label} by ${sign}${this.shiftAmount} ${unit}`;
+    }
+    let from: string | number | null = null;
+    let to: string | number | null = null;
+    switch (field) {
+      case PkFieldEnum.STATION_ID: from = this.fromStationId; to = this.toStationId; break;
+      case PkFieldEnum.ELEMENT_ID: from = this.fromElementId; to = this.toElementId; break;
+      case PkFieldEnum.LEVEL: from = this.fromLevel; to = this.toLevel; break;
+      case PkFieldEnum.INTERVAL: from = this.fromIntervalId; to = this.toIntervalId; break;
+      case PkFieldEnum.SOURCE_ID: from = this.fromSourceId; to = this.toSourceId; break;
+    }
+    return `change ${label} from ${from} to ${to}`;
+  }
+
   protected get cancelButtonLabel(): string {
     return this.step === 'conflicts' ? 'Back' : 'Cancel';
   }
