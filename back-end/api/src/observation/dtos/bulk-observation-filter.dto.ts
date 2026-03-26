@@ -1,13 +1,13 @@
-import { IsArray, IsBoolean, IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { ArrayNotEmpty, IsBoolean, IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class BulkObservationFilterDto {
     @IsOptional()
-    @IsArray()
+    @ArrayNotEmpty()
     @IsString({ each: true })
     stationIds?: string[];
 
     @IsOptional()
-    @IsArray()
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     elementIds?: number[];
 
@@ -17,12 +17,12 @@ export class BulkObservationFilterDto {
     level?: number;
 
     @IsOptional()
-    @IsArray()
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     intervals?: number[];
 
     @IsOptional()
-    @IsArray()
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     sourceIds?: number[];
 
@@ -35,7 +35,7 @@ export class BulkObservationFilterDto {
     toDate?: string;
 
     @IsOptional()
-    @IsArray()
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     @Min(0, { each: true })
     @Max(23, { each: true })

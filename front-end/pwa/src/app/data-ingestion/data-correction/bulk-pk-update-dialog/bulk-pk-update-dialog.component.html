@@ -1,5 +1,5 @@
 <ng-container *ngIf="open">
-    <app-dialog [(open)]="open" [title]="'Bulk Update Primary Key'" [displayOkOption]="displayOkOption"
+    <app-dialog [(open)]="open" [title]="'Bulk Update Observations'" [displayOkOption]="displayOkOption"
         [disableOkOption]="disableOkOption" [okButtonLabel]="okButtonLabel" [closeOnOkClick]="false"
         [displayCancelOption]="displayCancelOption" [cancelButtonLabel]="cancelButtonLabel" [closeOnCancelClick]="false"
         [displayDeleteOption]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
@@ -7,7 +7,7 @@
             <!-- Step 1: Configure -->
             <div *ngIf="step === 'configure'">
                 <div class="mb-3">
-                    <app-selector-single-input [id]="'pkField'" [label]="'Primary Key Field to Change'"
+                    <app-selector-single-input [id]="'pkField'" [label]="'Observation Identifier to Change'"
                         [options]="pkFields" [optionDisplayFn]="optionLabelFn" [displayCancelOption]="true"
                         [(selectedOption)]="selectedPkField" />
                 </div>
@@ -167,6 +167,7 @@
     <app-confirmation-dialog #dlgConfirmExecute [title]="'Confirm Bulk Primary Key Update'" [okButtonLabel]="'Yes'"
         [cancelButtonLabel]="'No'" (okConfirmed)="onExecute()">
         <div>
+            <!-- TODO. This should mention the values being changed instead the word primary key -->
             Are you sure you want to update the primary key for <strong>{{ checkResponse?.totalMatchingRows + '
                 observation' + (checkResponse?.totalMatchingRows === 1 ? '' : 's') }}</strong>
         </div>
