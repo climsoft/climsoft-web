@@ -95,6 +95,7 @@ export class FormSourceInputDialogComponent implements OnDestroy {
         disabled: false,
         comment: '',
       };
+      this.setControlValues(this.viewSource.parameters as FormSourceModel);
     }
   }
 
