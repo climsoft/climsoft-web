@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { ArrayNotEmpty, IsDateString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsDateString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 
@@ -47,10 +47,12 @@ export class ViewObservationQueryDTO {
     toDate?: string;
 
     @IsOptional()
-    @IsInt()
-    @Min(0)
-    @Max(23)
-    hour?: number;
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
+    @IsInt({ each: true })
+    @Min(0, { each: true })
+    @Max(23, { each: true })
+    hours?: number[];
 
     @IsOptional()
     @IsEnum(QCStatusEnum, { message: 'Qc status must be a valid QCStatusEnum value or undefined' })

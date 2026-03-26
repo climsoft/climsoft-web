@@ -36,10 +36,11 @@ export class BulkDeleteFilterDto {
     toDate?: string;
 
     @IsOptional()
-    @IsInt()
-    @Min(0)
-    @Max(23)
-    hour?: number;
+    @IsArray()
+    @IsInt({ each: true })
+    @Min(0, { each: true })
+    @Max(23, { each: true })
+    hours?: number[];
 
     @IsOptional()
     @IsBoolean()

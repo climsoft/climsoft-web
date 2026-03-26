@@ -35,7 +35,7 @@ export interface BulkPkUpdateFilter {
     sourceIds?: number[];
     fromDate?: string;
     toDate?: string;
-    hour?: number;
+    hours?: number[];
     useEntryDate?: boolean;
 }
 

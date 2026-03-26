@@ -104,9 +104,15 @@ export class ObservationsService {
 
         this.setProcessedObsDateFilter(queryDto, whereOptions);
 
-        if (queryDto.hour !== undefined) {
+        if (queryDto.hours) {
             // Note. The hour filter should always use the observation date time not the entry date time
-            const hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = :hour`, { hour: queryDto.hour });
+            let hourOp: FindOperator<Date>;
+            if (queryDto.hours.length === 1) {
+                hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = :hour`, { hour: queryDto.hours[0] });
+            } else {
+                hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = ANY(:hours)`, { hours: queryDto.hours });
+            }
+
             if (whereOptions.datetime) {
                 whereOptions.datetime = And(whereOptions.datetime as FindOperator<Date>, hourOp);
             } else {

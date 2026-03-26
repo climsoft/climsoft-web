@@ -38,7 +38,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected intervals: number[] = [];
   protected level: number | null | undefined = 0;
   protected dateRange: DateRange;
-  protected hour: number | null | undefined = null;
+  protected hours: number[] = [];
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
@@ -100,7 +100,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.outputFilter.useEntryDate !== undefined) this.useEntryDate = this.outputFilter.useEntryDate;
     if (this.outputFilter.fromDate) this.dateRange.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.utcOffset, 'add').split('T')[0];
     if (this.outputFilter.toDate) this.dateRange.toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.utcOffset, 'add').split('T')[0];
-    this.hour = this.outputFilter.hour ?? null;
+    if (this.outputFilter.hours) this.hours = this.outputFilter.hours;
   }
 
   private setStationsAllowed(): void {
@@ -175,7 +175,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.intervals.length > 0) this.outputFilter.intervals = this.intervals;
     if (this.level !== null) this.outputFilter.level = this.level;
     if (this.sourceIds.length > 0) this.outputFilter.sourceIds = this.sourceIds;
-    if (this.hour !== null) this.outputFilter.hour = this.hour;
+    if (this.hours.length > 0) this.outputFilter.hours = this.hours;
     if (this.useEntryDate) this.outputFilter.useEntryDate = this.useEntryDate;
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
@@ -201,7 +201,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.intervals.length > 0) outputFilter.intervals = this.intervals;
     if (this.level !== null) outputFilter.level = this.level;
     if (this.sourceIds.length > 0) outputFilter.sourceIds = this.sourceIds;
-    if (this.hour !== null) outputFilter.hour = this.hour;
+    if (this.hours.length > 0) outputFilter.hours = this.hours;
     if (this.useEntryDate) outputFilter.useEntryDate = this.useEntryDate;
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus

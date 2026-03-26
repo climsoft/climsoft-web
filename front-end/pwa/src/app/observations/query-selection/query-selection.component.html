@@ -27,8 +27,8 @@
                 </div>
 
                 <div *ngIf="displayHourSelector" class="col-auto mb-2">
-                    <app-hour-single-input [id]="'hourFilter'" [label]="'Hour'" [displayCancelOption]="true"
-                        [(selectedId)]="hour" />
+                    <app-hour-multiple-input [label]="'Hours'"
+                        [(selectedIds)]="hours" />
                 </div>
 
                 <div *ngIf="displayObservationDateSelector ||  displayEntryDateSelector" class="col-auto mb-2">

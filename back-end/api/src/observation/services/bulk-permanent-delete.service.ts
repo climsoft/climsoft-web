@@ -282,10 +282,10 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
             paramIndex++;
         }
 
-        if (filter.hour !== undefined) {
+        if (filter.hours && filter.hours.length > 0) {
             // Note. The hour filter should always use the observation date time not the entry date time
-            conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = $${paramIndex}`);
-            params.push(filter.hour);
+            conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = ANY($${paramIndex})`);
+            params.push(filter.hours);
             paramIndex++;
         }
 

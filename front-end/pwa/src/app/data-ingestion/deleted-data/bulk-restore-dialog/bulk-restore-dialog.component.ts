@@ -54,7 +54,7 @@ export class BulkRestoreDialogComponent implements OnDestroy {
       sourceIds: queryFilter.sourceIds,
       fromDate: queryFilter.fromDate,
       toDate: queryFilter.toDate,
-      hour: queryFilter.hour,
+      hours: queryFilter.hours,
       useEntryDate: queryFilter.useEntryDate,
     };
     this.onCheck();

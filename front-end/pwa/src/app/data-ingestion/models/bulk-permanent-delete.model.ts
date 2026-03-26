@@ -6,7 +6,7 @@ export interface BulkPermanentDeleteFilter {
     sourceIds?: number[];
     fromDate?: string;
     toDate?: string;
-    hour?: number;
+    hours?: number[];
     useEntryDate?: boolean;
 }
 
