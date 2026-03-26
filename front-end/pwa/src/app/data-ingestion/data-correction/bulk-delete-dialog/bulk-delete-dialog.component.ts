@@ -7,8 +7,8 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
 import {
   BulkDeleteCheckResponse,
   BulkDeleteExecuteResponse,
-  BulkDeleteFilter,
 } from '../../models/bulk-delete.model';
+import { BulkObservationFilter } from '../../models/bulk-observation-filter.model';
 
 type DialogStep = 'checking' | 'confirmation' | 'executing' | 'result';
 
@@ -31,7 +31,7 @@ export class BulkDeleteDialogComponent implements OnDestroy {
   protected executeResponse: BulkDeleteExecuteResponse | null = null;
 
   // Filter from parent
-  private parentFilter: BulkDeleteFilter = {};
+  private parentFilter: BulkObservationFilter = {};
 
   constructor(
     private bulkDeleteService: BulkDeleteService,

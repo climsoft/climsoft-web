@@ -7,8 +7,8 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
 import {
   BulkPermanentDeleteCheckResponse,
   BulkPermanentDeleteExecuteResponse,
-  BulkPermanentDeleteFilter,
 } from '../../models/bulk-permanent-delete.model';
+import { BulkObservationFilter } from '../../models/bulk-observation-filter.model';
 
 type DialogStep = 'checking' | 'confirmation' | 'executing' | 'result';
 
@@ -31,7 +31,7 @@ export class BulkPermanentDeleteDialogComponent implements OnDestroy {
   protected executeResponse: BulkPermanentDeleteExecuteResponse | null = null;
 
   // Filter from parent
-  private parentFilter: BulkPermanentDeleteFilter = {};
+  private parentFilter: BulkObservationFilter = {};
 
   constructor(
     private bulkPermanentDeleteService: BulkPermanentDeleteService,

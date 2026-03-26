@@ -23,14 +23,13 @@
         </div>
 
         <div class="card-body p-0">
-            <div *ngIf="loading" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            
+            <app-spinner *ngIf="loading" [message]="'Loading...'" />
+
             <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
                 No deleted observations found
             </div>
+            
             <div *ngIf="!loading && observationsEntries.length > 0" class="app-table-container"
                 style="max-height: 58vh;">
                 <table class="table table-hover table-sm">

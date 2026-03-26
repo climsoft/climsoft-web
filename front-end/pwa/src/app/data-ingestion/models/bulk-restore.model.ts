@@ -1,17 +1,7 @@
-export interface BulkRestoreFilter {
-    stationIds?: string[];
-    elementIds?: number[];
-    level?: number;
-    intervals?: number[];
-    sourceIds?: number[];
-    fromDate?: string;
-    toDate?: string;
-    hours?: number[];
-    useEntryDate?: boolean;
-}
+import { BulkObservationFilter } from './bulk-observation-filter.model';
 
 export interface BulkRestoreCheckRequest {
-    filter: BulkRestoreFilter;
+    filter: BulkObservationFilter;
 }
 
 export interface BulkRestoreExecuteRequest {

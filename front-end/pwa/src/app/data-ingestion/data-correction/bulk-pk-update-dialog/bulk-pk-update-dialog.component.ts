@@ -7,12 +7,12 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
 import {
   BulkPkUpdateCheckResponse,
   BulkPkUpdateExecuteResponse,
-  BulkPkUpdateFilter,
   ConflictResolutionEnum,
   DateTimeShiftUnitEnum,
   PkChangeSpec,
   PkFieldEnum,
 } from '../../models/bulk-pk-update.model';
+import { BulkObservationFilter } from '../../models/bulk-observation-filter.model';
 
 type DialogStep = 'configure' | 'checking' | 'conflicts' | 'executing' | 'result';
 
@@ -51,7 +51,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected executeResponse: BulkPkUpdateExecuteResponse | null = null;
 
   // Filter from parent
-  private filter: BulkPkUpdateFilter = {};
+  private filter: BulkObservationFilter = {};
 
   // Enums for template
   protected PkFieldEnum = PkFieldEnum;

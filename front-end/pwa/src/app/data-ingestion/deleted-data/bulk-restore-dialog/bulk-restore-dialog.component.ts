@@ -7,8 +7,8 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
 import {
   BulkRestoreCheckResponse,
   BulkRestoreExecuteResponse,
-  BulkRestoreFilter,
 } from '../../models/bulk-restore.model';
+import { BulkObservationFilter } from '../../models/bulk-observation-filter.model';
 
 type DialogStep = 'checking' | 'confirmation' | 'executing' | 'result';
 
@@ -31,7 +31,7 @@ export class BulkRestoreDialogComponent implements OnDestroy {
   protected executeResponse: BulkRestoreExecuteResponse | null = null;
 
   // Filter from parent
-  private parentFilter: BulkRestoreFilter = {};
+  private parentFilter: BulkObservationFilter = {};
 
   constructor(
     private bulkRestoreService: BulkRestoreService,

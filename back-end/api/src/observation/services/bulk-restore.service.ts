@@ -12,15 +12,16 @@ import {
     BulkRestoreCheckResponse,
     BulkRestoreExecuteDto,
     BulkRestoreExecuteResponse,
-    BulkRestoreFilterDto,
 } from '../dtos/bulk-restore.dto';
+import { BulkObservationFilterDto } from '../dtos/bulk-observation-filter.dto';
+import { BulkFilterUtils } from './bulk-filter.utils';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 
 interface BulkRestoreSession {
     sessionId: string;
-    filter: BulkRestoreFilterDto;
+    filter: BulkObservationFilterDto;
     previewCsvFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
@@ -196,13 +197,13 @@ export class BulkRestoreService implements OnModuleDestroy {
         return session;
     }
 
-    private buildCountQuery(filter: BulkRestoreFilterDto): { sql: string; params: any[] } {
+    private buildCountQuery(filter: BulkObservationFilterDto): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
         const sql = `SELECT COUNT(*)::int AS cnt FROM observations o WHERE o.deleted = true ${whereClause.sql}`;
         return { sql, params: whereClause.params };
     }
 
-    private buildPreviewSelectQuery(filter: BulkRestoreFilterDto): { sql: string; params: any[] } {
+    private buildPreviewSelectQuery(filter: BulkObservationFilterDto): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
         const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
         const sql = `
@@ -229,72 +230,14 @@ export class BulkRestoreService implements OnModuleDestroy {
         return { sql, params: whereClause.params };
     }
 
-    private buildRestoreQuery(filter: BulkRestoreFilterDto, userId: number): { sql: string; params: any[] } {
+    private buildRestoreQuery(filter: BulkObservationFilterDto, userId: number): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'observations', 1);
         const sql = `UPDATE observations SET deleted = false, entry_user_id = ${userId} WHERE deleted = true ${whereClause.sql}`;
         return { sql, params: whereClause.params };
     }
 
-    private buildFilterWhereClause(filter: BulkRestoreFilterDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
-        const conditions: string[] = [];
-        const params: any[] = [];
-        let paramIndex: number = startParamIndex;
-
-        if (filter.stationIds && filter.stationIds.length > 0) {
-            conditions.push(`${tableAlias}.station_id = ANY($${paramIndex})`);
-            params.push(filter.stationIds);
-            paramIndex++;
-        }
-
-        if (filter.elementIds && filter.elementIds.length > 0) {
-            conditions.push(`${tableAlias}.element_id = ANY($${paramIndex})`);
-            params.push(filter.elementIds);
-            paramIndex++;
-        }
-
-        if (filter.level !== undefined) {
-            conditions.push(`${tableAlias}.level = $${paramIndex}`);
-            params.push(filter.level);
-            paramIndex++;
-        }
-
-        if (filter.intervals && filter.intervals.length > 0) {
-            conditions.push(`${tableAlias}.interval = ANY($${paramIndex})`);
-            params.push(filter.intervals);
-            paramIndex++;
-        }
-
-        if (filter.sourceIds && filter.sourceIds.length > 0) {
-            conditions.push(`${tableAlias}.source_id = ANY($${paramIndex})`);
-            params.push(filter.sourceIds);
-            paramIndex++;
-        }
-
-        const dateColumn = filter.useEntryDate ? 'entry_date_time' : 'date_time';
-
-        if (filter.fromDate && filter.toDate) {
-            conditions.push(`${tableAlias}.${dateColumn} BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
-            params.push(filter.fromDate, filter.toDate);
-            paramIndex += 2;
-        } else if (filter.fromDate) {
-            conditions.push(`${tableAlias}.${dateColumn} >= $${paramIndex}`);
-            params.push(filter.fromDate);
-            paramIndex++;
-        } else if (filter.toDate) {
-            conditions.push(`${tableAlias}.${dateColumn} <= $${paramIndex}`);
-            params.push(filter.toDate);
-            paramIndex++;
-        }
-
-        if (filter.hours && filter.hours.length > 0) {
-            // Note. The hour filter should always use the observation date time not the entry date time
-            conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = ANY($${paramIndex})`);
-            params.push(filter.hours);
-            paramIndex++;
-        }
-
-        const sql: string = conditions.length > 0 ? ' AND ' + conditions.join(' AND ') : '';
-        return { sql, params };
+    private buildFilterWhereClause(filter: BulkObservationFilterDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
+        return BulkFilterUtils.toWhereClauseSql(BulkFilterUtils.buildFilterWhereClause(filter, tableAlias, startParamIndex));
     }
 
 }

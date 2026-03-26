@@ -28,14 +28,13 @@
         </div>
 
         <div class="card-body p-0">
-            <div *ngIf="loading" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            
+            <app-spinner *ngIf="loading" [message]="'Loading...'" />
+
             <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
                 No observations found
             </div>
+            
             <div *ngIf="!loading && observationsEntries.length > 0">
                 <div *ngIf="useUnstackedViewer">
                     <app-unstacked-data-viewer [observationsEntries]="observationsEntries"

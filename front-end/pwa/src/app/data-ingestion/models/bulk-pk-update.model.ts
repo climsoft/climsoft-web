@@ -1,3 +1,5 @@
+import { BulkObservationFilter } from './bulk-observation-filter.model';
+
 export enum PkFieldEnum {
     STATION_ID = 'station_id',
     ELEMENT_ID = 'element_id',
@@ -27,20 +29,8 @@ export interface PkChangeSpec {
     shiftUnit?: DateTimeShiftUnitEnum;
 }
 
-export interface BulkPkUpdateFilter {
-    stationIds?: string[];
-    elementIds?: number[];
-    level?: number;
-    intervals?: number[];
-    sourceIds?: number[];
-    fromDate?: string;
-    toDate?: string;
-    hours?: number[];
-    useEntryDate?: boolean;
-}
-
 export interface BulkPkUpdateCheckRequest {
-    filter: BulkPkUpdateFilter;
+    filter: BulkObservationFilter;
     change: PkChangeSpec;
 }
 
