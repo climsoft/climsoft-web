@@ -64,7 +64,7 @@ export class FormSourceInputDialogComponent implements OnDestroy {
         takeUntil(this.destroy$),
       ).subscribe(data => {
         if (data) {
-          this.viewSource = data;
+          this.viewSource = { ...data, parameters: { ...data.parameters } };
           this.setControlValues(this.viewSource.parameters as FormSourceModel);
         }
       });
