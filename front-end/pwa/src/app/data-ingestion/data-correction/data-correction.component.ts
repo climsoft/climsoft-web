@@ -274,7 +274,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   private deleteObservations(deletedObs: DeleteObservationModel[], changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe({
+    this.observationService.delete(deletedObs).subscribe({
       next: () => {
         this.enableSaveButton = true;
         this.pagesDataService.showToast({

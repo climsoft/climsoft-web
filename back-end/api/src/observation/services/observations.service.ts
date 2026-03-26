@@ -299,15 +299,15 @@ export class ObservationsService {
 
     }
 
-    public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
-        return this.softDeleteOrRestore(obsDtos, true, userId)
+    public async delete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
+        return this.deleteOrRestore(obsDtos, true, userId)
     }
 
     public async restore(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
-        return this.softDeleteOrRestore(obsDtos, false, userId)
+        return this.deleteOrRestore(obsDtos, false, userId)
     }
 
-    private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deletedStatus: boolean, userId: number): Promise<number> {
+    private async deleteOrRestore(obsDtos: DeleteObservationDto[], deletedStatus: boolean, userId: number): Promise<number> {
         // Build an array of objects representing each composite primary key. 
         const compositeKeys = obsDtos.map((obs) => ({
             stationId: obs.stationId,
@@ -338,7 +338,7 @@ export class ObservationsService {
         return updatedResults.affected ? updatedResults.affected : obsDtos.length;
     }
 
-    public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
+    public async permanentDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
         // Build an array of objects representing each composite primary key. 
         const compositeKeys = deleteObsDtos.map((obs) => ({
             stationId: obs.stationId,

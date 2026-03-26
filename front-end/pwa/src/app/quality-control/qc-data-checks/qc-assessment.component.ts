@@ -290,7 +290,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   private deleteObservations(deletedObs: DeleteObservationModel[], changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
-    this.observationService.softDelete(deletedObs).subscribe({
+    this.observationService.delete(deletedObs).subscribe({
       next: () => {
         this.enableSaveButton = true;
         this.pagesDataService.showToast({

@@ -85,12 +85,7 @@
             </div>
 
             <!-- Step 2: Checking spinner -->
-            <div *ngIf="step === 'checking'" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Checking for conflicts...</p>
-            </div>
+            <app-spinner *ngIf="step === 'checking'" [message]="'Checking for conflicts...'" />
 
             <!-- Step 3: Conflicts / Confirmation -->
             <div *ngIf="step === 'conflicts' && checkResponse">
@@ -117,7 +112,8 @@
 
                     <div *ngIf="checkResponse.conflictCount > 0">
                         <div class="alert alert-warning py-2">
-                            <strong>{{ checkResponse.conflictCount | number:'1.0-0'  }}</strong> conflict{{checkResponse.conflictCount === 1
+                            <strong>{{ checkResponse.conflictCount | number:'1.0-0' }}</strong>
+                            conflict{{checkResponse.conflictCount === 1
                             ? '' : 's'}} detected.
                         </div>
 
@@ -132,7 +128,7 @@
 
                         <button type="button" class="btn btn-sm btn-outline-secondary mb-3"
                             (click)="onDownloadConflicts()">
-                            <i class="bi bi-download me-1"></i>Download Conflicts CSV
+                            <i class="bi bi-download me-1"></i>Download Conflicts
                         </button>
 
                         <!-- Conflict resolution -->
