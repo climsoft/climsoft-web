@@ -131,9 +131,8 @@ export class ConnectorSpecificationInputDialogComponent {
         this.ok.emit();
       },
       error: err => {
-        this.open = false;
         console.log('error: ', err);
-        this.pagesDataService.showToast({ title: 'Connector Specification', message: `Error in saving connector cpecification - ${err.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        this.pagesDataService.showToast({ title: 'Connector Specification', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }

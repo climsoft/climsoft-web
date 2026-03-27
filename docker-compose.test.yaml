@@ -42,6 +42,7 @@ services:
       DB_NAME: "${DB_NAME}"
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
+      ENCRYPTION_SECRET: "${ENCRYPTION_SECRET}"
       FIRST_INSTALL: "${FIRST_INSTALL}"
       V4_SAVE: "${V4_SAVE}"
       V4_IMPORT: "${V4_IMPORT}"
