@@ -8,9 +8,10 @@ interface DelimiterOption {
 const DELIMITER_OPTIONS: DelimiterOption[] = [
   { symbol: undefined, name: 'Auto-detect' },
   { symbol: ',', name: 'Comma' },
-  { symbol: '|', name: 'Pipe' },
   { symbol: '\t', name: 'Tab' },
+  { symbol: '|', name: 'Pipe' },
   { symbol: ';', name: 'Semicolon' },
+  { symbol: '-', name: 'Hyphen' },
 ];
 
 @Component({

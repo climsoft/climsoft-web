@@ -10,6 +10,14 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
                     Stack/Unstack
                 </button>
+                <button type="button" class="btn btn-sm btn-outline-info ms-2 position-relative"
+                    [disabled]="!hasSourceDuplicates" (click)="onSourceCheck()">
+                    Source Check
+                    <span *ngIf="hasSourceDuplicates"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                        !
+                    </span>
+                </button>
                 <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
                     (click)="onBulkUpdate()">
                     Bulk Update
@@ -73,3 +81,5 @@
 <app-bulk-pk-update-dialog #dlgBulkPkUpdate (done)="loadData()" />
 
 <app-bulk-delete-dialog #dlgBulkDelete (done)="loadData()" />
+
+<app-source-check-dialog #dlgSourceCheck />

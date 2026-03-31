@@ -218,6 +218,16 @@ export class ClimsoftV4WebSyncSetUpService {
                 v4Element.elementName = `${v4Element.elementName}_${(i + 1)}`;
             }
 
+             // Make sure the abbreviation is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.abbreviation === v4Element.abbreviation)) {
+                v4Element.abbreviation = `${v4Element.abbreviation}_${(i + 1)}`;
+            }
+
+            // Make sure the name is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.name === v4Element.elementName)) {
+                v4Element.elementName = `${v4Element.elementName}_${(i + 1)}`;
+            }
+
             const currentV5Element = currentV5Elements.find(item => item.id === v4Element.elementId);
 
             const dto: CreateViewElementDto = {
@@ -226,7 +236,7 @@ export class ClimsoftV4WebSyncSetUpService {
                 name: v4Element.elementName,
                 description: v4Element.description,
                 units: v4Element.units,
-                typeId: undefined, // V4 does not support GCOS ECV structure           
+                typeId:  currentV5Element ? currentV5Element.typeId : undefined, // V4 does not support GCOS ECV structure           
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : undefined,
                 comment: 'pulled from v4 model',
             };
@@ -253,7 +263,6 @@ export class ClimsoftV4WebSyncSetUpService {
             const v4Element: V4ElementModel = v4Elements[i];
             const v4ElementType = v4Element.elementType.toLowerCase();
             let interval: number;
-
 
             if (v4ElementType === 'hourly') {
                 interval = 60;

@@ -18,11 +18,11 @@ export enum FlagEnum {
   VARIABLE = "variable",
 }
 
-// TODO. Investigate if a constraints check for interval to always be greater than 0 is necessary
+// TODO. Investigate if a constraints check for level to always not be negative is necessary
 @Entity("observations")
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag_id" IS NOT NULL`)
-//@Check("CHK_observations_both_value_null_and_flag_missing", `"value" IS NULL AND "flag" IS 'missing'`) // TODO. Investigate if this check will ever be necessary before adding it. Flag settings may change within the preview rleases
-//@Check("CHK_observations_no_future_dates", `"date_time" <= NOW()`) // TODO. Investigate why this is refusing current date
+@Check("CHK_observations_no_future_dates", `"date_time" < NOW()`)
+@Check("CHK_observations_interval_greater_than_zero", `"interval" > 0`)
 export class ObservationEntity extends AppBaseEntity {
   //------------------
   @PrimaryColumn({ name: "station_id", type: "varchar" })
@@ -44,7 +44,7 @@ export class ObservationEntity extends AppBaseEntity {
   //------------------
 
   /**
-   * Level in reference to the nature of observation and element being observed e.g upper air, soil moisture. 
+   * Level in reference to the nature of observation and element being observed e.g upper air, soil temperatures etc. 
    */
   @PrimaryColumn({ name: "level", type: "int" })
   @Index()
@@ -107,7 +107,6 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   savedToV4: boolean; // True when value has been uploaded to v4 database
 }
-
 
 export interface ObservationLogVo extends BaseLogVo {
   value: number | null;
