@@ -13,6 +13,9 @@ import { MissingDataComponent } from './missing-data/missing-data.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { BulkPkUpdateDialogComponent } from './data-correction/bulk-pk-update-dialog/bulk-pk-update-dialog.component';
 import { BulkDeleteDialogComponent } from './data-correction/bulk-delete-dialog/bulk-delete-dialog.component';
+import { BulkRestoreDialogComponent } from './deleted-data/bulk-restore-dialog/bulk-restore-dialog.component';
+import { BulkPermanentDeleteDialogComponent } from './deleted-data/bulk-permanent-delete-dialog/bulk-permanent-delete-dialog.component';
+import { SourceCheckDialogComponent } from './data-correction/source-check-dialog/source-check-dialog.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';  
@@ -33,6 +36,9 @@ import { ObservationsModule } from '../observations/observations.module';
     DeletedDataComponent,
     BulkPkUpdateDialogComponent,
     BulkDeleteDialogComponent,
+    BulkRestoreDialogComponent,
+    BulkPermanentDeleteDialogComponent,
+    SourceCheckDialogComponent,
   ],
   imports: [
     DataIngestionRoutingModule,

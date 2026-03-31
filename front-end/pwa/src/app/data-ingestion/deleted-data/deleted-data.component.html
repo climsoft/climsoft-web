@@ -7,11 +7,11 @@
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
             <div class="fw-bold ms-1">Entries</div>
             <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                <button type="button" class="btn btn-sm btn-outline-success" (click)="restoreAll()">
-                    Restore All
+                <button type="button" class="btn btn-sm btn-outline-success ms-2" (click)="onBulkRestore()">
+                    Bulk Restore
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="hardDeleteAll()">
-                    Hard Delete All
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="onBulkPermanentDelete()">
+                    Bulk Permanent Delete
                 </button>
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
@@ -23,14 +23,13 @@
         </div>
 
         <div class="card-body p-0">
-            <div *ngIf="loading" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            
+            <app-spinner *ngIf="loading" [message]="'Loading...'" />
+
             <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
                 No deleted observations found
             </div>
+            
             <div *ngIf="!loading && observationsEntries.length > 0" class="app-table-container"
                 style="max-height: 58vh;">
                 <table class="table table-hover table-sm">
@@ -94,30 +93,17 @@
 
 </div>
 
-<app-delete-confirmation-dialog #dlgHardDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'"
-    (deleteConfirmed)="onHardDeleteAllConfirm()" />
+<app-confirmation-dialog #dlgConfirmSubmit [title]="'Confirm Changes'" [displayCannotBeUndone]="saveSummary.permanentDeletedCount > 0" [okButtonLabel]="'Yes'" [cancelButtonLabel]="'No'" (okConfirmed)="doSave()" >
+    <div>
+        <p *ngIf="saveSummary.restoredCount > 0">
+            {{saveSummary.restoredCount}} observation{{saveSummary.restoredCount === 1 ? '' : 's'}} will be restored.
+        </p>
+        <p *ngIf="saveSummary.permanentDeletedCount > 0" class="text-danger">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{saveSummary.permanentDeletedCount}} observation{{saveSummary.permanentDeletedCount === 1 ? '' : 's'}} will be permanently deleted.
+        </p>
+    </div>
+</app-confirmation-dialog>
 
-<ng-container *ngIf="restoreAllConfirmOpen">
-    <app-dialog [(open)]="restoreAllConfirmOpen" [title]="'Restore All'" [okButtonLabel]="'Ok'"
-        [displayDeleteOption]="false" (okClick)="onRestoreAllConfirm()">
-        <div>
-            <p>Are you sure you want to restore all observations?</p>
-        </div>
-    </app-dialog>
-</ng-container>
+<app-bulk-restore-dialog #dlgBulkRestore (done)="loadData()" />
 
-<ng-container *ngIf="saveConfirmOpen">
-    <app-dialog [(open)]="saveConfirmOpen" [title]="'Confirm Changes'" [okButtonLabel]="'Confirm'"
-        [displayDeleteOption]="false" (okClick)="onSaveConfirm()">
-        <div>
-            <p *ngIf="saveSummary.restoredCount > 0">
-                {{saveSummary.restoredCount}} observation{{saveSummary.restoredCount === 1 ? '' : 's'}} will be
-                restored.
-            </p>
-            <p *ngIf="saveSummary.hardDeletedCount > 0" class="text-danger">
-                <i class="bi bi-exclamation-triangle me-1"></i>{{saveSummary.hardDeletedCount}}
-                observation{{saveSummary.hardDeletedCount === 1 ? '' : 's'}} will be permanently deleted.
-            </p>
-        </div>
-    </app-dialog>
-</ng-container>
+<app-bulk-permanent-delete-dialog #dlgBulkPermanentDelete (done)="loadData()" />

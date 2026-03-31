@@ -103,7 +103,7 @@ export class ObservationsController {
     // Get logged in user
     const user = AuthUtil.getLoggedInUser(request);
 
-    // Validate form data. If any invalid bad request will be thrown
+    // Validate form and data correction data. If any invalid bad request will be thrown
     await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
 
     // Save the data
@@ -182,22 +182,19 @@ export class ObservationsController {
     return this.observationsService.restore(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Delete('soft')
-  async softDelete(
+  @Delete('delete')
+  async delete(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
     const user = AuthUtil.getLoggedInUser(request);
-    // Validate form data. If any invalid bad request will be thrown
-    await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
-
-    return this.observationsService.softDelete(observationDtos, user.id);
+    return this.observationsService.delete(observationDtos, user.id);
   }
 
   @Admin()
-  @Delete('hard')
-  async hardDelete(
+  @Delete('permanent-delete')
+  async permanentDelete(
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
-    return this.observationsService.hardDelete(observationDtos);
+    return this.observationsService.permanentDelete(observationDtos);
   }
 
 }

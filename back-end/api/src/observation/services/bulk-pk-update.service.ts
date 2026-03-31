@@ -12,18 +12,21 @@ import {
     BulkPkUpdateCheckResponse,
     BulkPkUpdateExecuteDto,
     BulkPkUpdateExecuteResponse,
-    BulkPkUpdateFilterDto,
     ConflictResolutionEnum,
-    DateTimeShiftUnitEnum,
     PkChangeSpecDto,
     PkFieldEnum,
 } from '../dtos/bulk-pk-update.dto';
+import { BulkObservationFilterDto } from '../dtos/bulk-observation-filter.dto';
+import { BulkFilterUtils } from './bulk-filter.utils';
+import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
+import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 
 interface BulkPkUpdateSession {
     sessionId: string;
-    filter: BulkPkUpdateFilterDto;
+    filter: BulkObservationFilterDto;
     change: PkChangeSpecDto;
-    conflictCsvFile?: string;
+    conflictFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
     conflictCount: number;
@@ -41,6 +44,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,
+        private generalSettingsService: GeneralSettingsService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -124,7 +128,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
             const session: BulkPkUpdateSession = {
                 sessionId, filter: dto.filter, change: dto.change,
-                conflictCsvFile: apiCsvPath, duckDbTableName,
+                conflictFile: apiCsvPath, duckDbTableName,
                 totalMatchingRows, conflictCount,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -146,13 +150,13 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sessionId, totalMatchingRows, conflictCount, permanentDeleteCount, previewData };
     }
 
-    private buildMatchingRowsQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto,): { sql: string; params: any[] } {
+    private buildMatchingRowsQuery(filter: BulkObservationFilterDto, change: PkChangeSpecDto,): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', 1);
         const sql = `SELECT COUNT(*)::int AS cnt FROM observations o WHERE o.deleted = false ${whereClause.sql}`;
         return { sql, params: whereClause.params };
     }
 
-    private buildConflictCountQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
+    private buildConflictCountQuery(filter: BulkObservationFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
         const sql = `
@@ -167,7 +171,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sql, params };
     }
 
-    private buildPermanentDeleteCountQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
+    private buildPermanentDeleteCountQuery(filter: BulkObservationFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
         const sql = `
@@ -182,7 +186,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         return { sql, params };
     }
 
-    private buildConflictSelectQuery(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
+    private buildConflictSelectQuery(filter: BulkObservationFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const selectParams: any[] = [];
 
         // Build target value expression with metadata enrichment
@@ -217,15 +221,15 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', selectParams.length + 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', selectParams.length + joinConditions.params.length + 1);
-
+        const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
         const sql = `
             SELECT
-                o.station_id || ' - ' || s.name AS source_station,
-                o.element_id || ' - ' || e.abbreviation AS source_element,
+                o.station_id AS source_station_id, s.name AS source_station_name,
+                o.element_id As source_element_id, e.abbreviation AS source_element_name,
                 o.level AS source_level,
-                o.date_time AS source_date_time,
+                (o.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS source_date_time,
                 o.interval AS source_interval,
-                o.source_id || ' - ' || src.name AS source_source,
+                src.name AS source_source_name,
                 o.value AS source_value,
                 sf.abbreviation AS source_flag,
                 ${targetValueExpr},
@@ -292,7 +296,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
 
     private buildPermanentDeleteQuery(
-        filter: BulkPkUpdateFilterDto,
+        filter: BulkObservationFilterDto,
         change: PkChangeSpecDto,
         includeNonDeleted: boolean,
     ): { sql: string; params: any[] } {
@@ -315,7 +319,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     }
 
     private buildUpdateQuery(
-        filter: BulkPkUpdateFilterDto,
+        filter: BulkObservationFilterDto,
         change: PkChangeSpecDto,
         userId: number,
         excludeConflicts: boolean,
@@ -353,12 +357,12 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     public async downloadConflictCsv(sessionId: string): Promise<StreamableFile> {
         const session = this.getSession(sessionId);
 
-        if (!session.conflictCsvFile) {
+        if (!session.conflictFile) {
             throw new BadRequestException('No conflict file available for this session');
         }
 
-        const fileName = path.basename(session.conflictCsvFile);
-        return new StreamableFile(fs.createReadStream(session.conflictCsvFile), {
+        const fileName = path.basename(session.conflictFile);
+        return new StreamableFile(fs.createReadStream(session.conflictFile), {
             type: 'text/csv',
             disposition: `attachment; filename="${fileName}"`,
         });
@@ -378,11 +382,11 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         }
 
         // Delete conflict CSV
-        if (session.conflictCsvFile && fs.existsSync(session.conflictCsvFile)) {
+        if (session.conflictFile && fs.existsSync(session.conflictFile)) {
             try {
-                await fs.promises.unlink(session.conflictCsvFile);
+                await fs.promises.unlink(session.conflictFile);
             } catch (err) {
-                this.logger.warn(`Failed to delete conflict CSV ${session.conflictCsvFile}: ${err}`);
+                this.logger.warn(`Failed to delete conflict CSV ${session.conflictFile}: ${err}`);
             }
         }
 
@@ -421,65 +425,17 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         }
     }
 
-    private buildFilterWhereClause(filter: BulkPkUpdateFilterDto, change: PkChangeSpecDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
-        const conditions: string[] = [];
-        const params: any[] = [];
-        let paramIndex: number = startParamIndex;
-
-        if (filter.stationIds && filter.stationIds.length > 0) {
-            conditions.push(`${tableAlias}.station_id = ANY($${paramIndex})`);
-            params.push(filter.stationIds);
-            paramIndex++;
-        }
-
-        if (filter.elementIds && filter.elementIds.length > 0) {
-            conditions.push(`${tableAlias}.element_id = ANY($${paramIndex})`);
-            params.push(filter.elementIds);
-            paramIndex++;
-        }
-
-        if (filter.level !== undefined) {
-            conditions.push(`${tableAlias}.level = $${paramIndex}`);
-            params.push(filter.level);
-            paramIndex++;
-        }
-
-        if (filter.intervals && filter.intervals.length > 0) {
-            conditions.push(`${tableAlias}.interval = ANY($${paramIndex})`);
-            params.push(filter.intervals);
-            paramIndex++;
-        }
-
-        if (filter.sourceIds && filter.sourceIds.length > 0) {
-            conditions.push(`${tableAlias}.source_id = ANY($${paramIndex})`);
-            params.push(filter.sourceIds);
-            paramIndex++;
-        }
-
-        if (filter.fromDate && filter.toDate) {
-            conditions.push(`${tableAlias}.date_time BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
-            params.push(filter.fromDate, filter.toDate);
-            paramIndex += 2;
-        } else if (filter.fromDate) {
-            conditions.push(`${tableAlias}.date_time >= $${paramIndex}`);
-            params.push(filter.fromDate);
-            paramIndex++;
-        } else if (filter.toDate) {
-            conditions.push(`${tableAlias}.date_time <= $${paramIndex}`);
-            params.push(filter.toDate);
-            paramIndex++;
-        }
+    private buildFilterWhereClause(filter: BulkObservationFilterDto, change: PkChangeSpecDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
+        const result = BulkFilterUtils.buildFilterWhereClause(filter, tableAlias, startParamIndex);
 
         // For datetime, no fromValue filter because shift applies to all matching rows
         if (change.field !== PkFieldEnum.DATE_TIME) {
-            const dbColumn = change.field; // enum values match DB column names 
-            conditions.push(`${tableAlias}.${dbColumn} = $${paramIndex}`);
-            params.push(change.fromValue);
-            paramIndex++;
+            const dbColumn = change.field; // enum values match DB column names
+            result.conditions.push(`${tableAlias}.${dbColumn} = $${result.paramIndex}`);
+            result.params.push(change.fromValue);
         }
 
-        const sql: string = conditions.length > 0 ? ' AND ' + conditions.join(' AND ') : '';
-        return { sql, params };
+        return BulkFilterUtils.toWhereClauseSql(result);
     }
 
     private buildTargetPkJoinConditions(change: PkChangeSpecDto, sourceAlias: string, targetAlias: string, startParamIndex: number): { sql: string; params: any[] } {

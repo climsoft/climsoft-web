@@ -1,7 +1,7 @@
 <div class="card border-0">
 
     <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
-        [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
+        [displayHourSelector]="true" [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
 
     <div class="card border-0 p-0 mt-2">
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
@@ -10,12 +10,17 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
                     Stack/Unstack
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll( )">
-                    Delete All
+                <button type="button" class="btn btn-sm btn-outline-info ms-2 position-relative"
+                    [disabled]="!hasSourceDuplicates" (click)="onSourceCheck()">
+                    Source Check
+                    <span *ngIf="hasSourceDuplicates"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                        !
+                    </span>
                 </button>
                 <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
-                    (click)="onBulkPkUpdate()">
-                    Bulk PK Update
+                    (click)="onBulkUpdate()">
+                    Bulk Update
                 </button>
                 <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-danger ms-2"
                     (click)="onBulkDelete()">
@@ -31,14 +36,13 @@
         </div>
 
         <div class="card-body p-0">
-            <div *ngIf="loading" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            
+            <app-spinner *ngIf="loading" [message]="'Loading...'" />
+
             <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
                 No observations found
             </div>
+            
             <div *ngIf="!loading && observationsEntries.length > 0">
                 <div *ngIf="useUnstackedViewer">
                     <app-unstacked-data-viewer [observationsEntries]="observationsEntries"
@@ -61,9 +65,6 @@
 
 </div>
 
-<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'"
-    [deleteButtonLabel]="'Ok'" (deleteConfirmed)="onDeleteAllConfirm()" />
-
 <app-confirmation-dialog #dlgSaveConfirm [title]="'Confirm Changes'" [okButtonLabel]="'Yes'" [cancelButtonLabel]="'No'"
     (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
     <div>
@@ -80,3 +81,5 @@
 <app-bulk-pk-update-dialog #dlgBulkPkUpdate (done)="loadData()" />
 
 <app-bulk-delete-dialog #dlgBulkDelete (done)="loadData()" />
+
+<app-source-check-dialog #dlgSourceCheck />

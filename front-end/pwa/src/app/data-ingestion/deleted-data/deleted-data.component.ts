@@ -11,7 +11,9 @@ import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { BulkRestoreDialogComponent } from './bulk-restore-dialog/bulk-restore-dialog.component';
+import { BulkPermanentDeleteDialogComponent } from './bulk-permanent-delete-dialog/bulk-permanent-delete-dialog.component';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-deleted-data',
@@ -19,7 +21,9 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
   styleUrls: ['./deleted-data.component.scss']
 })
 export class DeletedDataComponent implements OnInit, OnDestroy {
-  @ViewChild('dlgHardDeleteAllConfirm') dlgHardDeleteAllConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgConfirmSubmit') dlgConfirmSubmit!: ConfirmationDialogComponent;
+  @ViewChild('dlgBulkRestore') dlgBulkRestore!: BulkRestoreDialogComponent;
+  @ViewChild('dlgBulkPermanentDelete') dlgBulkPermanentDelete!: BulkPermanentDeleteDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -27,9 +31,7 @@ export class DeletedDataComponent implements OnInit, OnDestroy {
   protected enableQueryButton: boolean = true;
   protected loading: boolean = false;
   protected changedCount: number = 0;
-  protected restoreAllConfirmOpen: boolean = false;
-  protected saveConfirmOpen: boolean = false;
-  protected saveSummary: { restoredCount: number; hardDeletedCount: number } = { restoredCount: 0, hardDeletedCount: 0 };
+  protected saveSummary: { restoredCount: number; permanentDeletedCount: number } = { restoredCount: 0, permanentDeletedCount: 0 };
 
   protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
@@ -158,23 +160,12 @@ export class DeletedDataComponent implements OnInit, OnDestroy {
     this.onUserInput();
   }
 
-  protected restoreAll(): void {
-    this.restoreAllConfirmOpen = true;
+  protected onBulkRestore(): void {
+    this.dlgBulkRestore.openDialog(this.queryFilter);
   }
 
-  protected hardDeleteAll(): void {
-    this.dlgHardDeleteAllConfirm.openDialog();
-  }
-
-  protected onRestoreAllConfirm(): void {
-    this.restoreAllConfirmOpen = false;
-    this.observationsEntries.forEach(item => { item.restore = true });
-    this.onUserInput();
-  }
-
-  protected onHardDeleteAllConfirm(): void {
-    this.observationsEntries.forEach(item => { item.hardDelete = true });
-    this.onUserInput();
+  protected onBulkPermanentDelete(): void {
+    this.dlgBulkPermanentDelete.openDialog(this.queryFilter);
   }
 
   protected onUserInput() {
@@ -199,16 +190,11 @@ export class DeletedDataComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.saveSummary = { restoredCount, hardDeletedCount };
-    this.saveConfirmOpen = true;
+    this.saveSummary = { restoredCount, permanentDeletedCount: hardDeletedCount };
+    this.dlgConfirmSubmit.openDialog();
   }
 
-  protected onSaveConfirm(): void {
-    this.saveConfirmOpen = false;
-    this.doSave();
-  }
-
-  private doSave(): void {
+  public doSave(): void {
     const deletedObs: DeleteObservationModel[] = [];
     const restoredObs: DeleteObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
@@ -243,7 +229,7 @@ export class DeletedDataComponent implements OnInit, OnDestroy {
 
   private hardDeleteObservations(deletedObs: DeleteObservationModel[], changedObs: DeleteObservationModel[]): void {
     this.enableSaveButton = false;
-    this.observationService.hardDelete(deletedObs).subscribe({
+    this.observationService.permanentDelete(deletedObs).subscribe({
       next: () => {
         this.enableSaveButton = true;
         this.pagesDataService.showToast({

@@ -314,8 +314,8 @@ export class ObservationsExportService {
         // DATA PROCESSING SELECTIONS
         //------------------------------------------------------------------------------------------------
 
-        // TODO. Fetch the utc setting from cache
-        const displayUtcOffset: number = (((await this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters) as ClimsoftDisplayTimeZoneDto).utcOffset;
+        // Fetch the utc setting from cache
+        const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
 
         if (exportParams.convertDatetimeToDisplayTimeZone) {
 

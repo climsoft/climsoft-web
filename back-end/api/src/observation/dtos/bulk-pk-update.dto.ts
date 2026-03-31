@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, ValidateIf, ValidateNested } from 'class-validator';
+import { BulkObservationFilterDto } from './bulk-observation-filter.dto';
 
 export enum PkFieldEnum {
     STATION_ID = 'station_id',
@@ -20,41 +21,6 @@ export enum DateTimeShiftUnitEnum {
 export enum ConflictResolutionEnum {
     SKIP = 'skip',
     OVERWRITE = 'overwrite',
-}
-
-export class BulkPkUpdateFilterDto {
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    stationIds?: string[];
-
-    @IsOptional()
-    @IsArray()
-    @IsInt({ each: true })
-    elementIds?: number[];
-
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    level?: number;
-
-    @IsOptional()
-    @IsArray()
-    @IsInt({ each: true })
-    intervals?: number[];
-
-    @IsOptional()
-    @IsArray()
-    @IsInt({ each: true })
-    sourceIds?: number[];
-
-    @IsOptional()
-    @IsDateString()
-    fromDate?: string;
-
-    @IsOptional()
-    @IsDateString()
-    toDate?: string;
 }
 
 export class PkChangeSpecDto {
@@ -87,8 +53,8 @@ export class PkChangeSpecDto {
 
 export class BulkPkUpdateCheckDto {
     @ValidateNested()
-    @Type(() => BulkPkUpdateFilterDto)
-    filter: BulkPkUpdateFilterDto;
+    @Type(() => BulkObservationFilterDto)
+    filter: BulkObservationFilterDto;
 
     @ValidateNested()
     @Type(() => PkChangeSpecDto)

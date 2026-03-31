@@ -7,12 +7,12 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
 import {
   BulkPkUpdateCheckResponse,
   BulkPkUpdateExecuteResponse,
-  BulkPkUpdateFilter,
   ConflictResolutionEnum,
   DateTimeShiftUnitEnum,
   PkChangeSpec,
   PkFieldEnum,
 } from '../../models/bulk-pk-update.model';
+import { BulkObservationFilter } from '../../models/bulk-observation-filter.model';
 
 type DialogStep = 'configure' | 'checking' | 'conflicts' | 'executing' | 'result';
 
@@ -51,7 +51,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   protected executeResponse: BulkPkUpdateExecuteResponse | null = null;
 
   // Filter from parent
-  private filter: BulkPkUpdateFilter = {};
+  private filter: BulkObservationFilter = {};
 
   // Enums for template
   protected PkFieldEnum = PkFieldEnum;
@@ -100,6 +100,8 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
       sourceIds: queryFilter.sourceIds,
       fromDate: queryFilter.fromDate,
       toDate: queryFilter.toDate,
+      hours: queryFilter.hours,
+      useEntryDate: queryFilter.useEntryDate,
     };
   }
 
@@ -226,6 +228,27 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
 
   protected get displayCancelOption(): boolean {
     return this.step === 'configure' || this.step === 'conflicts';
+  }
+
+  protected get changeDescription(): string {
+    if (!this.selectedPkField) return '';
+    const field = this.selectedPkField.value;
+    const label = this.selectedPkField.label;
+    if (field === PkFieldEnum.DATE_TIME) {
+      const sign = this.shiftAmount > 0 ? '+' : '';
+      const unit = this.selectedShiftUnit?.label ?? '';
+      return `shift ${label} by ${sign}${this.shiftAmount} ${unit}`;
+    }
+    let from: string | number | null = null;
+    let to: string | number | null = null;
+    switch (field) {
+      case PkFieldEnum.STATION_ID: from = this.fromStationId; to = this.toStationId; break;
+      case PkFieldEnum.ELEMENT_ID: from = this.fromElementId; to = this.toElementId; break;
+      case PkFieldEnum.LEVEL: from = this.fromLevel; to = this.toLevel; break;
+      case PkFieldEnum.INTERVAL: from = this.fromIntervalId; to = this.toIntervalId; break;
+      case PkFieldEnum.SOURCE_ID: from = this.fromSourceId; to = this.toSourceId; break;
+    }
+    return `change ${label} from ${from} to ${to}`;
   }
 
   protected get cancelButtonLabel(): string {

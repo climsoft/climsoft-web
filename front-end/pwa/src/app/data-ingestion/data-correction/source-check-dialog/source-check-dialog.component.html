@@ -1,0 +1,54 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Source Check'" [displayOkOption]="true" [okButtonLabel]="'Close'"
+        [closeOnOkClick]="true" [displayCancelOption]="false" [displayDeleteOption]="false" (okClick)="onClose()">
+        <div style="min-height: 50vh;">
+
+            <app-spinner *ngIf="loading" [message]="'Loading duplicates...'" />
+
+            <div *ngIf="!loading && pageInputDefinition.totalRowCount === 0" class="text-center text-muted py-4">
+                No source duplicates found
+            </div>
+
+            <div *ngIf="!loading && duplicateEntries.length > 0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="text-muted">
+                        Showing observation groups with duplicates from different sources
+                    </div>
+                    <app-page-input [pageInputDefinition]="pageInputDefinition"
+                        (pageInputDefinitionChange)="loadData()" />
+                </div>
+
+                <div class="app-table-container" style="max-height: 60vh;">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th style="width: 2%;"></th>
+                                <th>#</th>
+                                <th>Station</th>
+                                <th>Element</th>
+                                <th>Level</th>
+                                <th>Date Time</th>
+                                <th>Interval</th>
+                                <th>Duplicates</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            <tr *ngFor="let dupEntry of duplicateEntries; let i = index;"
+                                (click)="onRowClick(dupEntry)" class="app-cursor-pointer">
+                                <td><i class="bi bi-arrow-right-short"></i></td>
+                                <td>{{ getRowNumber(i) }}</td>
+                                <td>{{ dupEntry.stationName }}</td>
+                                <td>{{ dupEntry.elementAbbrv }}</td>
+                                <td>{{ dupEntry.level }}</td>
+                                <td>{{ dupEntry.formattedDatetime }}</td>
+                                <td>{{ dupEntry.intervalName }}</td>
+                                <td>{{ dupEntry.duplicates }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </app-dialog>
+</ng-container>

@@ -203,7 +203,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
           this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
         } else {
           this.importStage = ImportStage.IDLE;
-          this.importMessage = 'File ready for import. Click Confirm Import button to imort the file.';
+          this.importMessage = 'File ready for import. Click Confirm Import button to import the file.';
           this.showConfirmImport = true;
           this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.INFO })
         }

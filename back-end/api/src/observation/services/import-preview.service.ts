@@ -13,9 +13,9 @@ import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ObservationImportService } from './observations-import.service';
 import { FlagsService } from 'src/metadata/flags/services/flags.service';
 
-export interface PreviewSession {
+interface PreviewSession {
     sessionId: string;
-    fileName: string;
+    fileName: string; // TODO. Just store the file path like the `BulkPkUpdateSession` in `BulkPkUpdateService` to simplify the code.
     rowsToSkip: number;
     delimiter?: string;
     createdAt: number;

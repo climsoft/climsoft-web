@@ -16,6 +16,8 @@ import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { BulkPkUpdateDialogComponent } from './bulk-pk-update-dialog/bulk-pk-update-dialog.component';
 import { BulkDeleteDialogComponent } from './bulk-delete-dialog/bulk-delete-dialog.component';
+import { SourceCheckDialogComponent } from './source-check-dialog/source-check-dialog.component';
+import { SourceCheckService } from '../services/source-check.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
@@ -25,10 +27,10 @@ import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmatio
   styleUrls: ['./data-correction.component.scss']
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
-  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
     @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
   @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
   @ViewChild('dlgBulkDelete') dlgBulkDelete!: BulkDeleteDialogComponent;
+  @ViewChild('dlgSourceCheck') dlgSourceCheck!: SourceCheckDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -42,6 +44,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected useUnstackedViewer: boolean = false;
   protected changedCount: number = 0;
     protected isSystemAdmin: boolean = false;
+  protected hasSourceDuplicates: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -49,6 +52,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
+    private sourceCheckService: SourceCheckService,
     private route: ActivatedRoute,
         private appAuthService: AppAuthService,
   ) {
@@ -130,6 +134,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.changedCount = 0;
     this.observationsEntries = [];
     this.loading = true;
+    this.hasSourceDuplicates = false;
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
@@ -146,6 +151,10 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         },
       });
+
+    this.sourceCheckService.exists(this.queryFilter).pipe(take(1)).subscribe({
+      next: exists => this.hasSourceDuplicates = exists,
+    });
 
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
@@ -190,11 +199,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.useUnstackedViewer = !this.useUnstackedViewer;
   }
 
-  protected deleteAll(): void {
-    this.dlgDeleteAllConfirm.openDialog();
-  }
-
-  protected onBulkPkUpdate(): void {
+  protected onBulkUpdate(): void {
     this.dlgBulkPkUpdate.openDialog(this.queryFilter);
   }
 
@@ -202,11 +207,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.dlgBulkDelete.openDialog(this.queryFilter);
   }
 
-  protected onDeleteAllConfirm(): void {
-    for (const entry of this.observationsEntries) {
-      entry.delete = true;
-    }
-    this.changedCount = this.observationsEntries.length;
+  protected onSourceCheck(): void {
+    this.dlgSourceCheck.openDialog(this.queryFilter);
   }
 
   protected onUserInput() {
@@ -286,7 +288,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   private deleteObservations(deletedObs: DeleteObservationModel[], changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe({
+    this.observationService.delete(deletedObs).subscribe({
       next: () => {
         this.enableSaveButton = true;
         this.pagesDataService.showToast({

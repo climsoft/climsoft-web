@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, StreamableFile } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -12,12 +12,16 @@ import {
     BulkDeleteCheckResponse,
     BulkDeleteExecuteDto,
     BulkDeleteExecuteResponse,
-    BulkDeleteFilterDto,
 } from '../dtos/bulk-delete.dto';
+import { BulkObservationFilterDto } from '../dtos/bulk-observation-filter.dto';
+import { BulkFilterUtils } from './bulk-filter.utils';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
+import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 
 interface BulkDeleteSession {
     sessionId: string;
-    filter: BulkDeleteFilterDto;
+    filter: BulkObservationFilterDto;
     previewCsvFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
@@ -35,6 +39,7 @@ export class BulkDeleteService implements OnModuleDestroy {
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,
+        private generalSettingsService: GeneralSettingsService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -142,6 +147,20 @@ export class BulkDeleteService implements OnModuleDestroy {
         }
     }
 
+    public async downloadPreviewCsv(sessionId: string): Promise<StreamableFile> {
+        const session = this.getSession(sessionId);
+
+        if (!session.previewCsvFile) {
+            throw new BadRequestException('No preview file available for this session');
+        }
+
+        const fileName = path.basename(session.previewCsvFile);
+        return new StreamableFile(fs.createReadStream(session.previewCsvFile), {
+            type: 'text/csv',
+            disposition: `attachment; filename="${fileName}"`,
+        });
+    }
+
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
         if (!session) return;
@@ -178,22 +197,23 @@ export class BulkDeleteService implements OnModuleDestroy {
         return session;
     }
 
-    private buildCountQuery(filter: BulkDeleteFilterDto): { sql: string; params: any[] } {
+    private buildCountQuery(filter: BulkObservationFilterDto): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
         const sql = `SELECT COUNT(*)::int AS cnt FROM observations o WHERE o.deleted = false ${whereClause.sql}`;
         return { sql, params: whereClause.params };
     }
 
-    private buildPreviewSelectQuery(filter: BulkDeleteFilterDto): { sql: string; params: any[] } {
+    private buildPreviewSelectQuery(filter: BulkObservationFilterDto): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'o', 1);
+        const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
         const sql = `
             SELECT
-                o.station_id || ' - ' || s.name AS station,
-                o.element_id || ' - ' || e.abbreviation AS element,
+                o.station_id AS station_id, s.name AS station_name,
+                o.element_id AS element_id, e.abbreviation AS element_name,
                 o.level,
-                o.date_time,
+                (o.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS date_time,
                 o.interval,
-                o.source_id || ' - ' || src.name AS source,
+                src.name AS source_name,
                 o.value,
                 f.abbreviation AS flag,
                 o.comment,
@@ -210,69 +230,14 @@ export class BulkDeleteService implements OnModuleDestroy {
         return { sql, params: whereClause.params };
     }
 
-    private buildDeleteQuery(filter: BulkDeleteFilterDto, userId: number): { sql: string; params: any[] } {
+    private buildDeleteQuery(filter: BulkObservationFilterDto, userId: number): { sql: string; params: any[] } {
         const whereClause = this.buildFilterWhereClause(filter, 'observations', 1);
         const sql = `UPDATE observations SET deleted = true, entry_user_id = ${userId} WHERE deleted = false ${whereClause.sql}`;
         return { sql, params: whereClause.params };
     }
 
-    private buildFilterWhereClause(filter: BulkDeleteFilterDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
-        const conditions: string[] = [];
-        const params: any[] = [];
-        let paramIndex: number = startParamIndex;
-
-        if (filter.stationIds && filter.stationIds.length > 0) {
-            conditions.push(`${tableAlias}.station_id = ANY($${paramIndex})`);
-            params.push(filter.stationIds);
-            paramIndex++;
-        }
-
-        if (filter.elementIds && filter.elementIds.length > 0) {
-            conditions.push(`${tableAlias}.element_id = ANY($${paramIndex})`);
-            params.push(filter.elementIds);
-            paramIndex++;
-        }
-
-        if (filter.level !== undefined) {
-            conditions.push(`${tableAlias}.level = $${paramIndex}`);
-            params.push(filter.level);
-            paramIndex++;
-        }
-
-        if (filter.intervals && filter.intervals.length > 0) {
-            conditions.push(`${tableAlias}.interval = ANY($${paramIndex})`);
-            params.push(filter.intervals);
-            paramIndex++;
-        }
-
-        if (filter.sourceIds && filter.sourceIds.length > 0) {
-            conditions.push(`${tableAlias}.source_id = ANY($${paramIndex})`);
-            params.push(filter.sourceIds);
-            paramIndex++;
-        }
-
-        if (filter.fromDate && filter.toDate) {
-            conditions.push(`${tableAlias}.date_time BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
-            params.push(filter.fromDate, filter.toDate);
-            paramIndex += 2;
-        } else if (filter.fromDate) {
-            conditions.push(`${tableAlias}.date_time >= $${paramIndex}`);
-            params.push(filter.fromDate);
-            paramIndex++;
-        } else if (filter.toDate) {
-            conditions.push(`${tableAlias}.date_time <= $${paramIndex}`);
-            params.push(filter.toDate);
-            paramIndex++;
-        }
-
-        if (filter.hour !== undefined) {
-            conditions.push(`EXTRACT(HOUR FROM ${tableAlias}.date_time) = $${paramIndex}`);
-            params.push(filter.hour);
-            paramIndex++;
-        }
-
-        const sql: string = conditions.length > 0 ? ' AND ' + conditions.join(' AND ') : '';
-        return { sql, params };
+    private buildFilterWhereClause(filter: BulkObservationFilterDto, tableAlias: string, startParamIndex: number): { sql: string; params: any[] } {
+        return BulkFilterUtils.toWhereClauseSql(BulkFilterUtils.buildFilterWhereClause(filter, tableAlias, startParamIndex));
     }
 
 }

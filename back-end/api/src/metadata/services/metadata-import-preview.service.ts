@@ -12,11 +12,18 @@ import {
     ElementColumnMappingDto,
 } from '../dtos/metadata-import-preview.dto';
 import { PreviewError, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from 'src/observation/dtos/import-preview.dto';
-import { PreviewSession } from 'src/observation/services/import-preview.service';
 import { StationsImportExportService } from '../stations/services/stations-import-export.service';
 import { ElementsImportExportService } from '../elements/services/elements-import-export.service';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 
+ interface PreviewSession {
+    sessionId: string;
+    fileName: string;
+    rowsToSkip: number;
+    delimiter?: string;
+    createdAt: number;
+    lastAccessedAt: number;
+}
 
 @Injectable()
 export class MetadataImportPreviewService implements OnModuleDestroy {

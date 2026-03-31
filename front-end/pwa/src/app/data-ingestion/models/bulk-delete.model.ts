@@ -1,16 +1,7 @@
-export interface BulkDeleteFilter {
-    stationIds?: string[];
-    elementIds?: number[];
-    level?: number;
-    intervals?: number[];
-    sourceIds?: number[];
-    fromDate?: string;
-    toDate?: string;
-    hour?: number;
-}
+import { BulkObservationFilter } from './bulk-observation-filter.model';
 
 export interface BulkDeleteCheckRequest {
-    filter: BulkDeleteFilter;
+    filter: BulkObservationFilter;
 }
 
 export interface BulkDeleteExecuteRequest {

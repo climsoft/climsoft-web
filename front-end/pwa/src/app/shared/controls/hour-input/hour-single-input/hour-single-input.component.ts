@@ -15,7 +15,8 @@ export class HourSingleInputComponent implements OnChanges {
   @Input() public label: string = 'Hour';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
-  @Input() public showNavigationButtons!: boolean;
+  @Input() public showNavigationButtons: boolean = false;
+  @Input() public displayCancelOption: boolean = false;
   @Input() public selectedId!: number | null | undefined;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
@@ -37,7 +38,7 @@ export class HourSingleInputComponent implements OnChanges {
       this.options = this.getHours().filter(data => this.includeOnlyIds.includes(data.id));
     }
 
-    if (this.selectedId !== undefined) {
+    if (this.selectedId !== undefined || this.selectedId !== null) {
       const found = this.options.find(period => period.id === this.selectedId);
       this.selectedOption = found ? found : null;
     }
@@ -74,6 +75,6 @@ export class HourSingleInputComponent implements OnChanges {
     if (!this.selectedOption) return;
 
     const index: number = this.options.findIndex(item => item.id === this.selectedOption?.id);
-    if (index < this.options.length-1 ) this.onSelectedOptionChange(this.options[index + 1]);
+    if (index < this.options.length - 1) this.onSelectedOptionChange(this.options[index + 1]);
   }
 }

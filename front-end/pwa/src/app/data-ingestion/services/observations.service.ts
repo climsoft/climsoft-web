@@ -297,12 +297,12 @@ export class ObservationsService {
       );
   }
 
-  public softDelete(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations });
+  public delete(observations: DeleteObservationModel[]): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/delete`, { body: observations });
   }
 
-  public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.delete<number>(`${this.endPointUrl}/hard`, { body: observations })
+  public permanentDelete(observations: DeleteObservationModel[]): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/permanent-delete`, { body: observations })
       .pipe(
         catchError(AppAuthInterceptor.handleError)
       );

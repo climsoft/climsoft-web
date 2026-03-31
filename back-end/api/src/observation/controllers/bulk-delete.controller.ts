@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, StreamableFile } from '@nestjs/common';
 import { Request } from 'express';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
@@ -13,6 +13,11 @@ export class BulkDeleteController {
     @Post('check')
     public async check(@Body() dto: BulkDeleteCheckDto) {
         return this.bulkDeleteService.checkForDeletion(dto);
+    }
+
+    @Get('preview-download/:sessionId')
+    public async previewDownload(@Param('sessionId') sessionId: string): Promise<StreamableFile> {
+        return this.bulkDeleteService.downloadPreviewCsv(sessionId);
     }
 
     @Post('execute')

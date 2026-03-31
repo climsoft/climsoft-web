@@ -9,6 +9,7 @@ export interface ViewObservationQueryModel {
     useEntryDate?: boolean;
     fromDate?: string;
     toDate?: string;
+    hours?: number[];
     qcStatus?: QCStatusEnum;
     deleted?: boolean;
     page?: number;

@@ -23,6 +23,12 @@ import { BulkPkUpdateService } from './services/bulk-pk-update.service';
 import { BulkPkUpdateController } from './controllers/bulk-pk-update.controller';
 import { BulkDeleteService } from './services/bulk-delete.service';
 import { BulkDeleteController } from './controllers/bulk-delete.controller';
+import { BulkRestoreService } from './services/bulk-restore.service';
+import { BulkRestoreController } from './controllers/bulk-restore.controller';
+import { BulkPermanentDeleteService } from './services/bulk-permanent-delete.service';
+import { BulkPermanentDeleteController } from './controllers/bulk-permanent-delete.controller';
+import { SourceCheckService } from './services/source-check.service';
+import { SourceCheckController } from './controllers/source-check.controller';
 
 @Module({
   imports: [
@@ -39,6 +45,9 @@ import { BulkDeleteController } from './controllers/bulk-delete.controller';
     ImportPreviewController,
     BulkPkUpdateController,
     BulkDeleteController,
+    BulkRestoreController,
+    BulkPermanentDeleteController,
+    SourceCheckController,
   ],
   providers: [
     ObservationsService,
@@ -53,6 +62,9 @@ import { BulkDeleteController } from './controllers/bulk-delete.controller';
     ImportPreviewService,
     BulkPkUpdateService,
     BulkDeleteService,
+    BulkRestoreService,
+    BulkPermanentDeleteService,
+    SourceCheckService,
   ],
   exports: [
     ObservationImportService,

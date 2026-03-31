@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
+import { And, Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Raw, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -36,7 +36,7 @@ export class ObservationsService {
     ) {
     }
 
- 
+
 
     public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
@@ -103,6 +103,22 @@ export class ObservationsService {
         }
 
         this.setProcessedObsDateFilter(queryDto, whereOptions);
+
+        if (queryDto.hours) {
+            // Note. The hour filter should always use the observation date time not the entry date time
+            let hourOp: FindOperator<Date>;
+            if (queryDto.hours.length === 1) {
+                hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = :hour`, { hour: queryDto.hours[0] });
+            } else {
+                hourOp = Raw(alias => `EXTRACT(HOUR FROM ${alias}) = ANY(:hours)`, { hours: queryDto.hours });
+            }
+
+            if (whereOptions.datetime) {
+                whereOptions.datetime = And(whereOptions.datetime as FindOperator<Date>, hourOp);
+            } else {
+                whereOptions.datetime = hourOp;
+            }
+        }
 
         if (queryDto.qcStatus) {
             whereOptions.qcStatus = queryDto.qcStatus;
@@ -289,15 +305,15 @@ export class ObservationsService {
 
     }
 
-    public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
-        return this.softDeleteOrRestore(obsDtos, true, userId)
+    public async delete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
+        return this.deleteOrRestore(obsDtos, true, userId)
     }
 
     public async restore(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
-        return this.softDeleteOrRestore(obsDtos, false, userId)
+        return this.deleteOrRestore(obsDtos, false, userId)
     }
 
-    private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deletedStatus: boolean, userId: number): Promise<number> {
+    private async deleteOrRestore(obsDtos: DeleteObservationDto[], deletedStatus: boolean, userId: number): Promise<number> {
         // Build an array of objects representing each composite primary key. 
         const compositeKeys = obsDtos.map((obs) => ({
             stationId: obs.stationId,
@@ -328,7 +344,7 @@ export class ObservationsService {
         return updatedResults.affected ? updatedResults.affected : obsDtos.length;
     }
 
-    public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
+    public async permanentDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
         // Build an array of objects representing each composite primary key. 
         const compositeKeys = deleteObsDtos.map((obs) => ({
             stationId: obs.stationId,
