@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
@@ -25,17 +25,16 @@ import { SourceCheckService } from '../../services/source-check.service';
   templateUrl: './data-corrector.component.html',
   styleUrls: ['./data-corrector.component.scss']
 })
-export class DataCorrectorComponent implements OnChanges, OnDestroy {
+export class DataCorrectorComponent implements OnDestroy {
   @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
   @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
   @ViewChild('dlgBulkDelete') dlgBulkDelete!: BulkDeleteDialogComponent;
   @ViewChild('dlgSourceCheck') dlgSourceCheck!: SourceCheckDialogComponent;
 
-  @Input() public queryFilter: ViewObservationQueryModel = {};
-  @Input() public submitChanges: boolean = false;
-
   @Output() public loadingInProgress = new EventEmitter<boolean>();
   @Output() public userChanges = new EventEmitter<number>();
+
+  private queryFilter: ViewObservationQueryModel = {};
 
   protected loading: boolean = false;
 
@@ -70,14 +69,13 @@ export class DataCorrectorComponent implements OnChanges, OnDestroy {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['queryFilter']) {
-       this.loadData();
-    }
+  public query(queryFilter: ViewObservationQueryModel): void {
+    this.queryFilter = queryFilter;
+    this.loadData();
+  }
 
-    if (changes['submitChanges'] && this.submitChanges) {
-      this.onSubmit();
-    }
+  public submit(): void {
+    this.onSubmit();
   }
 
   ngOnDestroy() {

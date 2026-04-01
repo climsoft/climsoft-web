@@ -3,7 +3,7 @@
         <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
             [displayHourSelector]="true" [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
 
-        <app-data-corrector [queryFilter]="queryFilter" [submitChanges]="submitChanges"
+        <app-data-corrector #dataCorrector
             (loadingInProgress)="onLoadingObservations($event)" (userChanges)="onUserChanges($event)" />
     </div>
 

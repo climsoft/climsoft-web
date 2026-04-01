@@ -5,10 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { ActivatedRoute } from '@angular/router';
-import { BulkPkUpdateDialogComponent } from './bulk-pk-update-dialog/bulk-pk-update-dialog.component';
-import { BulkDeleteDialogComponent } from './bulk-delete-dialog/bulk-delete-dialog.component';
-import { SourceCheckDialogComponent } from './source-check-dialog/source-check-dialog.component';
-import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
+import { DataCorrectorComponent } from './data-corrector/data-corrector.component';
 
 @Component({
   selector: 'app-data-correction',
@@ -16,15 +13,11 @@ import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmatio
   styleUrls: ['./data-correction.component.scss']
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
-  @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
-  @ViewChild('dlgBulkPkUpdate') dlgBulkPkUpdate!: BulkPkUpdateDialogComponent;
-  @ViewChild('dlgBulkDelete') dlgBulkDelete!: BulkDeleteDialogComponent;
-  @ViewChild('dlgSourceCheck') dlgSourceCheck!: SourceCheckDialogComponent;
+  @ViewChild('dataCorrector') dataCorrector!: DataCorrectorComponent;
 
   protected queryFilter!: ViewObservationQueryModel;
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected submitChanges: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -71,6 +64,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         }
 
         this.queryFilter = newQueryFilter;
+        this.dataCorrector.query(newQueryFilter);
       });
 
     });
@@ -88,7 +82,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     this.queryFilter = queryFilter;
     this.enableSaveButton = false;
-    this.submitChanges = false;
+    this.dataCorrector.query(queryFilter);
   }
 
   protected onLoadingObservations(loading: boolean): void {
@@ -101,7 +95,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   protected onSubmitChanges(): void {
     if (this.queryFilter && this.enableSaveButton) {
-      this.submitChanges = true;
+      this.dataCorrector.submit();
     }
   }
 

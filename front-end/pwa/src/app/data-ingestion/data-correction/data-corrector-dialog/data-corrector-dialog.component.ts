@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
+import { DataCorrectorComponent } from '../data-corrector/data-corrector.component';
 
 @Component({
   selector: 'app-data-corrector-dialog',
@@ -7,24 +8,21 @@ import { ViewObservationQueryModel } from '../../models/view-observation-query.m
   styleUrls: ['./data-corrector-dialog.component.scss']
 })
 export class DataCorrectorDialogComponent {
+  @ViewChild('dataCorrector') dataCorrector!: DataCorrectorComponent;
 
   @Output() changesSubmitted = new EventEmitter<void>();
 
   protected open = false;
 
-  // Filter from parent
-  protected queryFilter: ViewObservationQueryModel = {};
-
   protected enableSubmitButton: boolean = false;
-  protected submitChanges: boolean = false;
 
   constructor() { }
 
   public openDialog(queryFilter: ViewObservationQueryModel): void {
     this.open = true;
-    this.queryFilter = { ...queryFilter };
     this.enableSubmitButton = false;
-    this.submitChanges = false;
+    // setTimeout needed because child is behind *ngIf="open"
+    setTimeout(() => this.dataCorrector.query({ ...queryFilter }));
   }
 
   protected onUserChanges(changedCount: number) {
@@ -32,8 +30,8 @@ export class DataCorrectorDialogComponent {
   }
 
   protected onSubmitChanges(): void {
-    if (this.queryFilter && this.enableSubmitButton) {
-      this.submitChanges = true;
+    if (this.enableSubmitButton) {
+      this.dataCorrector.submit();
     }
   }
 
