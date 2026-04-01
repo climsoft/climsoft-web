@@ -1,5 +1,5 @@
-import { Component, OnDestroy } from '@angular/core';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Subject, take } from 'rxjs';
 import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
 import { SourceCheckDuplicateModel } from '../../models/source-check-duplicate.model';
 import { SourceCheckService } from '../../services/source-check.service';
@@ -8,10 +8,8 @@ import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Intervals.util';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { Router } from '@angular/router';
-import { AppAuthService } from 'src/app/app-auth.service';
-import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
+import { DataCorrectorDialogComponent } from '../data-corrector-dialog/data-corrector-dialog.component';
 
 export interface SourceCheckViewModel extends SourceCheckDuplicateModel {
   stationName: string;
@@ -25,7 +23,8 @@ export interface SourceCheckViewModel extends SourceCheckDuplicateModel {
   templateUrl: './source-check-dialog.component.html',
   styleUrls: ['./source-check-dialog.component.scss']
 })
-export class SourceCheckDialogComponent implements OnDestroy {
+export class SourceCheckDialogComponent {
+  @ViewChild('dlgDataCorrector') dlgDataCorrector!: DataCorrectorDialogComponent;
 
   protected open = false;
   protected loading = false;
@@ -33,27 +32,16 @@ export class SourceCheckDialogComponent implements OnDestroy {
   protected pageInputDefinition = new PagingParameters();
 
   private queryFilter!: ViewObservationQueryModel;
-  private user!: LoggedInUserModel;
-  private destroy$ = new Subject<void>();
 
   constructor(
     private sourceCheckService: SourceCheckService,
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
-    private appAuthService: AppAuthService,
-    private router: Router,
   ) {
-    this.appAuthService.user.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(user => {
-      if (user) this.user = user;
-    });
+
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+
 
   public openDialog(filter: ViewObservationQueryModel): void {
     this.open = true;
@@ -122,7 +110,7 @@ export class SourceCheckDialogComponent implements OnDestroy {
   }
 
   protected onRowClick(entry: SourceCheckViewModel): void {
-    const viewFilter: ViewObservationQueryModel = {
+    const filter: ViewObservationQueryModel = {
       stationIds: [entry.stationId],
       elementIds: [entry.elementId],
       level: entry.level,
@@ -131,27 +119,7 @@ export class SourceCheckDialogComponent implements OnDestroy {
       toDate: entry.datetime,
     };
 
-    let componentPath = '';
-    if (this.user.isSystemAdmin) {
-      componentPath = 'data-ingestion/data-correction';
-    } else if (this.user.permissions) {
-      if (this.user.permissions.entryPermissions) {
-        componentPath = 'data-ingestion/data-correction';
-      } else if (this.user.permissions.ingestionMonitoringPermissions) {
-        componentPath = '/data-monitoring/data-explorer';
-      }
-    }
-
-    if (componentPath) {
-      const serialisedUrl = this.router.serializeUrl(
-        this.router.createUrlTree([componentPath], { queryParams: viewFilter })
-      );
-      window.open(serialisedUrl, '_blank');
-    }
-  }
-
-  protected onClose(): void {
-    this.open = false;
+    this.dlgDataCorrector.openDialog(filter);
   }
 
   protected getRowNumber(currentRowIndex: number): number {

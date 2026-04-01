@@ -9,8 +9,8 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
   styleUrls: ['./stacked-data-viewer.component.scss']
 })
 export class StackedDataViewerComponent implements OnChanges {
+  @Input() public allowDataEdits: boolean = true;
   @Input() public pageInputDefinition!: PagingParameters;
-
   @Input() public observationsEntries!: ObservationEntry[];
 
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;

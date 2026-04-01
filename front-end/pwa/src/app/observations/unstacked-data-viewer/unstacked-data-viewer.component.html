@@ -30,11 +30,11 @@
                     {{ groupedEntryKV.value[0].sourceName }}
                 </td>
                 <td *ngFor="let element of elementColumns ; let secondIndex = index;">
-                    <div *ngIf="getObservation(element, groupedEntryKV.value) as ev"
-                        class="app-value-flag-container">
+                    <div *ngIf="getObservation(element, groupedEntryKV.value) as ev" class="app-value-flag-container">
                         <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
                             [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false" [observationEntry]="ev"
-                            [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput($event)" />
+                            [disableValueFlagEntry]="!allowDataEdits || ev.delete"
+                            (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>
             </tr>

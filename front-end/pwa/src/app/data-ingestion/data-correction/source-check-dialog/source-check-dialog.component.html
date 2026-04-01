@@ -1,6 +1,6 @@
 <ng-container *ngIf="open">
     <app-dialog [(open)]="open" [title]="'Source Check'" [displayOkOption]="true" [okButtonLabel]="'Close'"
-        [closeOnOkClick]="true" [displayCancelOption]="false" [displayDeleteOption]="false" (okClick)="onClose()">
+        [closeOnOkClick]="true" [displayCancelOption]="false" [displayDeleteOption]="false">
         <div style="min-height: 50vh;">
 
             <app-spinner *ngIf="loading" [message]="'Loading duplicates...'" />
@@ -51,4 +51,5 @@
 
         </div>
     </app-dialog>
+    <app-data-corrector-dialog #dlgDataCorrector />
 </ng-container>

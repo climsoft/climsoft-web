@@ -1,0 +1,11 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Bulk Delete Observations'" [displayOkOption]="true"
+        [disableOkOption]="!enableSubmitButton" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+        [displayCancelOption]="true" [cancelButtonLabel]="'Close'" [closeOnCancelClick]="true"
+        [displayDeleteOption]="false" (okClick)="onSubmitChanges()">
+        <div style="min-height: 70vh;">
+            <app-data-corrector [queryFilter]="queryFilter" [submitChanges]="submitChanges"
+                (userChanges)="onUserChanges($event)" />
+        </div>
+    </app-dialog>
+</ng-container>

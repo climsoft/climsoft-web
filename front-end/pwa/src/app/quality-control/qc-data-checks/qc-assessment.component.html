@@ -17,10 +17,7 @@
             <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
                 <div class="fw-bold ms-1">Entries</div>
                 <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle()">
-                        Stack/Unstack
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-success ms-2" (click)="confirmAll()">
+                    <button type="button" class="btn btn-sm btn-outline-success" (click)="confirmAll()">
                         Confirm All
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll()">
@@ -45,53 +42,46 @@
                 <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
                     No failed QC observations found
                 </div>
-                <div *ngIf="!loading && observationsEntries.length > 0">
-                    <div *ngIf="useUnstackedViewer">
-                        <app-unstacked-data-viewer [observationsEntries]="observationsEntries"
-                            (valueChange)="onUserInput()" />
-                    </div>
-                    <div *ngIf="!useUnstackedViewer">
-                        <div class="app-table-container" style="max-height: 50vh;">
-                            <table class="table table-hover table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Station</th>
-                                        <th>Element</th>
-                                        <th>Level</th>
-                                        <th>Date Time</th>
-                                        <th>Interval</th>
-                                        <th>Source</th>
-                                        <th>Value & Flag</th>
-                                        <th>Comment</th>
-                                        <th>QC Tests Failed</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
-                                        <td>{{ getRowNumber(i) }}</td>
-                                        <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
-                                        <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
-                                        <td>{{ obsEntry.observation.level }}</td>
-                                        <td>{{ obsEntry.formattedDatetime }}</td>
-                                        <td>{{ obsEntry.intervalName }}</td>
-                                        <td>{{ obsEntry.sourceName }}</td>
-                                        <td>
-                                            <div class="app-value-flag-container">
-                                                <app-value-flag-input [id]="i + '_vf'"
-                                                    [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false"
-                                                    [observationEntry]="obsEntry"
-                                                    [disableValueFlagEntry]="obsEntry.confirmAsCorrect || obsEntry.delete"
-                                                    (userInputVF)="onUserInput()" />
-                                            </div>
-                                        </td>
-                                        <td>{{ obsEntry.observation.comment }}</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                <span
-                                                    *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed; let j = index"
-                                                    class="badge app-cursor-pointer" [ngClass]="{
+                <div *ngIf="!loading && observationsEntries.length > 0" class="app-table-container"
+                    style="max-height: 50vh;">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Station</th>
+                                <th>Element</th>
+                                <th>Level</th>
+                                <th>Date Time</th>
+                                <th>Interval</th>
+                                <th>Source</th>
+                                <th>Value & Flag</th>
+                                <th>Comment</th>
+                                <th>QC Tests Failed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
+                                <td>{{ getRowNumber(i) }}</td>
+                                <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
+                                <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
+                                <td>{{ obsEntry.observation.level }}</td>
+                                <td>{{ obsEntry.formattedDatetime }}</td>
+                                <td>{{ obsEntry.intervalName }}</td>
+                                <td>{{ obsEntry.sourceName }}</td>
+                                <td>
+                                    <div class="app-value-flag-container">
+                                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
+                                            [applyEntryScaleFactor]="false" [observationEntry]="obsEntry"
+                                            [disableValueFlagEntry]="obsEntry.confirmAsCorrect || obsEntry.delete"
+                                            (userInputVF)="onUserInput()" />
+                                    </div>
+                                </td>
+                                <td>{{ obsEntry.observation.comment }}</td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed; let j = index"
+                                            class="badge app-cursor-pointer" [ngClass]="{
                                                     'bg-primary': qcTestLogItem.qcTestType === 'range_threshold',
                                                     'bg-info': qcTestLogItem.qcTestType === 'flat_line',
                                                     'bg-warning text-dark': qcTestLogItem.qcTestType === 'spike',
@@ -100,31 +90,29 @@
                                                     'bg-danger': qcTestLogItem.qcTestType === 'diurnal',
                                                     'bg-dark': qcTestLogItem.qcTestType === 'spatial_consistency'
                                                 }" (click)="onQCTestBadgeClick(obsEntry, j)">
-                                                    {{ qcTestLogItem.name }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-sm"
-                                                    [ngClass]="obsEntry.confirmAsCorrect ? 'btn-success' : 'btn-outline-success'"
-                                                    [disabled]="obsEntry.delete" title="Confirm as Correct"
-                                                    (click)="onUserConfirmAsCorrectClick(obsEntry)">
-                                                    <i class="bi bi-check-circle"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm"
-                                                    [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
-                                                    [disabled]="obsEntry.confirmAsCorrect" title="Delete"
-                                                    (click)="onUserDeleteClick(obsEntry)">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                            {{ qcTestLogItem.name }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm"
+                                            [ngClass]="obsEntry.confirmAsCorrect ? 'btn-success' : 'btn-outline-success'"
+                                            [disabled]="obsEntry.delete" title="Confirm as Correct"
+                                            (click)="onUserConfirmAsCorrectClick(obsEntry)">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm"
+                                            [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
+                                            [disabled]="obsEntry.confirmAsCorrect" title="Delete"
+                                            (click)="onUserDeleteClick(obsEntry)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
