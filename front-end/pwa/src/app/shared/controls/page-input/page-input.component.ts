@@ -67,4 +67,8 @@ export class PageInputComponent implements OnChanges {
     this.pageInputDefinitionChange.emit();
   }
 
+  protected onRefresh(): void {
+    this.pageInputDefinitionChange.emit();
+  }
+
 }

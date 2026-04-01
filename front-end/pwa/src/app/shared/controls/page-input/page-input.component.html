@@ -33,10 +33,15 @@
             <div class="card-body">
                 <div class="small mb-2">Rows per page:</div>
                 <app-radio-buttons-input [groupName]="'max_visible_rows'" [asButtons]="false"
-                    [groupItems]="[{ label: '31'},{ label: '100'}, { label: '365'}]" [checkedValue]="pageInputDefinition.pageSize + ''"
+                    [groupItems]="[{ label: '31'},{ label: '100'}, { label: '365'}]"
+                    [checkedValue]="pageInputDefinition.pageSize + ''"
                     (checkedValueChange)="onPageSizeSelection($event)" />
             </div>
         </div>
     </app-drop-down-container>
+
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onRefresh()" title="Refresh">
+        <i class="bi bi-arrow-clockwise"></i>
+    </button>
 
 </div>

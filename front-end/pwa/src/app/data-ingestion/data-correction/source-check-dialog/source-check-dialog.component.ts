@@ -29,7 +29,7 @@ export class SourceCheckDialogComponent {
   protected open = false;
   protected loading = false;
   protected duplicateEntries: SourceCheckViewModel[] = [];
-  protected pageInputDefinition = new PagingParameters();
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
 
   private queryFilter!: ViewObservationQueryModel;
 
@@ -38,10 +38,7 @@ export class SourceCheckDialogComponent {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
   ) {
-
   }
-
-
 
   public openDialog(filter: ViewObservationQueryModel): void {
     this.open = true;
@@ -111,6 +108,7 @@ export class SourceCheckDialogComponent {
 
   protected onRowClick(entry: SourceCheckViewModel): void {
     const filter: ViewObservationQueryModel = {
+      deleted: false,
       stationIds: [entry.stationId],
       elementIds: [entry.elementId],
       level: entry.level,

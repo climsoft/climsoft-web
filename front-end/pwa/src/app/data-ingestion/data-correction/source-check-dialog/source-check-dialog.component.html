@@ -33,8 +33,8 @@
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            <tr *ngFor="let dupEntry of duplicateEntries; let i = index;"
-                                (click)="onRowClick(dupEntry)" class="app-cursor-pointer">
+                            <tr *ngFor="let dupEntry of duplicateEntries; let i = index;" (click)="onRowClick(dupEntry)"
+                                class="app-cursor-pointer">
                                 <td><i class="bi bi-arrow-right-short"></i></td>
                                 <td>{{ getRowNumber(i) }}</td>
                                 <td>{{ dupEntry.stationName }}</td>
@@ -51,5 +51,5 @@
 
         </div>
     </app-dialog>
-    <app-data-corrector-dialog #dlgDataCorrector />
+    <app-data-corrector-dialog #dlgDataCorrector (changesSubmitted)="loadData()" />
 </ng-container>

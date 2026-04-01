@@ -69,18 +69,14 @@ export class DataCorrectorComponent implements OnDestroy {
     });
   }
 
-  public query(queryFilter: ViewObservationQueryModel): void {
-    this.queryFilter = queryFilter;
-    this.loadData();
-  }
-
-  public submit(): void {
-    this.onSubmit();
-  }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  public query(queryFilter: ViewObservationQueryModel): void {
+    this.queryFilter = queryFilter;
+    this.loadData();
   }
 
   protected loadData(): void {
@@ -131,10 +127,9 @@ export class DataCorrectorComponent implements OnDestroy {
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.cachedMetadataSearchService.utcOffSet),
             intervalName: IntervalsUtil.getIntervalName(observation.interval),
           }
+
           return entry;
-
         });
-
       },
       error: err => {
         this.setLoadingStatus(false);
@@ -173,7 +168,7 @@ export class DataCorrectorComponent implements OnDestroy {
     this.onUserCorrectInput();
   }
 
-  private onSubmit(): void {
+  public submit(): void {
     // Check for invalid changes first
     for (const obsEntry of this.observationsEntries) {
       if (obsEntry.change === 'invalid_change') {
