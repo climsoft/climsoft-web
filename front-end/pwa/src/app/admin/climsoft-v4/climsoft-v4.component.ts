@@ -64,70 +64,124 @@ export class ClimsoftV4Component {
   }
 
   private checkConnectionState(): void {
-    this.climsoftV4Service.getConnectionState().pipe(take(1)).subscribe((data) => {
-      this.connectedToV4DB = data.message === 'success';
-      if (this.connectedToV4DB) {
-        // Get V4 conflicts
-        this.climsoftV4Service.getV4Conflicts().pipe(take(1)).subscribe((data) => {
-          this.v4Conflicts = data;
-        });
-      } else {
-        this.v4Conflicts = [];
+    this.climsoftV4Service.getConnectionState().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.connectedToV4DB = data.message === 'success';
+        if (this.connectedToV4DB) {
+          // Get V4 conflicts
+          this.climsoftV4Service.getV4Conflicts().pipe(take(1)).subscribe((data) => {
+            this.v4Conflicts = data;
+          });
+        } else {
+          this.v4Conflicts = [];
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
 
   protected onConnectToV4DBClick(): void {
-    this.climsoftV4Service.connectToV4DB().pipe(take(1)).subscribe((data) => {
-      this.checkConnectionState();
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
-      } else if (data.message === 'error') {
-        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
+    this.climsoftV4Service.connectToV4DB().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.checkConnectionState();
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
 
   protected onDisconnectToV4DBClick(): void {
-    this.climsoftV4Service.disconnectToV4DB().pipe(take(1)).subscribe((data) => {
-      this.checkConnectionState();
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
-      } else if (data.message === 'error') {
-        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
+    this.climsoftV4Service.disconnectToV4DB().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.checkConnectionState();
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
 
   protected onImportElementsClick(): void {
-    this.climsoftV4Service.importElements().pipe(take(1)).subscribe(( ) => {
-      this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+    this.climsoftV4Service.importElements().pipe(take(1)).subscribe({
+      next: (data) => {
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements NOT saved to web database`, type: ToastEventTypeEnum.ERROR });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
   protected onImportStationsClick(): void {
-    this.climsoftV4Service.importStations().pipe(take(1)).subscribe(() => {
-     this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+    this.climsoftV4Service.importStations().pipe(take(1)).subscribe({
+      next: (data) => {
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations NOT saved to web database`, type: ToastEventTypeEnum.ERROR });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
-   protected onImportElementQCClick(): void {
-    this.climsoftV4Service.importElementQcs().pipe(take(1)).subscribe(() => {
-     this.pagesDataService.showToast({ title: 'V4 Element QCs Pull', message: `V4 element QCs saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+  protected onImportElementQCClick(): void {
+    this.climsoftV4Service.importElementQcs().pipe(take(1)).subscribe({
+      next: (data) => {
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 Element QCs Pull', message: `V4 element QCs saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 Element QCs Pull', message: `V4 element QCs NOT saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
   private checkImportState(): void {
-    this.climsoftV4Service.getImportState().pipe(take(1)).subscribe((data) => {
-      this.importingFromV4 = data.message === 'success';
+    this.climsoftV4Service.getImportState().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.importingFromV4 = data.message === 'success';
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
   protected onSaveObservationsClick(): void {
-    this.climsoftV4Service.saveObservationsToV4().pipe(take(1)).subscribe((data) => {
-      this.checkConnectionState();
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 initiated`, type: ToastEventTypeEnum.SUCCESS });
+    this.climsoftV4Service.saveObservationsToV4().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.checkConnectionState();
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 initiated`, type: ToastEventTypeEnum.SUCCESS });
+        } else if (data.message === 'error') {
+          this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 NOT initiated`, type: ToastEventTypeEnum.ERROR });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
@@ -178,7 +232,7 @@ export class ClimsoftV4Component {
     this.showImportStarted = true;
     this.climsoftV4Service.startObservationsImportFromV4(this.climsoftV4ImportParameters).pipe(take(1)).subscribe(
       {
-        next: data => {
+        next: (data) => {
           if (data.message === 'success') {
             this.pagesDataService.showToast({ title: 'V4 Import', message: `Importing from version 4 started`, type: ToastEventTypeEnum.SUCCESS });
             setTimeout(() => {
@@ -191,7 +245,7 @@ export class ClimsoftV4Component {
             this.pagesDataService.showToast({ title: 'V4 Import', message: data.message, type: ToastEventTypeEnum.ERROR });
           }
         },
-        error: err => {
+        error: (err) => {
           console.error('error: ', err)
           this.showImportStarted = false;
           this.pagesDataService.showToast({ title: 'V4 Import', message: err.error.message, type: ToastEventTypeEnum.ERROR });
@@ -201,10 +255,15 @@ export class ClimsoftV4Component {
   }
 
   protected onStopImportObservationsClick(): void {
-    this.climsoftV4Service.stopObservationsImportFromV4().pipe(take(1)).subscribe((data) => {
-      this.checkImportState();
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 Import', message: `Importing from version 4 stopped`, type: ToastEventTypeEnum.SUCCESS });
+    this.climsoftV4Service.stopObservationsImportFromV4().pipe(take(1)).subscribe({
+      next: (data) => {
+        this.checkImportState();
+        if (data.message === 'success') {
+          this.pagesDataService.showToast({ title: 'V4 Import', message: `Importing from version 4 stopped`, type: ToastEventTypeEnum.SUCCESS });
+        }
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Server error`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
