@@ -127,7 +127,7 @@ export class ElementsService implements OnModuleInit {
     public async bulkPut(dtos: CreateViewElementDto[], userId: number) {
         const entities: ElementEntity[] = [];
         for (const dto of dtos) {
-            const entity: ElementEntity = await this.elementRepo.create({
+            const entity: ElementEntity = this.elementRepo.create({
                 id: dto.id,
             });
 
@@ -216,7 +216,7 @@ export class ElementsService implements OnModuleInit {
     }
 
     public async invalidateCache(): Promise<void> {
-         await this.cache.invalidate() ;
+        await this.cache.invalidate();
     }
 
     public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {

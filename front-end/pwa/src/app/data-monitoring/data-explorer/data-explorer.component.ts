@@ -11,6 +11,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
+// TODO. This component will be deprecated once Climsoft Lab feature is implemented
 
 @Component({
   selector: 'app-data-explorer',
@@ -21,8 +22,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
   protected observationsEntries!: ObservationEntry[];
   protected queryFilter!: ViewObservationQueryModel;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-  protected enableQueryButton: boolean = true;
-  protected numOfChanges: number = 0;
+  protected enableQueryButton: boolean = true; 
   protected allBoundariesIndices: number[] = [];
   private utcOffset!: number;
   private allMetadataLoaded: boolean = false;
@@ -94,8 +94,6 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('querying data...');
-
     this.enableQueryButton = false;
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
@@ -119,8 +117,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
 
 
   protected loadData(): void {
-    this.enableQueryButton = false;
-    this.numOfChanges = 0;
+    this.enableQueryButton = false; 
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;

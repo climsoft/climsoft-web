@@ -20,6 +20,8 @@ import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';  
 import { ObservationsModule } from '../observations/observations.module'; 
+import { DataCorrectorComponent } from './data-correction/data-corrector/data-corrector.component';
+import { DataCorrectorDialogComponent } from './data-correction/data-corrector-dialog/data-corrector-dialog.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,9 @@ import { ObservationsModule } from '../observations/observations.module';
     LinearLayoutComponent, 
     AssignSameInputComponent, 
     ImportSelectionComponent,
-    DataCorrectionComponent,   
+    DataCorrectionComponent,
+    DataCorrectorDialogComponent,
+    DataCorrectorComponent, 
     MissingDataComponent,
     DeletedDataComponent,
     BulkPkUpdateDialogComponent,

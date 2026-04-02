@@ -1,16 +1,16 @@
 <ng-container *ngIf="open">
-    <app-dialog [(open)]="open" [title]="'Source Check'" [displayOkOption]="true" [okButtonLabel]="'Close'"
-        [closeOnOkClick]="true" [displayCancelOption]="false" [displayDeleteOption]="false" (okClick)="onClose()">
+    <app-dialog [(open)]="open" [title]="'Source Check'" [displayOkOption]="false" [displayDeleteOption]="false"
+        [displayCancelOption]="true" [cancelButtonLabel]="'Close'">
         <div style="min-height: 50vh;">
 
-            <app-spinner *ngIf="loading" [message]="'Loading duplicates...'" />
+            <app-spinner *ngIf="loading" [message]="'Loading source duplicates...'" />
 
-            <div *ngIf="!loading && pageInputDefinition.totalRowCount === 0" class="text-center text-muted py-4">
+            <div *ngIf="!loading && duplicateEntries.length === 0" class="text-center text-muted py-4">
                 No source duplicates found
             </div>
 
             <div *ngIf="!loading && duplicateEntries.length > 0">
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
                     <div class="text-muted">
                         Showing observation groups with duplicates from different sources
                     </div>
@@ -33,8 +33,8 @@
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            <tr *ngFor="let dupEntry of duplicateEntries; let i = index;"
-                                (click)="onRowClick(dupEntry)" class="app-cursor-pointer">
+                            <tr *ngFor="let dupEntry of duplicateEntries; let i = index;" (click)="onRowClick(dupEntry)"
+                                class="app-cursor-pointer">
                                 <td><i class="bi bi-arrow-right-short"></i></td>
                                 <td>{{ getRowNumber(i) }}</td>
                                 <td>{{ dupEntry.stationName }}</td>
@@ -51,4 +51,5 @@
 
         </div>
     </app-dialog>
+    <app-data-corrector-dialog #dlgDataCorrector (userChangesSubmitted)="loadData()" />
 </ng-container>

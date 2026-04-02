@@ -1,0 +1,11 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Data Correction'" [displayOkOption]="true"
+        [disableOkOption]="!enableSubmitButton" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+        [displayCancelOption]="true" [cancelButtonLabel]="'Close'" [closeOnCancelClick]="true"
+        [displayDeleteOption]="false" (okClick)="onSubmitChanges()">
+        <div style="min-height: 70vh;">
+            <app-data-corrector #dataCorrector (userChanges)="onUserChanges($event)"
+                (userChangesSubmitted)="onuserChangesSubmitted()" />
+        </div>
+    </app-dialog>
+</ng-container>

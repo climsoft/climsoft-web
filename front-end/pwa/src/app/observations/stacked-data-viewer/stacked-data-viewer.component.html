@@ -1,4 +1,4 @@
-<div *ngIf="observationsEntries" class="app-table-container" style="max-height: 58vh;">
+<div class="app-table-container" style="max-height: 58vh;">
     <table class="table table-hover table-sm">
         <thead>
             <tr>
@@ -16,8 +16,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
-                [class.group-row-border]="includeLowerBoundaryLine(i)">
+            <tr *ngFor="let obsEntry of observationsEntries; let i = index;" [class.table-warning]="rowHasDuplicate[i]">
                 <td>{{ getRowNumber(i) }}</td>
                 <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
                 <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
@@ -29,7 +28,8 @@
                     <div class="app-value-flag-container">
                         <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
                             [applyEntryScaleFactor]="false" [observationEntry]="obsEntry"
-                            [disableValueFlagEntry]="obsEntry.delete" (userInputVF)="onUserInput($event)" />
+                            [disableValueFlagEntry]="!allowDataEdits || obsEntry.delete"
+                            (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>
                 <td>{{ obsEntry.observation.comment }}</td>

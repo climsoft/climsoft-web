@@ -3,7 +3,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ClimsoftV4ImportParametersModel } from '../models/climsoft-v4-import-parameters.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 export interface V4OperationsResponse {
   message: 'success' | 'error';

@@ -4,7 +4,6 @@ import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
 import { QualityControlRoutingModule } from './quality-control-routing.module';
 import { ObservationsModule } from '../observations/observations.module';
-import { SourceChecksComponent } from './source-checks/source-checks.component';
 import { QCAssessmentComponent } from './qc-data-checks/qc-assessment.component';
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { QueryQCDataChecksComponent } from './qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
@@ -14,7 +13,6 @@ import { QCFailDetailDialogComponent } from './qc-data-checks/qc-fail-detail-dia
 @NgModule({
 
   declarations: [
-    SourceChecksComponent,
     QCAssessmentComponent,
     PerformQCDialogComponent,
     QueryQCDataChecksComponent,

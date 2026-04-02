@@ -1,85 +1,16 @@
 <div class="card border-0">
+    <div class="card-body p-0">
+        <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
+            [displayHourSelector]="true" [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
 
-    <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
-        [displayHourSelector]="true" [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
-
-    <div class="card border-0 p-0 mt-2">
-        <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
-            <div class="fw-bold ms-1">Entries</div>
-            <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
-                    Stack/Unstack
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-info ms-2 position-relative"
-                    [disabled]="!hasSourceDuplicates" (click)="onSourceCheck()">
-                    Source Check
-                    <span *ngIf="hasSourceDuplicates"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                        !
-                    </span>
-                </button>
-                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
-                    (click)="onBulkUpdate()">
-                    Bulk Update
-                </button>
-                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-danger ms-2"
-                    (click)="onBulkDelete()">
-                    Bulk Delete
-                </button>
-                <div class="vr mx-2"></div>
-                <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
-                <div *ngIf="changedCount" class="d-flex align-items-center">
-                    <div class="vr mx-2"></div>
-                    <div class="text-success me-2">{{changedCount}} record(s) changed</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-body p-0">
-            
-            <app-spinner *ngIf="loading" [message]="'Loading...'" />
-
-            <div *ngIf="!loading && observationsEntries.length === 0" class="text-center text-muted py-4">
-                No observations found
-            </div>
-            
-            <div *ngIf="!loading && observationsEntries.length > 0">
-                <div *ngIf="useUnstackedViewer">
-                    <app-unstacked-data-viewer [observationsEntries]="observationsEntries"
-                        (valueChange)="onUserInput()" />
-                </div>
-                <div *ngIf="!useUnstackedViewer">
-                    <app-stacked-data-viewer [pageInputDefinition]="pageInputDefinition"
-                        [observationsEntries]="observationsEntries" (valueChange)="onUserInput()" />
-                </div>
-            </div>
-        </div>
-
-        <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSaveButton"
-                (click)="onSave()">
-                Submit
-            </button>
-        </div>
+        <app-data-corrector #dataCorrector
+            (loadingInProgress)="onLoadingObservations($event)" (userChanges)="onUserChanges($event)" />
     </div>
 
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+        <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSaveButton"
+            (click)="onSubmitChanges()">
+            Submit
+        </button>
+    </div>
 </div>
-
-<app-confirmation-dialog #dlgSaveConfirm [title]="'Confirm Changes'" [okButtonLabel]="'Yes'" [cancelButtonLabel]="'No'"
-    (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
-    <div>
-        <p *ngIf="saveSummary.updatedCount > 0">
-            {{saveSummary.updatedCount}} observation{{saveSummary.updatedCount === 1 ? '' : 's'}} will be updated.
-        </p>
-        <p *ngIf="saveSummary.deletedCount > 0" class="text-danger">
-            {{saveSummary.deletedCount}} observation{{saveSummary.deletedCount === 1 ? '' : 's'}} will be deleted.
-        </p>
-    </div>
-</app-confirmation-dialog>
-
-
-<app-bulk-pk-update-dialog #dlgBulkPkUpdate (done)="loadData()" />
-
-<app-bulk-delete-dialog #dlgBulkDelete (done)="loadData()" />
-
-<app-source-check-dialog #dlgSourceCheck />

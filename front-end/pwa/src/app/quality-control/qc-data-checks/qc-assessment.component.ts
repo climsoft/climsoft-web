@@ -42,7 +42,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   protected queryFilter: ViewObservationQueryModel = { qcStatus: QCStatusEnum.FAILED };
   private allMetadataLoaded: boolean = false;
-  protected useUnstackedViewer: boolean = false;
   protected changedCount: number = 0;
 
   private destroy$ = new Subject<void>();
@@ -174,10 +173,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       },
 
     });
-  }
-
-  protected stackToggle(): void {
-    this.useUnstackedViewer = !this.useUnstackedViewer;
   }
 
   protected confirmAll(): void {

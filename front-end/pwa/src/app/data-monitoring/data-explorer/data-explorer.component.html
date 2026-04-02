@@ -8,11 +8,7 @@
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
             <div class="fw-bold ms-1">Showing Entries</div>
             <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
-                <div *ngIf="numOfChanges" class="d-flex align-items-center">
-                    <div class="vr mx-2"></div>
-                    <div class=" text-success me-2">Total Changes: {{numOfChanges}}</div>
-                </div>
+                <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" /> 
             </div>
         </div>
 

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
-import { BulkFilterUtils } from './bulk-filter.utils';
+import { BulkFilterUtils, FilterWhereClauseResult } from './bulk-filter.utils';
 import { BulkObservationFilterDto } from '../dtos/bulk-observation-filter.dto';
 
 @Injectable()
@@ -31,9 +31,9 @@ export class SourceCheckService {
     }
 
     public async countDuplicates(dto: ViewObservationQueryDTO): Promise<number> {
-        const filter = this.extractFilter(dto);
-        const filterResult = BulkFilterUtils.buildFilterWhereClause(filter, 'o', 1);
-        const whereClause = BulkFilterUtils.toWhereClauseSql(filterResult);
+        const filter: BulkObservationFilterDto = this.extractFilter(dto);
+        const filterResult: FilterWhereClauseResult = BulkFilterUtils.buildFilterWhereClause(filter, 'o', 1);
+        const whereClause: { sql: string; params: any[] } = BulkFilterUtils.toWhereClauseSql(filterResult);
 
         const query = `
             SELECT COUNT(*)::int AS count
@@ -54,9 +54,9 @@ export class SourceCheckService {
             throw new BadRequestException('You must specify page and page size. Page size must be less than 1000');
         }
 
-        const filter = this.extractFilter(dto);
-        const filterResult = BulkFilterUtils.buildFilterWhereClause(filter, 'o', 1);
-        const whereClause = BulkFilterUtils.toWhereClauseSql(filterResult);
+        const filter: BulkObservationFilterDto = this.extractFilter(dto);
+        const filterResult: FilterWhereClauseResult = BulkFilterUtils.buildFilterWhereClause(filter, 'o', 1);
+        const whereClause: { sql: string; params: any[] } = BulkFilterUtils.toWhereClauseSql(filterResult);
 
         const limitParamIndex = filterResult.paramIndex;
         const offsetParamIndex = filterResult.paramIndex + 1;

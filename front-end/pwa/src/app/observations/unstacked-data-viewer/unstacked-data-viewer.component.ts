@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationEntry } from '../models/observation-entry.model';
-import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 @Component({
   selector: 'app-unstacked-data-viewer',
@@ -8,6 +7,7 @@ import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.co
   styleUrls: ['./unstacked-data-viewer.component.scss']
 })
 export class UnstackedDataViewerComponent implements OnChanges {
+  @Input() public allowDataEdits: boolean = true;
   @Input() public observationsEntries!: ObservationEntry[];
 
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;

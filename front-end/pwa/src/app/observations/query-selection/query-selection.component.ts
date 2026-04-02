@@ -4,7 +4,6 @@ import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { DataCorrectionComponent } from '../../data-ingestion/data-correction/data-correction.component';
-import { SourceChecksComponent } from '../../quality-control/source-checks/source-checks.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
@@ -141,7 +140,6 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
-        case SourceChecksComponent.name:
         case QueryQCDataChecksComponent.name:
           if (permissions.qcPermissions) {
             this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
