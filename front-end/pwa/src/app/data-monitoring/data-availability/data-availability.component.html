@@ -4,13 +4,13 @@
 
         <ul class="nav nav-tabs card-header-tabs">
             <li class="nav-item">
-                <button class="nav-link active" [class.active]="activeTab === 'summary'"
+                <button type="button" class="nav-link active" [class.active]="activeTab === 'summary'"
                     (click)="onTabClick('summary')">
                     Summary
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'details'" (click)="onTabClick('details')">
+                <button type="button" class="nav-link" [class.active]="activeTab === 'details'" (click)="onTabClick('details')">
                     Details
                 </button>
             </li>
