@@ -1,32 +1,34 @@
 <div>
     <div class="card border-0 p-0">
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
-            <div class="fw-bold ms-1">Entries</div>
-            <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
+            <div class="fw-bold ms-1">Observations</div>
+            <div *ngIf="observationsEntries.length > 0" class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
                     Stack/Unstack
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-info ms-2 position-relative"
-                    [disabled]="!hasSourceDuplicates" (click)="onSourceCheck()">
+                <button *ngIf="hasSourceDuplicates" type="button"
+                    class="btn btn-sm btn-outline-warning position-relative" (click)="onSourceCheck()">
                     Source Check
                     <span *ngIf="hasSourceDuplicates"
                         class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
                         !
                     </span>
                 </button>
-                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success ms-2"
+                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-success"
                     (click)="onBulkUpdate()">
                     Bulk Update
                 </button>
-                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-danger ms-2"
+                <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-danger"
                     (click)="onBulkDelete()">
                     Bulk Delete
                 </button>
-                <div class="vr mx-2"></div>
+                <div class="vr"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
-                <div *ngIf="changedCount" class="d-flex align-items-center">
-                    <div class="vr mx-2"></div>
-                    <div class="text-success me-2">{{changedCount}} record(s) changed</div>
+                <div *ngIf="changedCount" class="d-flex align-items-center gap-2">
+                    <div class="vr"></div>
+                    <div class="text-success me-2">
+                        {{changedCount}} observation{{changedCount === 1 ? '' : 's'}} changed
+                    </div>
                 </div>
             </div>
         </div>
@@ -40,12 +42,13 @@
 
             <div *ngIf="!loading && observationsEntries.length > 0">
                 <div *ngIf="useUnstackedViewer">
-                    <app-unstacked-data-viewer [allowDataEdits]="allowDataEdits"  [observationsEntries]="observationsEntries"
-                        (valueChange)="onUserCorrectInput()" />
+                    <app-unstacked-data-viewer [allowDataEdits]="allowDataEdits"
+                        [observationsEntries]="observationsEntries" (valueChange)="onUserCorrectInput()" />
                 </div>
                 <div *ngIf="!useUnstackedViewer">
-                    <app-stacked-data-viewer [allowDataEdits]="allowDataEdits" [pageInputDefinition]="pageInputDefinition"
-                        [observationsEntries]="observationsEntries" (valueChange)="onUserCorrectInput()" />
+                    <app-stacked-data-viewer [allowDataEdits]="allowDataEdits"
+                        [pageInputDefinition]="pageInputDefinition" [observationsEntries]="observationsEntries"
+                        (valueChange)="onUserCorrectInput()" />
                 </div>
             </div>
         </div>

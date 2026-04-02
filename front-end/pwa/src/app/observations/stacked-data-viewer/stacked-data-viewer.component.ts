@@ -11,18 +11,18 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
 export class StackedDataViewerComponent implements OnChanges {
   @Input() public allowDataEdits: boolean = true;
   @Input() public pageInputDefinition!: PagingParameters;
-  @Input() public observationsEntries!: ObservationEntry[];
+  @Input() public observationsEntries: ObservationEntry[] = [];
 
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
 
-  protected allBoundariesIndices: number[] = [];
+  protected rowHasDuplicate: boolean[] = [];
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.pageInputDefinition && this.observationsEntries) {
-      this.setRowBoundaryLineSettings(this.observationsEntries);
+      this.markDuplicateRows(this.observationsEntries);
     }
   }
 
@@ -35,27 +35,21 @@ export class StackedDataViewerComponent implements OnChanges {
     this.onUserInput(observationEntry);
   }
 
-  protected setRowBoundaryLineSettings(observationsEntries: ObservationEntry[]): void {
-    this.allBoundariesIndices = [];
-    const obsIdentifierMap = new Map<string, number>();
+  private markDuplicateRows(entries: ObservationEntry[]): void {
+    this.rowHasDuplicate = new Array(entries.length).fill(false);
+    const firstSeenAt = new Map<string, number>();
 
-    for (let i = 0; i < observationsEntries.length; i++) {
-      const obs = observationsEntries[i].observation;
-      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
-      // Update the map with the latest index for each unique identifier
-      obsIdentifierMap.set(obsIdentifier, i);
+    for (let i = 0; i < entries.length; i++) {
+      const obs = entries[i].observation;
+      const key = `${obs.stationId}|${obs.elementId}|${obs.level}|${obs.interval}|${obs.datetime}`;
+
+      if (firstSeenAt.has(key)) {
+        this.rowHasDuplicate[firstSeenAt.get(key)!] = true;
+        this.rowHasDuplicate[i] = true;
+      } else {
+        firstSeenAt.set(key, i);
+      }
     }
-
-    // set all last occurrence indices as boundaries
-    this.allBoundariesIndices = Array.from(obsIdentifierMap.values());
-    // If length indices array is the same as entries, then no need to show boundaries
-    if (observationsEntries.length === this.allBoundariesIndices.length) {
-      this.allBoundariesIndices = [];
-    }
-  }
-
-  protected includeLowerBoundaryLine(index: number): boolean {
-    return this.allBoundariesIndices.includes(index);
   }
 
   protected getRowNumber(currentRowIndex: number): number {

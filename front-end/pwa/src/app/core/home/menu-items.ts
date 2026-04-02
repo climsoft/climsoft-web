@@ -23,7 +23,6 @@ export enum MainMenuNameEnum {
 export enum SubMenuNameEnum {
     DATA_ENTRY = 'Data Entry',
     MANUAL_IMPORT = 'Manual Import',
-    //SCHEDULED_IMPORT = 'Scheduled Import',
     DATA_CORRECTION = 'Data Correction',
     DELETED_DATA = 'Deleted Data',
 
@@ -32,12 +31,9 @@ export enum SubMenuNameEnum {
     DATA_AVAILABILTY = 'Data Availabilty',
     DATA_EXPLORER = 'Data Explorer',
 
-    SOURCE_CHECKS = 'Source Checks',
     QC_ASSESSMENT = 'QC Assessment',
-    //SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
 
     MANUAL_EXPORT = 'Manual Export',
-    //SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
     FLAGS = 'Flags',
@@ -126,17 +122,9 @@ export class MenuItemsUtil {
             open: false,
             children: [
                 {
-                    name: SubMenuNameEnum.SOURCE_CHECKS,
-                    url: '/source-checks',
-                },
-                {
                     name: SubMenuNameEnum.QC_ASSESSMENT,
                     url: '/qc-assessment',
                 },
-                // {
-                //     name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
-                //     url: '/scheduled-qc-selection',
-                // },
             ]
         }
     }
@@ -170,7 +158,7 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.ELEMENTS,
                     url: '/view-elements',
-                },                
+                },
                 {
                     name: SubMenuNameEnum.FLAGS,
                     url: '/view-flags',

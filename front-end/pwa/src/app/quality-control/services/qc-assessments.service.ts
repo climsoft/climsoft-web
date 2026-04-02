@@ -17,15 +17,7 @@ export class QCAssessmentsService {
   constructor(
     private appConfigService: AppConfigService,
     private http: HttpClient) {
-    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/quality-control`;
-  }
-
-  public findDuplicates(viewObsQuery: ViewObservationQueryModel): Observable<SourceCheckDuplicateModel[]> {
-    return this.http.get<SourceCheckDuplicateModel[]>(`${this.endPointUrl}/duplicates`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) });
-  }
-
-  public countDuplicates(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count-duplicates`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) });
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations/quality-control`;
   }
 
   public performQC(qcSelection: ViewObservationQueryModel): Observable<{ message: string, qcFails: number }> {

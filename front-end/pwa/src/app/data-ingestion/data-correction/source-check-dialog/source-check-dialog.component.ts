@@ -45,32 +45,7 @@ export class SourceCheckDialogComponent {
     this.duplicateEntries = [];
     this.pageInputDefinition = new PagingParameters();
     this.queryFilter = { ...filter };
-    this.queryData();
-  }
-
-  private queryData(): void {
-    this.loading = true;
-    this.duplicateEntries = [];
-    this.pageInputDefinition.setTotalRowCount(0);
-
-    this.sourceCheckService.count(this.queryFilter).pipe(take(1)).subscribe({
-      next: count => {
-        this.pageInputDefinition.setTotalRowCount(count);
-        if (count > 0) {
-          this.loadData();
-        } else {
-          this.loading = false;
-        }
-      },
-      error: err => {
-        this.loading = false;
-        this.pagesDataService.showToast({
-          title: 'Source Check',
-          message: err.error?.message || 'Failed to count duplicates',
-          type: ToastEventTypeEnum.ERROR,
-        });
-      },
-    });
+    this.loadData();
   }
 
   protected loadData(): void {
@@ -78,6 +53,15 @@ export class SourceCheckDialogComponent {
     this.duplicateEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+
+    this.sourceCheckService.count(this.queryFilter).pipe(take(1)).subscribe({
+      next: count => {
+        this.pageInputDefinition.setTotalRowCount(count);
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
 
     this.sourceCheckService.find(this.queryFilter).pipe(take(1)).subscribe({
       next: data => {
@@ -97,13 +81,10 @@ export class SourceCheckDialogComponent {
       },
       error: err => {
         this.loading = false;
-        this.pagesDataService.showToast({
-          title: 'Source Check',
-          message: err.error?.message || 'Failed to load duplicates',
-          type: ToastEventTypeEnum.ERROR,
-        });
+       this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
     });
+
   }
 
   protected onRowClick(entry: SourceCheckViewModel): void {

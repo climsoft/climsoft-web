@@ -4,8 +4,8 @@
         [displayCancelOption]="true" [cancelButtonLabel]="'Close'" [closeOnCancelClick]="true"
         [displayDeleteOption]="false" (okClick)="onSubmitChanges()">
         <div style="min-height: 70vh;">
-            <app-data-corrector #dataCorrector
-                (userChanges)="onUserChanges($event)" />
+            <app-data-corrector #dataCorrector (userChanges)="onUserChanges($event)"
+                (userChangesSubmitted)="onuserChangesSubmitted()" />
         </div>
     </app-dialog>
 </ng-container>

@@ -33,6 +33,8 @@ export class DataCorrectorComponent implements OnDestroy {
 
   @Output() public loadingInProgress = new EventEmitter<boolean>();
   @Output() public userChanges = new EventEmitter<number>();
+  @Output() public userChangesSubmitted = new EventEmitter<void>();
+
 
   private queryFilter: ViewObservationQueryModel = {};
 
@@ -242,6 +244,7 @@ export class DataCorrectorComponent implements OnDestroy {
           this.updatedObservations(changedObs);
         } else {
           this.loadData();
+          this.userChangesSubmitted.emit();
         }
       },
       error: err => {
@@ -259,6 +262,7 @@ export class DataCorrectorComponent implements OnDestroy {
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         this.pagesDataService.showToast({ title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS });
         this.loadData();
+        this.userChangesSubmitted.emit();
       },
       error: err => {
         this.setLoadingStatus(false);

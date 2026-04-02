@@ -8,9 +8,9 @@ import { DataCorrectorComponent } from '../data-corrector/data-corrector.compone
   styleUrls: ['./data-corrector-dialog.component.scss']
 })
 export class DataCorrectorDialogComponent {
-  @ViewChild('dataCorrector') dataCorrector!: DataCorrectorComponent;
+  @ViewChild('dataCorrector') protected dataCorrector!: DataCorrectorComponent;
 
-  @Output() changesSubmitted = new EventEmitter<void>();
+  @Output() public userChangesSubmitted = new EventEmitter<void>();
 
   protected open = false;
 
@@ -35,9 +35,8 @@ export class DataCorrectorDialogComponent {
     }
   }
 
-  protected onChangesSubmitted(): void {
-    this.open = false;
-    this.changesSubmitted.emit();
+  protected onuserChangesSubmitted(): void {
+    this.userChangesSubmitted.emit();
   }
 
 }
