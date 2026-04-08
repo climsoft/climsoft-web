@@ -19,25 +19,6 @@ export class DialogComponent {
   @Input() open: boolean = false;
   @Output() openChange = new EventEmitter<boolean>();
 
-  //------------------------------------
-  // TODO. Deprecate these options
-  @Input() okButtonLabel: string = 'Ok';
-  @Input() cancelButtonLabel: string = 'Cancel';
-  @Input() deleteButtonLabel: string = 'Delete';
-  @Input() displayOkOption: boolean = false;
-  @Input() disableOkOption: boolean = false;
-  @Input() displayCancelOption: boolean = false;
-  @Input() displayDeleteOption: boolean = false;
-  @Input() closeOnOkClick: boolean = true;
-  @Input() closeOnCancelClick: boolean = true;
-  @Input() closeOnDeleteClick: boolean = true;
-
-  @Output() okClick = new EventEmitter<void>();
-  @Output() cancelClick = new EventEmitter<void>();
-  @Output() deleteClick = new EventEmitter<void>();
-  //------------------------------------
-
-  //------------------------------------
   @Input() firstButtonOptions: DialogButtonOptions | undefined;
   @Input() secondButtonOptions: DialogButtonOptions | undefined;
   @Input() thirdButtonOptions: DialogButtonOptions | undefined;
@@ -47,38 +28,15 @@ export class DialogComponent {
   @Output() secondButtonClick = new EventEmitter<void>();
   @Output() thirdButtonClick = new EventEmitter<void>();
   @Output() fourthButtonClick = new EventEmitter<void>();
-  //------------------------------------
-
 
   public openDialog() {
     this.open = true;
   }
 
-  //------------------------------------
-  // TODO. Deprecate these options
-  protected onOkClick(): void {
-    if (this.closeOnOkClick) {
-      this.onClose();
-    }
-    this.okClick.emit();
+  protected onCloseClick(): void {
+    this.onClose();
   }
 
-  protected onCancelClick(): void {
-    if (this.closeOnCancelClick) {
-      this.onClose();
-    }
-    this.cancelClick.emit();
-  }
-
-  protected onDeleteClick(): void {
-    if (this.closeOnDeleteClick) {
-      this.onClose();
-    }
-    this.deleteClick.emit();
-  }
-  //------------------------------------
-
-  //------------------------------------ 
   protected onFirstButtonClick(): void {
     if (this.firstButtonOptions?.closeDialogOnClick) {
       this.onClose();
@@ -106,7 +64,6 @@ export class DialogComponent {
     }
     this.fourthButtonClick.emit();
   }
-  //------------------------------------
 
   protected btnClass(options: DialogButtonOptions): string {
     return `btn btn-sm btn-outline-${options.color ?? 'secondary'}`;

@@ -134,8 +134,10 @@
     [deleteButtonLabel]="'Ok'" (deleteConfirmed)="onDeleteAllConfirm()" />
 
 <ng-container *ngIf="confirmAllDialogOpen">
-    <app-dialog [(open)]="confirmAllDialogOpen" [title]="'Confirm All'" [okButtonLabel]="'Ok'"
-        [displayDeleteOption]="false" (okClick)="onConfirmAllConfirm()">
+    <app-dialog [(open)]="confirmAllDialogOpen" [title]="'Confirm All'"
+        [firstButtonOptions]="{label: 'Ok', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onConfirmAllConfirm()"
+        [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
         <div>
             <p>Are you sure you want to confirm all observations as correct?</p>
         </div>
@@ -143,8 +145,10 @@
 </ng-container>
 
 <ng-container *ngIf="saveConfirmOpen">
-    <app-dialog [(open)]="saveConfirmOpen" [title]="'Confirm Changes'" [okButtonLabel]="'Confirm'"
-        [displayDeleteOption]="false" (okClick)="onSaveConfirm()">
+    <app-dialog [(open)]="saveConfirmOpen" [title]="'Confirm Changes'"
+        [firstButtonOptions]="{label: 'Ok', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onSaveConfirm()"
+        [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
         <div>
             <p *ngIf="saveSummary.confirmedOrUpdatedCount > 0">
                 {{saveSummary.confirmedOrUpdatedCount}}

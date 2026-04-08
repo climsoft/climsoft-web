@@ -78,7 +78,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
         }
       }
 
-      console.log('setting outputFilter');
+      //console.log('setting outputFilter');
       this.outputFilter = { ...this.inputFilter };
       this.setSelectionsFromQuery();
     }
@@ -152,7 +152,6 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
   }
 
-  // TODO. remove this. It's already being done at the parent component
   private setStationsAllowed(): void {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
@@ -236,9 +235,6 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
     if (new Date(fromDate) > new Date(toDate)) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'From date cannot be greater than to date.', type: ToastEventTypeEnum.ERROR });
-      return null;
-    } else if (DateUtils.isMoreThanMaxCalendarYears(new Date(fromDate), new Date(toDate), 31)) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Only a maximum of 30 years is allowed.', type: ToastEventTypeEnum.ERROR });
       return null;
     }
 

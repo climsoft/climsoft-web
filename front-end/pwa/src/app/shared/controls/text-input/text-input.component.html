@@ -34,7 +34,7 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
       </button>
 
-      <app-dialog #dlgWarningMessage [title]="'Warning'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
+      <app-dialog #dlgWarningMessage [title]="'Warning'" [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
         <div class="fs-5">{{ warningMessage }}</div>
       </app-dialog>
 
@@ -44,7 +44,7 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
       </button>
 
-      <app-dialog #dlgErrorMessage [title]="'Error'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
+      <app-dialog #dlgErrorMessage [title]="'Error'" [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
         <div class="fs-5">{{ errorMessage }}</div>
       </app-dialog>
 

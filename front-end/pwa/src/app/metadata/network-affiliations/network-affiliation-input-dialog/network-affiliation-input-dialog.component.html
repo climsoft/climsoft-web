@@ -1,6 +1,5 @@
 <ng-container *ngIf="open && viewNetworkAffiliations">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
-        (okClick)="onSaveClick()">
+    <app-dialog [(open)]="open" [title]="title" [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}" (firstButtonClick)="onSaveClick()" [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewNetworkAffiliations.name" />

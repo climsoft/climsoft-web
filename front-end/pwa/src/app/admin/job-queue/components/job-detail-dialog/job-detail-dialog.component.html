@@ -1,5 +1,4 @@
-<app-dialog *ngIf="job" [(open)]="open" [title]="'Job Details: #' + job.id" [displayOkOption]="false"
-    [cancelButtonLabel]="'Close'">
+<app-dialog *ngIf="job" [(open)]="open" [title]="'Job Details: #' + job.id" [firstButtonOptions]="{label: 'Close', closeDialogOnClick: true}">
 
     <div *ngIf="job" class="job-detail-content">
         <!-- Tabs -->

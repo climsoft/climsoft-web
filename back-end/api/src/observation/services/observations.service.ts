@@ -436,76 +436,77 @@ export class ObservationsService {
     }
 
     public async findDataAvailabilitySummary(filter: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-        let sqlExtract: string;
-        let sqlCondition: string;
+        const params: any[] = [];
+        let p = 1;
 
-        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 31)) {
-            throw new BadRequestException('Date range exceeds 30 years');
-        }
-
-        sqlCondition = `deleted = FALSE AND date_time BETWEEN '${filter.fromDate}' AND '${filter.toDate}'`;
+        params.push(filter.fromDate);
+        params.push(filter.toDate);
+        let sqlCondition = `deleted = FALSE AND date_time BETWEEN $${p++} AND $${p++}`;
 
         if (filter.stationIds && filter.stationIds.length > 0) {
-            sqlCondition = `${sqlCondition} AND station_id IN (${filter.stationIds.map(id => `'${id}'`).join(',')})`;
+            params.push(filter.stationIds);
+            sqlCondition += ` AND station_id = ANY($${p++})`;
         }
 
         if (filter.elementIds && filter.elementIds.length > 0) {
-            sqlCondition = `${sqlCondition} AND element_id IN (${filter.elementIds.join(',')})`;
+            params.push(filter.elementIds);
+            sqlCondition += ` AND element_id = ANY($${p++})`;
         }
 
         if (filter.level !== undefined) {
-            sqlCondition = `${sqlCondition} AND level = ${filter.level}`;
+            params.push(filter.level);
+            sqlCondition += ` AND level = $${p++}`;
         }
 
         if (filter.interval) {
-            sqlCondition = `${sqlCondition} AND interval = ${filter.interval}`;
+            params.push(filter.interval);
+            sqlCondition += ` AND interval = $${p++}`;
         }
 
         if (filter.excludeConfirmedMissing) {
-            sqlCondition = `${sqlCondition} AND value IS NOT NULL`;
+            sqlCondition += ` AND value IS NOT NULL`;
         }
 
-        // TODO. this setting should be retrived from the cache
-        const utcOffset: number = ((await this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
-        const strTimeZone: string = `'UTC+${utcOffset}'`;
+        // TODO. this setting should be retrieved from the cache
+        const utcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
+        params.push(`UTC+${utcOffset}`);
+        const tzParam = `$${p++}`;
 
+        let sqlExtract: string;
         switch (filter.durationType) {
             case DurationTypeEnum.DAY:
-                sqlExtract = `EXTRACT(HOUR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                sqlExtract = `EXTRACT(HOUR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${tzParam})) AS extracted_date_value`;
                 break;
             case DurationTypeEnum.MONTH:
-                sqlExtract = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                sqlExtract = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${tzParam})) AS extracted_date_value`;
                 break;
             case DurationTypeEnum.YEAR:
-                sqlExtract = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                sqlExtract = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${tzParam})) AS extracted_date_value`;
                 break;
             case DurationTypeEnum.YEARS:
-                sqlExtract = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                sqlExtract = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${tzParam})) AS extracted_date_value`;
                 break;
             default:
                 throw new BadRequestException('Duration type not supported');
         }
 
-        // TODO. Change this to use a postgres function and use parameterised values
+
+        // Note, since the sql query is simple/moderate, there is no need to have this a stored function
         const sql = `
-            SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract} FROM observations 
-            WHERE ${sqlCondition} 
-            GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value;
-            `
+            SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract}
+            FROM observations
+            WHERE ${sqlCondition}
+            GROUP BY station_id, extracted_date_value
+            ORDER BY station_id, extracted_date_value;
+        `;
 
-        //console.log('Availability summary SQL :', sql)
+        const rows = await this.dataSource.manager.query(sql, params);
 
-        const rows = await this.dataSource.manager.query(sql);
-
-        //console.log('results: ', results)
-
-        return rows.map((r: any) => {
-            return {
-                stationId: r.station_id,
-                recordCount: Number(r.record_count),
-                dateValue: Number(r.extracted_date_value)
-            };
-        });
+        return rows.map((r: any) => ({
+            stationId: r.station_id,
+            recordCount: Number(r.record_count),
+            dateValue: Number(r.extracted_date_value),
+        }));
     }
 
     public async findDataAvailabilityDetails(filter: DataAvailabilityDetailsQueryDto): Promise<DataAvailaibilityDetailsDto[]> {
@@ -523,6 +524,7 @@ export class ObservationsService {
             filter.toDate ?? null                                     // p_to_date timestamptz
         ];
 
+        // Note, this is stored function because of the complexity of the SQL. It uses CTEs and multiple aggregates
         const sql = `SELECT * FROM func_data_availaibility_details($1, $2, $3, $4, $5, $6)`;
 
         const rows = await this.dataSource.query(sql, params);

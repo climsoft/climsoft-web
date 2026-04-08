@@ -97,6 +97,7 @@ export class ElementInputDialogComponent {
         next: (data) => {
           this.pagesDataService.showToast({ title: 'Element Details', message: `${data.name} created`, type: ToastEventTypeEnum.SUCCESS });
           this.ok.emit();
+          this.open = false;
         },
         error: (err) => {
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
@@ -109,6 +110,7 @@ export class ElementInputDialogComponent {
         next: (data) => {
           this.pagesDataService.showToast({ title: 'Element Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
           this.ok.emit();
+          this.open = false;
         },
         error: (err) => {
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
@@ -120,5 +122,6 @@ export class ElementInputDialogComponent {
 
   protected onCancelClick(): void {
     this.cancelClick.emit();
+    this.open = false;
   }
 }

@@ -6,25 +6,25 @@
         (secondButtonClick)="onSubmit()"
         [thirdButtonOptions]="{label: 'Close', closeDialogOnClick: true, color: 'secondary'}">
 
-        <!-- <div class="card-header d-flex justify-content-between align-items-center px-1 ">
-        <ul class="nav nav-tabs card-header-tabs"> -->
-
-        <div class="mb-2">
-            <ul class="nav nav-tabs mb-0">
-                <li *ngIf="!hideDrillDown" class="nav-item">
-                    <button type="button" class="nav-link" [class.active]="activeTab === 'drilldown'"
-                        (click)="onTabChange('drilldown')">
-                        Drill Down
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button type="button" class="nav-link" [class.active]="activeTab === 'viewdata'"
-                        (click)="onTabChange('viewdata')">
-                        View Data
-                    </button>
-                </li>
-            </ul>
+        <div *ngIf="currentFilter" class="d-flex gap-2 text-muted small mb-2">
+            <span class="fw-semibold">From:</span> {{ getPresentableDateTime(currentFilter.fromDate) }}
+            <span class="fw-semibold">To:</span> {{ getPresentableDateTime(currentFilter.toDate) }}
         </div>
+
+        <ul class="nav nav-tabs mb-2">
+            <li *ngIf="!hideDrillDown" class="nav-item">
+                <button type="button" class="nav-link" [class.active]="activeTab === 'drilldown'"
+                    (click)="onTabChange('drilldown')">
+                    Drill Down
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="activeTab === 'viewdata'"
+                    (click)="onTabChange('viewdata')">
+                    View Data
+                </button>
+            </li>
+        </ul>
 
         <div [hidden]="activeTab !== 'drilldown'">
             <app-data-availability-heatmap #heatmap (cellClick)="onCellClick($event)" />

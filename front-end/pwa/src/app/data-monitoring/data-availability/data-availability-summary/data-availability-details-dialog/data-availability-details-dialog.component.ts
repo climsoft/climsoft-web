@@ -1,10 +1,11 @@
 import { Component, ViewChild } from '@angular/core';
-import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary-query.model';
+import { DataAvailabilitySummaryQueryModel } from '../../models/data-availability-summary-query.model';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DurationTypeEnum } from '../models/duration-type.enum';
 import { DataAvailabilityHeatmapComponent, DataAvailabilityCellClickEvent } from '../data-availability-heatmap/data-availability-heatmap.component';
 import { DataCorrectorComponent } from 'src/app/data-ingestion/data-correction/data-corrector/data-corrector.component';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
     selector: 'app-data-availability-details-dialog',
@@ -22,6 +23,8 @@ export class DataAvailabilityDetailsDialogComponent {
     private filterStack: DataAvailabilitySummaryQueryModel[] = [];
     private stationsPermitted: StationCacheModel[] = [];
     protected hideDrillDown: boolean = false;
+
+    constructor(private cachedMetadataService: CachedMetadataService,) { }
 
     protected get currentFilter(): DataAvailabilitySummaryQueryModel {
         return this.filterStack[this.filterStack.length - 1];
@@ -96,5 +99,9 @@ export class DataAvailabilityDetailsDialogComponent {
         if (filter.level !== undefined) viewFilter.level = filter.level;
         if (filter.interval) viewFilter.intervals = [filter.interval];
         return viewFilter;
+    }
+
+    protected getPresentableDateTime(dateTime: string): string {
+        return DateUtils.getPresentableDatetime(dateTime, this.cachedMetadataService.utcOffSet);
     }
 }

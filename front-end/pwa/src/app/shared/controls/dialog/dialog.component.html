@@ -3,27 +3,13 @@
         <div class="card dialog-container">
             <div *ngIf="title" class="card-header fw-bold d-flex justify-content-between align-items-center">
                 <div>{{ title }}</div>
-                <button type="button" class="btn-close" (click)="onCancelClick()"></button>
+                <button type="button" class="btn-close" (click)="onCloseClick()"></button>
             </div>
             <div class="card-body dialog-container-body">
                 <ng-content></ng-content>
             </div>
 
             <div class="card-footer d-flex justify-content-end gap-2">
-                <!-- Deprecate these options -->
-                <button *ngIf="displayOkOption" [disabled]="disableOkOption" type="button"
-                    class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
-                    {{okButtonLabel}}
-                </button>
-                <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary"
-                    (click)="onCancelClick()">
-                    {{cancelButtonLabel }}
-                </button>
-                <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger"
-                    (click)="onDeleteClick()">
-                    {{deleteButtonLabel }}
-                </button>
-                <!------------->
                 <button *ngIf="!!firstButtonOptions" type="button" [disabled]="firstButtonOptions.disable"
                     [class]="btnClass(firstButtonOptions)" (click)="onFirstButtonClick()">
                     {{firstButtonOptions.label}}

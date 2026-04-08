@@ -7,23 +7,26 @@
         [simulateTabOnEnter]="simulateTabOnEnter" (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
         (valueChange)="onInputEntry($event)" (inputEnterKeyPress)="onEnterKeyPressed()" />
 
-    <app-dialog [title]="'Extra Information'" [okButtonLabel]="'Ok'" [cancelButtonLabel]="'Cancel'"
-        [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoOkClicked()">
+    <app-dialog [title]="'Extra Information'"
+        [firstButtonOptions]="{label: 'Ok', color: 'primary', closeDialogOnClick: true}"
+        (firstButtonClick)="onExtraInfoOkClicked()"
+        [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}"
+        [(open)]="displayExtraInfoDialog">
         <div *ngIf="displayExtraInfoDialog" class="card border-0">
 
             <!-- tab header -->
             <div class="card-header d-flex">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li *ngIf="!disableValueFlagEntry" class="nav-item">
-                        <button class="nav-link active" [class.active]="activeTab === 'new'"
+                        <button type="button" class="nav-link active" [class.active]="activeTab === 'new'"
                             (click)="onTabChange('new')">New</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" [class.active]="activeTab === 'history'"
+                        <button type="button" class="nav-link" [class.active]="activeTab === 'history'"
                             (click)="onTabChange('history')">History</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" [class.active]="activeTab === 'qctests'"
+                        <button type="button" class="nav-link" [class.active]="activeTab === 'qctests'"
                             (click)="onTabChange('qctests')">QC Tests</button>
                     </li>
                 </ul>

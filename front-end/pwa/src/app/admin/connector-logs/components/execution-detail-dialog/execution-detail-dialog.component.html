@@ -1,5 +1,4 @@
-<app-dialog *ngIf="log" [(open)]="open" [title]="'Execution Log: #' + log.id " [displayOkOption]="false"
-    [cancelButtonLabel]="'Close'">
+<app-dialog *ngIf="log" [(open)]="open" [title]="'Execution Log: #' + log.id " [firstButtonOptions]="{label: 'Close', closeDialogOnClick: true}">
 
     <div *ngIf="log" class="execution-detail-content">
         <!-- Tabs -->

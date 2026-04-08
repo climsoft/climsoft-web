@@ -1,5 +1,8 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" (okClick)="onOkClick()"
-  (cancelClick)="onCancelClick()">
+<app-dialog [(open)]="open" [title]="title"
+  [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+  (firstButtonClick)="onOkClick()"
+  [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+  (secondButtonClick)="onCancelClick()">
   <div *ngIf="element">
     <div>
       <app-number-input [label]="'Id'" [disabled]="element.id > 0" [(numValue)]="element.id" />

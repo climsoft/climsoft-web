@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, NgZone, OnDestroy, Output, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { take } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -7,8 +7,8 @@ import { ObservationsService } from 'src/app/data-ingestion/services/observation
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary-query.model';
-import { DurationTypeEnum } from '../models/duration-type.enum';
+import { DataAvailabilitySummaryQueryModel } from '../../models/data-availability-summary-query.model';
+import { DurationTypeEnum } from '../../models/duration-type.enum';
 
 export interface DataAvailabilityCellClickEvent {
     derivedFilter: DataAvailabilitySummaryQueryModel;
@@ -34,11 +34,14 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
     private heatMapDateValues!: string[];
     private heatMapStationValues!: string[];
     protected loading: boolean = false;
+    protected vmMin: number = 0;
+    protected vmMax: number = 0;
 
     constructor(
         private pagesDataService: PagesDataService,
         private observationService: ObservationsService,
         private cachedMetadataService: CachedMetadataService,
+        private ngZone: NgZone,
     ) { }
 
     ngOnDestroy(): void {
@@ -60,12 +63,13 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
     }
 
     private loadSummary(): void {
+        console.log('loading...')
         this.loading = true;
         this.loadingChange.emit(true);
         this.observationService.findDataAvailabilitySummary(this.filter).pipe(
             take(1)
         ).subscribe({
-            next: data => {
+            next: (data) => {
                 this.loading = false;
                 this.loadingChange.emit(false);
                 this.stationsRendered = [];
@@ -138,15 +142,49 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
 
                 this.generateChart(this.heatMapDateValues, this.heatMapStationValues, chartData, maxValue, dateToolTipPrefix);
             },
-            error: err => {
+            error: (err) => {
+                console.log('data availability: ', err)
                 this.loading = false;
                 this.loadingChange.emit(false);
-                this.pagesDataService.showToast({ title: 'Data Availability', message: err, type: ToastEventTypeEnum.ERROR });
+                this.pagesDataService.showToast({ title: 'Data Availability', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
             },
         });
     }
 
+    protected onVmMinChange(input: number | null): void {
+        if(input === null ){
+            return
+        }
+   
+        const option = this.chartInstance.getOption() as any;
+        const visualMap = option?.visualMap;
+        if (input < visualMap[0].min) {
+            return;
+        }
+        this.vmMin = input
+        visualMap[0].range[0] = this.vmMin;
+        this.chartInstance.setOption({ visualMap: visualMap });
+    }
+
+    protected onVmMaxChange(input: number| null): void {
+        if(input === null ){
+            return
+        }
+   
+        const option = this.chartInstance.getOption() as any;
+        const visualMap = option?.visualMap;
+        if (input > visualMap[0].max) {
+            return;
+        }
+        this.vmMax = input;
+        visualMap[0].range[1] = this.vmMax;
+        this.chartInstance.setOption({ visualMap: visualMap });
+    }
+
     private generateChart(dateValues: string[], stations: string[], data: [number, number, number][], maxValue: number, dateToolTipPrefix: string): void {
+        this.vmMin = 0;
+        this.vmMax = maxValue;
+
         if (this.chartInstance) {
             this.chartInstance.dispose();
         }
@@ -213,7 +251,18 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
 
         this.chartInstance.setOption(chartOptions);
 
-        this.chartInstance.off('click');
+        this.chartInstance.on('datarangeselected', () => {            
+            const option = this.chartInstance.getOption() as any;
+            const range = option?.visualMap?.[0]?.range;
+            if (range) {
+                this.ngZone.run(() => {
+                    this.vmMin = Math.round(range[0]);
+                    this.vmMax = Math.round(range[1]);
+                });
+            }
+        });
+
+        //this.chartInstance.off('click');
         this.chartInstance.on('click', (params: any) => {
             const derivedFilter: DataAvailabilitySummaryQueryModel = { ...this.filter };
             let dateIndex: number;

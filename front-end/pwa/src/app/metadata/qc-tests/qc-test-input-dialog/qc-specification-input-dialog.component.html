@@ -1,6 +1,10 @@
 <ng-container *ngIf="open && updateQcTest">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="updateQcTest.id > 0"
-        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onOkClick()"
+        [secondButtonOptions]="updateQcTest.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDeleteClick()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <div>

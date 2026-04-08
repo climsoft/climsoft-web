@@ -1,6 +1,9 @@
 <ng-container *ngIf="open && viewSource">
-  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
-    [closeOnOkClick]="false" [closeOnCancelClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
+  <app-dialog [(open)]="open" [title]="title"
+    [firstButtonOptions]="showConfirmImport ? {label: 'Confirm Import', color: 'primary', closeDialogOnClick: false} : undefined"
+    (firstButtonClick)="onConfirmImport()"
+    [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+    (secondButtonClick)="closeDialog()">
 
     <div>
 

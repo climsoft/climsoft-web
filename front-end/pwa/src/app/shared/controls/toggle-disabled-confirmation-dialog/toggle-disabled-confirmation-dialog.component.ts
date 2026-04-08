@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
+// TODO. deprecate this component. Parent classes can just use the confirmation dialog component
+
 @Component({
   selector: 'app-toggle-disabled-confirmation-dialog',
   templateUrl: './toggle-disabled-confirmation-dialog.component.html',

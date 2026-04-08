@@ -1,8 +1,33 @@
 <div>
-    <div>
-        <app-data-availability-filter-selection-summary [enableQueryButton]="enableQueryButton" [filter]="filter"
-            (filterChange)="onQueryClick($event)" />
+
+    <div class="card border-0 p-0">
+        <div class="card-header mb-2 px-1 fw-bold">
+            <app-toggle-chevron #queryContainerToggle [open]="true">Filter</app-toggle-chevron>
+        </div>
+        <div *ngIf="queryContainerToggle.open" class="card-body p-0 mt-2">
+            <div>
+                <div>
+                    <app-data-availability-filter-selection-general #appDAFilterGSummarySelection
+                        [inputFilter]="generalFilter" />
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end">
+                    <div>
+                        <app-check-box-input [label]="'Exclude Confirmed Missing Values'"
+                            [(value)]="excludeMissingValues" />
+                    </div>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableQueryButton "
+                        (click)="onQueryClick()">
+                        Query
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
     </div>
+
     <div class="mt-2">
         <app-data-availability-heatmap #heatmap (loadingChange)="onLoadingChange($event)"
             (cellClick)="onCellClick($event)" />

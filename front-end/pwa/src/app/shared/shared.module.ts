@@ -14,7 +14,6 @@ import { NumberInputComponent } from './controls/number-input/number-input.compo
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
 import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
-import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
 import { SimulateTabOnEnterDirective } from '../shared/simulate-tab-on-enter.directive';
 import { CloseDropDownDirective } from './close-drop-down.directive';
 import { SortableHeaderDirective } from './sortable-header.directive';
@@ -73,7 +72,6 @@ const controlsComponents = [
   DataListViewComponent,
   TableViewComponent,
   DialogComponent,
-  InputDialogComponent,
   ToggleChevronComponent,
 
   SelectorSingleInputComponent,

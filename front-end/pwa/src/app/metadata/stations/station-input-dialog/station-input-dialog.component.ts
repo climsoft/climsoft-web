@@ -161,9 +161,9 @@ export class StationInputDialogComponent {
     ).subscribe({
       next: (data) => {
         this.pagesDataService.showToast({ title: 'Station Characteristics', message: this.station.id ? 'New Station Created' : 'Station Updated', type: ToastEventTypeEnum.SUCCESS });
-        this.open = false;
         this.stationsCacheService.checkForUpdates();
         this.ok.emit();
+        this.open = false;
       },
       error: (err) => {
         console.error(err)
@@ -174,6 +174,7 @@ export class StationInputDialogComponent {
 
   protected onCancelClick(): void {
     this.cancelClick.emit();
+    this.open = false;
   }
 
 

@@ -1,5 +1,4 @@
-<app-dialog [(open)]="open" [title]="title" [cancelButtonLabel]="'Close'" [displayOkOption]="false"
-    [displayDeleteOption]="false" (cancelClick)="onCancelClick()" (cancelClick)="onCancelClick()">
+<app-dialog [(open)]="open" [title]="title" [firstButtonOptions]="{label: 'Close', color: 'secondary', closeDialogOnClick: true}">
     <div *ngIf="station && open">
 
         <div>
