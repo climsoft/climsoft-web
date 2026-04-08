@@ -13,11 +13,12 @@ import { StationStatusQuerySelectionComponent } from './station-status/station-s
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { DataAvailabilityComponent } from './data-availability/data-availability.component';
 import { DataAvailabilityDetailsComponent } from './data-availability/data-availability-details/data-availability-details.component';
-import { DataAvailabilityOptionsDialogComponent } from './data-availability/data-availability-options-dialog/data-availability-options-dialog.component';
 import { DataAvailabilityFilterSelectionSummaryComponent } from './data-availability/data-availability-summary/data-availability-filter-selection-summary/data-availability-filter-selection-summary.component';
 import { DataAvailabilityFilterSelectionDetailsComponent } from './data-availability/data-availability-details/data-availability-filter-selection-details/data-availability-filter-selection-details.component';
 import { DataAvailabilitySummaryComponent } from './data-availability/data-availability-summary/data-availability-summary.component';
 import { DataAvailabilityFilterSelectionGeneralComponent } from './data-availability/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+import { DataAvailabilityHeatmapComponent } from './data-availability/data-availability-heatmap/data-availability-heatmap.component';
+import { DataAvailabilityDetailsDialogComponent } from './data-availability/data-availability-details-dialog/data-availability-details-dialog.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { DataAvailabilityFilterSelectionGeneralComponent } from './data-availabi
     DataAvailabilityFilterSelectionDetailsComponent,
     DataAvailabilitySummaryComponent,
     DataAvailabilityDetailsComponent,
-    DataAvailabilityOptionsDialogComponent,
+    DataAvailabilityHeatmapComponent,
+    DataAvailabilityDetailsDialogComponent,
     DataExplorerComponent,
   ],
   imports: [

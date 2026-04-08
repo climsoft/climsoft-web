@@ -76,7 +76,7 @@ export class DataCorrectorComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public query(queryFilter: ViewObservationQueryModel): void {
+  public executeQuery(queryFilter: ViewObservationQueryModel): void {
     this.queryFilter = queryFilter;
     this.loadData();
   }

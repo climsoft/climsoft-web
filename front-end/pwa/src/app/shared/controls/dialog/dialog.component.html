@@ -9,18 +9,36 @@
                 <ng-content></ng-content>
             </div>
 
-            <div class="card-footer d-flex justify-content-end">
+            <div class="card-footer d-flex justify-content-end gap-2">
+                <!-- Deprecate these options -->
                 <button *ngIf="displayOkOption" [disabled]="disableOkOption" type="button"
                     class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                     {{okButtonLabel}}
                 </button>
-                <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"
+                <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary"
                     (click)="onCancelClick()">
                     {{cancelButtonLabel }}
                 </button>
-                <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2"
+                <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger"
                     (click)="onDeleteClick()">
                     {{deleteButtonLabel }}
+                </button>
+                <!------------->
+                <button *ngIf="!!firstButtonOptions" type="button" [disabled]="firstButtonOptions.disable"
+                    [class]="btnClass(firstButtonOptions)" (click)="onFirstButtonClick()">
+                    {{firstButtonOptions.label}}
+                </button>
+                <button *ngIf="!!secondButtonOptions" type="button" [disabled]="!!secondButtonOptions.disable"
+                    [class]="btnClass(secondButtonOptions)" (click)="onSecondButtonClick()">
+                    {{secondButtonOptions.label }}
+                </button>
+                <button *ngIf="!!thirdButtonOptions" type="button" [disabled]="!!thirdButtonOptions.disable"
+                    [class]="btnClass(thirdButtonOptions)" (click)="onThirdButtonClick()">
+                    {{thirdButtonOptions.label }}
+                </button>
+                <button *ngIf="!!fourthButtonOptions" type="button" [disabled]="!!fourthButtonOptions.disable"
+                    [class]="btnClass(fourthButtonOptions)" (click)="onFourthButtonClick()">
+                    {{fourthButtonOptions.label }}
                 </button>
             </div>
 

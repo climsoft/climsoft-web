@@ -51,6 +51,8 @@ import { DataCorrectorDialogComponent } from './data-correction/data-corrector-d
     ObservationsModule,
   ],
   exports: [
+    DataCorrectorComponent,
+    DataCorrectorDialogComponent,
   ]
 })
 export class DataIngestionModule { }

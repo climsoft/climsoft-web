@@ -64,7 +64,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         }
 
         this.queryFilter = newQueryFilter;
-        this.dataCorrector.query(newQueryFilter);
+        this.dataCorrector.executeQuery(newQueryFilter);
       });
 
     });
@@ -82,7 +82,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     this.queryFilter = queryFilter;
     this.enableSaveButton = false;
-    this.dataCorrector.query(queryFilter);
+    this.dataCorrector.executeQuery(queryFilter);
   }
 
   protected onLoadingObservations(loading: boolean): void {
