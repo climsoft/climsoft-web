@@ -12,6 +12,7 @@ import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';
 import { ViewFlagModel } from 'src/app/metadata/flags/models/view-flag.model';
+import { DialogComponent } from 'src/app/shared/controls/dialog/dialog.component';
 
 /**
  * Component for data entry of observations
@@ -29,6 +30,7 @@ interface RangeThreshold {
 })
 export class ValueFlagInputComponent implements OnChanges {
   @ViewChild('appVFTextInput') textInputComponent!: TextInputComponent;
+  @ViewChild('dlgExtraInfo') dlgExtraInfo!: DialogComponent;
 
   @Input() public id!: string;
 
@@ -66,7 +68,6 @@ export class ValueFlagInputComponent implements OnChanges {
   @Output() public enterKeyPress = new EventEmitter<void>();
 
   protected activeTab: 'new' | 'history' | 'qctests' = 'new';
-  protected displayExtraInfoDialog: boolean = false;
   protected duplicateObservation: ViewObservationModel | undefined;
   protected viewObservationLog!: ViewObservationLogModel[];
   protected duplicateObservationLog!: ViewObservationLogModel[];
@@ -217,7 +218,7 @@ export class ValueFlagInputComponent implements OnChanges {
     if (this.disableValueFlagEntry) {
       this.onTabChange('history');
     }
-    this.displayExtraInfoDialog = true;
+    this.dlgExtraInfo.openDialog();
   }
 
   protected onTabChange(selectedTab: 'new' | 'history' | 'qctests'): void {
