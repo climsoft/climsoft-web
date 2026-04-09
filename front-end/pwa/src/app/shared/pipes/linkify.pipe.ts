@@ -1,5 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+/**
+ * This pipe is used by components to detect and render links found in strings especially in description fields
+ */
 export interface LinkifySegment {
   isLink: boolean;
   content: string;
