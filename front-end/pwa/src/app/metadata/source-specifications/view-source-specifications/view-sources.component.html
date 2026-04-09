@@ -52,7 +52,13 @@
                 {{ source.sourceTypeName }}
               </span>
             </td>
-            <td>{{ source.description }}</td>
+            <td>
+              <ng-container *ngFor="let seg of source.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
+                  rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
             <td>
               <button *ngIf="source.sourceType === 'form'" type="button"
                 class="btn btn-outline-secondary btn-sm position-relative"

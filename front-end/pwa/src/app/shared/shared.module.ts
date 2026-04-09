@@ -14,9 +14,9 @@ import { NumberInputComponent } from './controls/number-input/number-input.compo
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
 import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
-import { SimulateTabOnEnterDirective } from '../shared/simulate-tab-on-enter.directive';
-import { CloseDropDownDirective } from './close-drop-down.directive';
-import { SortableHeaderDirective } from './sortable-header.directive';
+import { SimulateTabOnEnterDirective } from './directives/simulate-tab-on-enter.directive';
+import { CloseDropDownDirective } from './directives/close-drop-down.directive';
+import { SortableHeaderDirective } from './directives/sortable-header.directive';
 import { YearMonthInputComponent } from './controls/year-month-input/year-month-input.component';
 import { SelectorMultipleInputComponent } from './controls/selector-input/selector-multiple-input/selector-multiple-input.component';
 import { SelectorSingleInputComponent } from './controls/selector-input/selector-single-input/selector-single-input.component';
@@ -48,6 +48,7 @@ import { DelimeterSelectorComponent } from './controls/delimeter-selector/delime
 import { ConfirmationDialogComponent } from './controls/confirmation-dialog/confirmation-dialog.component';
 import { SpinnerComponent } from './controls/spinner/spinner.component';
 import { ImportPreviewTableComponent } from './controls/import-preview-table/import-preview-table.component';
+import { LinkifyPipe } from './pipes/linkify.pipe';
 
 //--------------------------------
 
@@ -117,10 +118,15 @@ const directives = [
   SortableHeaderDirective,
 ]
 
+const pipes = [
+  LinkifyPipe,
+]
+
 @NgModule({
   declarations: [
     ...controlsComponents,
     ...directives,
+    ...pipes,
   ],
   imports: [
     ...angularModules,
@@ -132,6 +138,7 @@ const directives = [
     ...angularModules,
     ...controlsComponents,
     ...directives,
+    ...pipes,
 
   ]
 })
