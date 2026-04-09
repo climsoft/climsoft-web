@@ -161,8 +161,8 @@ export class ValueFlagInputComponent implements OnChanges {
   }
 
   private getValueFlagString(value: number | null, flagId: number | null): string {
-    let valueStr;
-    const flagStr = flagId ? this.cachedMetadataService.getFlag(flagId).abbreviation : '';
+    let valueStr: string;
+    const flagStr: string = flagId ? this.cachedMetadataService.getFlag(flagId).abbreviation : '';
 
     // If scaling is on and entry scale factor is >=10 then just add zero.
     if (value === null) {
@@ -180,11 +180,18 @@ export class ValueFlagInputComponent implements OnChanges {
         }
       }
     } else {
-      // Ensure values always show at least one decimal place, e.g. 0 -> 0.0, 20 -> 20.0, 25.5 -> 25.5
+
       valueStr = value.toString();
-      if (!valueStr.includes('.')) {
-        valueStr = `${valueStr}.0`;
+
+      // For elements that have a scale factor then show the decimals for consistency.
+      // For elements whose scale factor is 1, then no need to enforce showing of consistent decimals. This applies to elements like clouds and thunderstorms that are reported through codes like 1,2 etc
+      if (this.element.entryScaleFactor > 1) {
+        // Ensure values always show at least one decimal place, e.g. 0 -> 0.0, 20 -> 20.0, 25.5 -> 25.5
+        if (!valueStr.includes('.')) {
+          valueStr = `${valueStr}.0`;
+        }
       }
+
     }
 
     return `${valueStr}${flagStr}`;
