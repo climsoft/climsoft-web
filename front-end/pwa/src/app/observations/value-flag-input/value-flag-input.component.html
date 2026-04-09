@@ -1,11 +1,11 @@
 <ng-container *ngIf="observationEntry">
-    <!-- TODO. Add a the native html title property that shows the entry username - email - entrytime of the last log. The idea is the title will be shown when the user hovers over this component -->
     <app-text-input #appVFTextInput [id]="id" [label]="label" [labelSuperScript]="labelSuperScript"
         [displaylabelFullColon]="false" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
         [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
         [showChanges]="observationEntry.change === 'valid_change'" [errorMessage]="validationErrorMessage"
         [warningMessage]="validationWarningMessage" [displayExtraInfoOption]="displayExtraInfoOption"
-        [simulateTabOnEnter]="simulateTabOnEnter" (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
+        [simulateTabOnEnter]="simulateTabOnEnter" [title]="titleTooltip"
+        (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
         (valueChange)="onInputEntry($event)" (inputEnterKeyPress)="onEnterKeyPressed()" />
 
         <app-dialog #dlgExtraInfo [title]="'Extra Information'"
