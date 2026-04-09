@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 @Component({
   selector: 'app-stacked-data-viewer',
@@ -9,11 +10,14 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
   styleUrls: ['./stacked-data-viewer.component.scss']
 })
 export class StackedDataViewerComponent implements OnChanges {
+  @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
+
   @Input() public allowDataEdits: boolean = true;
   @Input() public pageInputDefinition!: PagingParameters;
   @Input() public observationsEntries: ObservationEntry[] = [];
 
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
+  @Output() public focusSaveButton = new EventEmitter<void>();
 
   protected rowHasDuplicate: boolean[] = [];
 
@@ -21,7 +25,7 @@ export class StackedDataViewerComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.pageInputDefinition && this.observationsEntries) {
+    if (changes['observationsEntries'] && this.pageInputDefinition && this.observationsEntries) {
       this.markDuplicateRows(this.observationsEntries);
     }
   }
@@ -33,6 +37,24 @@ export class StackedDataViewerComponent implements OnChanges {
   protected onUserDeleteClick(observationEntry: ObservationEntry) {
     observationEntry.delete = !observationEntry.delete;
     this.onUserInput(observationEntry);
+  }
+
+  /**
+   * Handles Enter key press on a value-flag input by focusing the next editable,
+   * non-deleted value-flag input. If none is found, it emits focusSaveButton so
+   * that the parent can focus the save button.
+   */
+  protected onVFEnterKeyPressed(currentIndex: number): void {
+    const items = this.vfComponents.toArray();
+    for (let i = currentIndex + 1; i < items.length; i++) {
+      const entry = this.observationsEntries[i];
+      if (!entry.delete && !items[i].disableValueFlagEntry) {
+        items[i].focus();
+        return;
+      }
+    }
+    // No next focusable value-flag input found, focus the save button.
+    this.focusSaveButton.emit();
   }
 
   private markDuplicateRows(entries: ObservationEntry[]): void {
