@@ -8,8 +8,7 @@ import { GridLayoutComponent } from './data-entry/form-entry/grid-layout/grid-la
 import { LinearLayoutComponent } from './data-entry/form-entry/linear-layout/linear-layout.component'; 
 import { AssignSameInputComponent } from './data-entry/form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-entry/import-source-selection/import-selection.component';
-import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
-import { MissingDataComponent } from './missing-data/missing-data.component';
+import { DataCorrectionComponent } from './data-correction/data-correction.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { BulkPkUpdateDialogComponent } from './data-correction/bulk-pk-update-dialog/bulk-pk-update-dialog.component';
 import { BulkDeleteDialogComponent } from './data-correction/bulk-delete-dialog/bulk-delete-dialog.component';
@@ -35,8 +34,7 @@ import { DataCorrectorDialogComponent } from './data-correction/data-corrector-d
     ImportSelectionComponent,
     DataCorrectionComponent,
     DataCorrectorDialogComponent,
-    DataCorrectorComponent, 
-    MissingDataComponent,
+    DataCorrectorComponent,
     DeletedDataComponent,
     BulkPkUpdateDialogComponent,
     BulkDeleteDialogComponent,

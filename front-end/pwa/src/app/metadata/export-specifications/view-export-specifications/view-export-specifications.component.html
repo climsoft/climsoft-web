@@ -47,7 +47,13 @@
                 {{ export.exportType }}
               </span>
             </td>
-            <td (click)="dlgExportInput.showDialog(export.id)">{{ export.description }}</td>
+            <td (click)="dlgExportInput.showDialog(export.id)">
+              <ng-container *ngFor="let seg of export.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
+                  rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
             <td>
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm"

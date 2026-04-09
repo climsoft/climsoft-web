@@ -55,7 +55,8 @@
             <th appSortableHeader="typeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Type</th>
             <th appSortableHeader="entryScaleFactor" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
-              (sort)="onSort($event)" [title]="'Value entered by user will be divided by this factor before storage'">Scale Factor</th>
+              (sort)="onSort($event)" [title]="'Value entered by user will be divided by this factor before storage'">
+              Scale Factor</th>
             <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Comment</th>
           </tr>
@@ -66,7 +67,13 @@
             <td>{{ element.id }}</td>
             <td>{{ element.abbreviation }}</td>
             <td>{{ element.name }}</td>
-            <td>{{ element.description }}</td>
+            <td>
+              <ng-container *ngFor="let seg of element.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
             <td>{{ element.units }}</td>
             <td>{{ element.typeName }}</td>
             <td>{{ element.entryScaleFactor }}</td>

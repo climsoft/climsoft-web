@@ -54,7 +54,13 @@
                   <td>{{ connector.hostName }}</td>
                   <td>{{ connector.cronSchedule }}</td>
                   <td>{{ connector.orderNumber }}</td>
-                  <td>{{ connector.description }}</td>
+                  <td>
+                     <ng-container *ngFor="let seg of connector.description | linkify">
+                        <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
+                           rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                        <ng-template #plainText>{{ seg.content }}</ng-template>
+                     </ng-container>
+                  </td>
                   <td>
                      <div class="d-flex gap-2">
                         <button type="button" class="btn btn-sm"
@@ -88,6 +94,5 @@
    <!-- Enable/Disable Confirmation Dialog -->
    <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedConnector?.name || ''"
       [itemType]="'connector'" [isCurrentlyDisabled]="selectedConnector?.disabled || false"
-      [operationType]="selectedConnector?.connectorType || ''"
-      (toggleConfirmed)="onToggleDisabledConfirm()" />
+      [operationType]="selectedConnector?.connectorType || ''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

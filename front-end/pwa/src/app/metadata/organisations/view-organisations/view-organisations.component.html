@@ -35,7 +35,13 @@
           <tr class="app-cursor-pointer" *ngFor="let org of pageItems" (click)="onEditOrganisation(org)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ org.name }}</td>
-            <td>{{ org.description }}</td>
+            <td>
+              <ng-container *ngFor="let seg of org.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
           </tr>
         </tbody>
       </table>

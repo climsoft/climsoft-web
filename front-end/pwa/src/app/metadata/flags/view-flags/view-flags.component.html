@@ -38,7 +38,13 @@
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ flag.abbreviation }}</td>
             <td>{{ flag.name }}</td>
-            <td>{{ flag.description }}</td>
+            <td>
+              <ng-container *ngFor="let seg of flag.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
           </tr>
         </tbody>
       </table>

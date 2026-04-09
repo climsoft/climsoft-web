@@ -37,7 +37,13 @@
             (click)="onEditNetworkAffiliation(network, $event)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ network.name }}</td>
-            <td>{{ network.description }}</td>
+            <td>
+              <ng-container *ngFor="let seg of network.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
             <td>
               <div class="d-flex align-items-center">
                 <button type="button" class="btn btn-outline-secondary btn-sm"

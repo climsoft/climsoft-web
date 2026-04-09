@@ -136,8 +136,11 @@ export class ValueFlagInputComponent implements OnChanges {
         }
       }
     } else {
-      // TODO. Instead of returning the string. Implement a way of making sure values like 0, 20, 25 etc become 0.0, 20.0, 25.0. The idea is all values should show atleast 1 decimal
+      // Ensure values always show at least one decimal place, e.g. 0 -> 0.0, 20 -> 20.0, 25.5 -> 25.5
       valueStr = value.toString();
+      if (!valueStr.includes('.')) {
+        valueStr = `${valueStr}.0`;
+      }
     }
 
     return `${valueStr}${flagStr}`;

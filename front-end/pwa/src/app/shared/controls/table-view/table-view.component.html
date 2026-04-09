@@ -17,7 +17,13 @@
                 (click)="onRowDataClicked(row)">
                 <td *ngIf="clickable"><i class="bi bi-arrow-right-short"></i></td>
                 <td *ngIf="showRowNum">{{ getRowNumber(i) }}</td>
-                <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
+                <td *ngFor="let col of columnsData">
+                    <ng-container *ngFor="let seg of getRowDataItem(row, col.id)  | linkify">
+                        <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
+                            rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                        <ng-template #plainText>{{ seg.content }}</ng-template>
+                    </ng-container>
+                </td>
             </tr>
         </tbody>
     </table>
