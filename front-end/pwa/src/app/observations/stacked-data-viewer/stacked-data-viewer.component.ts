@@ -17,7 +17,6 @@ export class StackedDataViewerComponent implements OnChanges {
   @Input() public observationsEntries: ObservationEntry[] = [];
 
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
-  @Output() public focusSaveButton = new EventEmitter<void>();
 
   protected rowHasDuplicate: boolean[] = [];
 
@@ -40,9 +39,7 @@ export class StackedDataViewerComponent implements OnChanges {
   }
 
   /**
-   * Handles Enter key press on a value-flag input by focusing the next editable,
-   * non-deleted value-flag input. If none is found, it emits focusSaveButton so
-   * that the parent can focus the save button.
+   * Handles Enter key press on a value-flag input by focusing the next editable and non-deleted value-flag input. 
    */
   protected onVFEnterKeyPressed(currentIndex: number): void {
     const items = this.vfComponents.toArray();
@@ -53,8 +50,7 @@ export class StackedDataViewerComponent implements OnChanges {
         return;
       }
     }
-    // No next focusable value-flag input found, focus the save button.
-    this.focusSaveButton.emit();
+    // If ever needed, this can be extended to emit `focusSaveButton`so that the parent can focus the save button.
   }
 
   private markDuplicateRows(entries: ObservationEntry[]): void {
