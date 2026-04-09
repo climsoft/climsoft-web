@@ -96,22 +96,27 @@ export class DataCorrectorComponent implements OnDestroy {
       take(1)
     ).subscribe(
       {
-        next: count => {
+        next: (count) => {
           this.pageInputDefinition.setTotalRowCount(count);
         },
-        error: err => {
+        error: (err) => {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         },
       });
 
     this.sourceCheckService.exists(this.queryFilter).pipe(take(1)).subscribe({
-      next: exists => this.hasSourceDuplicates = exists,
+      next: (exists) => {
+        this.hasSourceDuplicates = exists
+      },      
+        error: (err) => {
+          this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+        },
     });
 
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
-      next: data => {
+      next: (data) => {
         this.setLoadingStatus(false);
         this.observationsEntries = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
@@ -133,7 +138,7 @@ export class DataCorrectorComponent implements OnDestroy {
           return entry;
         });
       },
-      error: err => {
+      error: (err) => {
         this.setLoadingStatus(false);
         this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
@@ -159,7 +164,7 @@ export class DataCorrectorComponent implements OnDestroy {
   protected onUserCorrectInput() {
     this.changedCount = 0;
     for (const entry of this.observationsEntries) {
-      if (entry.delete || entry.change === 'valid_change' || entry.change === 'invalid_change')
+      if (entry.delete || entry.change === 'valid_change')
         this.changedCount++;
     }
     this.userChanges.emit(this.changedCount)
