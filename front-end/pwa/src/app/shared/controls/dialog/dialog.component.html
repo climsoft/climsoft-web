@@ -26,6 +26,10 @@
                     [class]="btnClass(fourthButtonOptions)" (click)="onFourthButtonClick()">
                     {{fourthButtonOptions.label }}
                 </button>
+                 <button *ngIf="!!fifthButtonOptions" type="button" [disabled]="!!fifthButtonOptions.disable"
+                    [class]="btnClass(fifthButtonOptions)" (click)="onFifthButtonClick()">
+                    {{fifthButtonOptions.label }}
+                </button>
             </div>
 
         </div>

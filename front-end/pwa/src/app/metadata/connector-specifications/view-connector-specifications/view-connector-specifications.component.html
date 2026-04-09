@@ -88,6 +88,6 @@
    <!-- Enable/Disable Confirmation Dialog -->
    <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedConnector?.name || ''"
       [itemType]="'connector'" [isCurrentlyDisabled]="selectedConnector?.disabled || false"
-      [operationType]="selectedConnector?.connectorType || ''" [schedule]="selectedConnector?.cronSchedule || ''"
+      [operationType]="selectedConnector?.connectorType || ''"
       (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

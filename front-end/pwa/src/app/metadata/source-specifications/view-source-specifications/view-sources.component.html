@@ -85,17 +85,25 @@
   </div>
 
   <!-- Delete Confirmation Dialog -->
-  <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedSource?.name || ''"
-    [itemType]="'source specification'" (deleteConfirmed)="onDeleteConfirm()" />
+  <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Source Specification'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the source specification <strong>{{ selectedSource?.name || '' }}</strong>?
+    </p>
+  </app-confirmation-dialog>
 
-  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'source specification'"
-    (deleteConfirmed)="onDeleteAllConfirm()" />
+  <app-confirmation-dialog #dlgDeleteAllConfirm [title]="'Delete All Source Specifications'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteAllConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the <strong>all</strong> the source specifications?
+    </p>
+  </app-confirmation-dialog>
+
 
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedSource?.name || ''"
     [itemType]="'source specification'" [isCurrentlyDisabled]="selectedSource?.disabled || false"
-    [operationType]="selectedSource?.sourceTypeName || ''" [schedule]="''"
-    (toggleConfirmed)="onToggleDisabledConfirm()" />
+    [operationType]="selectedSource?.sourceTypeName || ''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 
   <!-- Source Input Dialogs -->
   <app-form-source-input-dialog #dlgFormEdit />

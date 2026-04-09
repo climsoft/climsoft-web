@@ -11,6 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ImportPreviewHttpService } from '../services/import-preview.service';
 import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'interval' | 'value' | 'review';
 
@@ -20,6 +21,7 @@ type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'int
     styleUrls: ['./import-source-input-dialog.component.scss']
 })
 export class ImportSourceInputDialogComponent implements OnDestroy {
+    @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: DeleteConfirmationDialogComponent;
     @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
     @Output()
@@ -449,9 +451,22 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     // ─── Save / Delete / Cancel ───
 
-    protected onSave(): void {
-        if (!this.importSource) {
-            return;
+      protected onSave(): void {
+        this.dlgSaveConfirm.openDialog();
+    }
+
+    protected onSaveConfirm(): void {
+
+        if (StringUtils.isNullOrEmpty(this.importSource.name)) {
+            this.pagesDataService.showToast({ title: 'Import specification', message: 'Name is required', type: ToastEventTypeEnum.ERROR });
+        }
+
+        if (StringUtils.isNullOrEmpty(this.importSource.description)) {
+            this.pagesDataService.showToast({ title: 'Import specification', message: 'Description is required', type: ToastEventTypeEnum.ERROR });
+        }
+
+        if (StringUtils.isNullOrEmpty(this.importSource.sampleFileName)) {
+            this.pagesDataService.showToast({ title: 'Import specification', message: 'Sample file is required', type: ToastEventTypeEnum.ERROR });
         }
 
         this.saving = true;
@@ -483,10 +498,10 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.closeDialog();
                 this.ok.emit();
             },
-            error: err => {
+            error: (err) => {
+                console.log(err)
                 this.saving = false;
-                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Error in saving import specification';
-                this.pagesDataService.showToast({ title: 'Import specification', message: message, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+                this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
             }
         });
     }
@@ -503,8 +518,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.ok.emit();
             },
             error: err => {
-                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Error in deleting import specification';
-                this.pagesDataService.showToast({ title: 'Import specification', message: message, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+                console.log(err)
+                this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
             }
         });
     }

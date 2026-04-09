@@ -23,11 +23,13 @@ export class DialogComponent {
   @Input() secondButtonOptions: DialogButtonOptions | undefined;
   @Input() thirdButtonOptions: DialogButtonOptions | undefined;
   @Input() fourthButtonOptions: DialogButtonOptions | undefined;
+  @Input() fifthButtonOptions: DialogButtonOptions | undefined;
 
   @Output() firstButtonClick = new EventEmitter<void>();
   @Output() secondButtonClick = new EventEmitter<void>();
   @Output() thirdButtonClick = new EventEmitter<void>();
   @Output() fourthButtonClick = new EventEmitter<void>();
+  @Output() fifthButtonClick = new EventEmitter<void>();
 
   public openDialog() {
     this.open = true;
@@ -63,6 +65,13 @@ export class DialogComponent {
       this.onClose();
     }
     this.fourthButtonClick.emit();
+  }
+
+  protected onFifthButtonClick(): void {
+    if (this.fifthButtonOptions?.closeDialogOnClick) {
+      this.onClose();
+    }
+    this.fifthButtonClick.emit();
   }
 
   protected btnClass(options: DialogButtonOptions): string {

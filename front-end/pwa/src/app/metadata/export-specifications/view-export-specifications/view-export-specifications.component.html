@@ -79,6 +79,6 @@
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedExport?.name || ''"
     [itemType]="'export specification'" [isCurrentlyDisabled]="selectedExport?.disabled || false"
-    [operationType]="selectedExport?.exportType + ' export' || ''" [schedule]="''"
+    [operationType]="selectedExport?.exportType + ' export' || ''"
     (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

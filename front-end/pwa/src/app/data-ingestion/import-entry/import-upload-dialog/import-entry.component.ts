@@ -42,7 +42,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
   protected importStage: ImportStage = ImportStage.IDLE;
   protected readonly ImportStage = ImportStage;
   protected importMessage: string = '';
-  protected showConfirmImport: boolean = false;
+  protected enableConfirmImport: boolean = false;
 
   protected showStationSelection: boolean = false;
   protected selectedStationId!: string | null;
@@ -93,7 +93,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
     this.resetUploadPreview();
     this.importStage = ImportStage.IDLE;
     this.importMessage = '';
-    this.showConfirmImport = false;
+    this.enableConfirmImport = false;
     this.disableUpload = false;
     this.selectedStationId = null;
 
@@ -204,7 +204,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
         } else {
           this.importStage = ImportStage.IDLE;
           this.importMessage = 'File ready for import. Click Confirm Import button to import the file.';
-          this.showConfirmImport = true;
+          this.enableConfirmImport = true;
           this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.INFO })
         }
       },
@@ -247,14 +247,14 @@ export class ImportEntryDialogComponent implements OnDestroy {
   }
 
   protected onConfirmImport(): void {
-    if (!this.uploadedFileRawPreviewResponse.sessionId) {
+    if (!this.enableConfirmImport || !this.uploadedFileRawPreviewResponse.sessionId) {
       return;
     }
 
     this.importStage = ImportStage.IMPORTING;
     this.importMessage = 'Importing data into database...';
     this.disableUpload = true;
-    this.showConfirmImport = false;
+    this.enableConfirmImport = false;
 
     this.importPreviewHttpService.confirmImport(this.uploadedFileRawPreviewResponse.sessionId, this.viewSource.id, this.selectedStationId || undefined).pipe(
       take(1),
