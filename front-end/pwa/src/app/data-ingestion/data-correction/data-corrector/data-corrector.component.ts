@@ -10,7 +10,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
@@ -19,6 +19,23 @@ import { BulkDeleteDialogComponent } from '../bulk-delete-dialog/bulk-delete-dia
 import { SourceCheckDialogComponent } from '../source-check-dialog/source-check-dialog.component';
 import { ObservationsService } from '../../services/observations.service';
 import { SourceCheckService } from '../../services/source-check.service';
+import { PivotDimension } from 'src/app/data-ingestion/data-correction/data-corrector/pivot-data-viewer/pivot-data-viewer.component';
+
+type ViewModeOption =
+  'Stacked'
+  | 'Pivot by Element'
+  | 'Pivot by Station'
+  | 'Pivot by Level'
+  | 'Pivot by Source'
+  | 'Pivot by Date Time';
+
+const PIVOT_BY_OPTION: Record<Exclude<ViewModeOption, 'Stacked'>, PivotDimension> = {
+  'Pivot by Element': 'element',
+  'Pivot by Station': 'station',
+  'Pivot by Level': 'level',
+  'Pivot by Source': 'source',
+  'Pivot by Date Time': 'datetime',
+};
 
 @Component({
   selector: 'app-data-corrector',
@@ -45,7 +62,21 @@ export class DataCorrectorComponent implements OnDestroy {
 
   protected saveSummary: { updatedCount: number; deletedCount: number } = { updatedCount: 0, deletedCount: 0 };
 
-  protected useUnstackedViewer: boolean = false;
+  // View mode state.
+  // The dropdown shows all options as user-facing labels; `viewMode` is whichever was last selected.
+  // When `viewMode === 'Stacked'` the stacked viewer is rendered; otherwise the pivot viewer is rendered
+  // with `pivotBy` derived from the chosen option.
+  protected readonly viewModeOptions: ViewModeOption[] = [
+    'Stacked',
+    'Pivot by Element',
+    'Pivot by Station',
+    'Pivot by Level',
+    'Pivot by Source',
+    'Pivot by Date Time',
+  ];
+  protected viewMode: ViewModeOption = 'Stacked';
+  protected pivotBy: PivotDimension = 'element';
+
   protected changedCount: number = 0;
   protected isSystemAdmin: boolean = false;
   protected hasSourceDuplicates: boolean = false;
@@ -77,7 +108,8 @@ export class DataCorrectorComponent implements OnDestroy {
   }
 
   public executeQuery(queryFilter: ViewObservationQueryModel): void {
-    this.queryFilter = queryFilter;
+    this.queryFilter = { ...queryFilter };
+    this.pageInputDefinition.setPage(1); // reset to first page since new filter affects number of rows
     this.loadData();
   }
 
@@ -103,15 +135,6 @@ export class DataCorrectorComponent implements OnDestroy {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         },
       });
-
-    this.sourceCheckService.exists(this.queryFilter).pipe(take(1)).subscribe({
-      next: (exists) => {
-        this.hasSourceDuplicates = exists
-      },      
-        error: (err) => {
-          this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
-        },
-    });
 
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
@@ -143,10 +166,22 @@ export class DataCorrectorComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
     });
+
+    this.sourceCheckService.exists(this.queryFilter).pipe(take(1)).subscribe({
+      next: (exists) => {
+        this.hasSourceDuplicates = exists
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
   }
 
-  protected stackToggle(): void {
-    this.useUnstackedViewer = !this.useUnstackedViewer;
+  protected onViewModeChange(option: ViewModeOption): void {
+    this.viewMode = option;
+    if (option !== 'Stacked') {
+      this.pivotBy = PIVOT_BY_OPTION[option];
+    }
   }
 
   protected onBulkUpdate(): void {

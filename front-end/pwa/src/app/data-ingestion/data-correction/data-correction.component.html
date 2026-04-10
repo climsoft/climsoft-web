@@ -3,8 +3,8 @@
         <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
             [displayHourSelector]="true" [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
 
-        <app-data-corrector #dataCorrector
-            (loadingInProgress)="onLoadingObservations($event)" (userChanges)="onUserChanges($event)" />
+        <app-data-corrector #dataCorrector (loadingInProgress)="onLoadingObservations($event)"
+            (userChanges)="onUserChanges($event)" />
     </div>
 
     <div class="card-footer bg-transparent d-flex justify-content-end px-0">

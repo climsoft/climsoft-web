@@ -12,12 +12,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
-import { QuerySelectionComponent } from 'src/app/observations/query-selection/query-selection.component';
 import { PerformQCDialogComponent } from './perform-qc-dialog/perform-qc-dialog.component';
 import { QCFailDetailDialogComponent } from './qc-fail-detail-dialog/qc-fail-detail-dialog.component';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { QuerySelectionComponent } from 'src/app/data-ingestion/data-correction/query-selection/query-selection.component';
 
 @Component({
   selector: 'app-qc-assessment',

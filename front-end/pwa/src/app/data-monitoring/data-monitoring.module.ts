@@ -8,7 +8,6 @@ import { DataFlowComponent } from './data-flow/data-flow.component';
 import { DataExplorerComponent } from './data-explorer/data-explorer.component';
 import { StationDataComponent } from './station-status/station-status-data/station-status-data.component';
 import { DataFlowQuerySelectionComponent } from './data-flow/data-flow-query-selection/data-flow-query-selection.component';
-import { ObservationsModule } from '../observations/observations.module';
 import { StationStatusQuerySelectionComponent } from './station-status/station-status-query-selection/station-status-query-selection.component';
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { DataAvailabilityComponent } from './data-availability/data-availability.component';
@@ -37,7 +36,6 @@ import { DataAvailabilityDetailsDialogComponent } from './data-availability/data
     DataMonitoringRoutingModule,
     SharedModule,
     MetadataModule,
-    ObservationsModule,
     DataIngestionModule,
   ]
 })

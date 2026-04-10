@@ -8,7 +8,7 @@ import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-
 import { ViewObservationModel } from "../../../models/view-observation.model";
 import { QCStatusEnum } from "../../../models/qc-status.enum";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
-import { ObservationEntry } from "src/app/observations/models/observation-entry.model";
+import { ObservationEntry } from "src/app/data-ingestion/models/observation-entry.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
 
 export interface FieldEntryDefinition {

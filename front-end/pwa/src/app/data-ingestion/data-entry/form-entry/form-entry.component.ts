@@ -23,7 +23,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { EntryFormObservationQueryModel } from '../../models/entry-form-observation-query.model';
 import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
 import { ViewObservationModel } from '../../models/view-observation.model';
-import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
 import { UserFormSettingsComponent } from './user-form-settings/user-form-settings.component';
 
 export interface UserFormSettingStruct {

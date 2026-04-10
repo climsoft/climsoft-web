@@ -1,0 +1,27 @@
+<div class="app-table-container" style="max-height: 58vh;">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th *ngFor="let header of rowDimensionHeaders">{{ header }}</th>
+                <th>Interval</th>
+                <th *ngFor="let column of columns; trackBy: trackByColumnKey">{{ column.label }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let row of rows; trackBy: trackByRowKey; let rowIndex = index;">
+                <td>{{ rowIndex + 1 }}</td>
+                <td *ngFor="let leading of row.leading">{{ leading }}</td>
+                <td>{{ row.intervalDisplay }}</td>
+                <td *ngFor="let column of columns; trackBy: trackByColumnKey; let colIndex = index;">
+                    <div *ngIf="row.cells.get(column.key) as ev" class="app-value-flag-container">
+                        <app-value-flag-input [id]="rowIndex + '_' + colIndex + '_vf'"
+                            [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false" [observationEntry]="ev"
+                            [disableValueFlagEntry]="!allowDataEdits || ev.delete" [simulateTabOnEnter]="true"
+                            (userInputVF)="onUserInput($event)" />
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

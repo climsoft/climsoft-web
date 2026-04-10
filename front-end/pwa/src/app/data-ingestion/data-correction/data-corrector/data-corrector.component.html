@@ -3,9 +3,8 @@
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
             <div class="fw-bold ms-1">Observations</div>
             <div *ngIf="observationsEntries.length > 0" class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
-                    Stack/Unstack
-                </button>
+                <app-drop-down-button [buttonText]="'View: ' + viewMode" [dropDownItems]="viewModeOptions"
+                    [offSetRight]="false" (dropDownOptionClick)="onViewModeChange($event)" />
                 <button *ngIf="hasSourceDuplicates" type="button"
                     class="btn btn-sm btn-outline-warning position-relative" (click)="onSourceCheck()">
                     Source Check
@@ -41,14 +40,14 @@
             </div>
 
             <div *ngIf="!loading && observationsEntries.length > 0">
-                <div *ngIf="useUnstackedViewer">
-                    <app-unstacked-data-viewer [allowDataEdits]="allowDataEdits"
-                        [observationsEntries]="observationsEntries" (valueChange)="onUserCorrectInput()" />
-                </div>
-                <div *ngIf="!useUnstackedViewer">
+                <div *ngIf="viewMode === 'Stacked'">
                     <app-stacked-data-viewer [allowDataEdits]="allowDataEdits"
                         [pageInputDefinition]="pageInputDefinition" [observationsEntries]="observationsEntries"
-                        (valueChange)="onUserCorrectInput()"/>
+                        (valueChange)="onUserCorrectInput()" />
+                </div>
+                <div *ngIf="viewMode !== 'Stacked'">
+                    <app-pivot-data-viewer [allowDataEdits]="allowDataEdits" [pivotBy]="pivotBy"
+                        [observationsEntries]="observationsEntries" (valueChange)="onUserCorrectInput()" />
                 </div>
             </div>
         </div>
