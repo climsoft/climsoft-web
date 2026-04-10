@@ -1,6 +1,5 @@
 <ng-container *ngIf="open">
-    <app-dialog [(open)]="open" [title]="'QC Test Failure Details'" [displayOkOption]="false"
-        [cancelButtonLabel]="'Close'">
+    <app-dialog [(open)]="open" [title]="'QC Test Failure Details'" [firstButtonOptions]="{label: 'Close', closeDialogOnClick: true}">
 
         <!-- Test Name Badge -->
         <div class="mb-3">

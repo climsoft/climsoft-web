@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -12,7 +12,7 @@ import { DataCorrectorComponent } from './data-corrector/data-corrector.componen
   templateUrl: './data-correction.component.html',
   styleUrls: ['./data-correction.component.scss']
 })
-export class DataCorrectionComponent implements OnInit, OnDestroy {
+export class DataCorrectionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('dataCorrector') dataCorrector!: DataCorrectorComponent;
 
   protected queryFilter!: ViewObservationQueryModel;
@@ -27,6 +27,10 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
+  }
+
+  ngAfterViewInit(): void {
+
   }
 
   ngOnInit(): void {
@@ -63,8 +67,12 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           newQueryFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.cachedMetadataSearchService.utcOffSet, 'subtract');
         }
 
-        this.queryFilter = newQueryFilter;
-        this.dataCorrector.query(newQueryFilter);
+        // Temporary work around to eliminate the angular detection errors. Once async await and angular signals are adopted. This will no longer be necessary.
+        setTimeout(() => {
+          this.queryFilter = newQueryFilter;
+          this.dataCorrector.executeQuery(newQueryFilter);
+        }, 0);
+
       });
 
     });
@@ -82,7 +90,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     this.queryFilter = queryFilter;
     this.enableSaveButton = false;
-    this.dataCorrector.query(queryFilter);
+    this.dataCorrector.executeQuery(queryFilter);
   }
 
   protected onLoadingObservations(loading: boolean): void {

@@ -9,7 +9,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ActivatedRoute } from '@angular/router';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
 
 // TODO. This component will be deprecated once Climsoft Lab feature is implemented
 

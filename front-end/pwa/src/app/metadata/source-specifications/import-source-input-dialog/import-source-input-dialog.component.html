@@ -1,16 +1,23 @@
 <ng-container *ngIf="open && importSource">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="saving ? 'Saving...' : 'Save' "
-        [displayOkOption]="!transformedPreviewResponse.error"
-        [disableOkOption]="saving || !!transformedPreviewResponse.error" [closeOnOkClick]="false"
-        [displayDeleteOption]="importSource.id > 0" [closeOnOkClick]="false" [closeOnDeleteClick]="false"
-        (okClick)="onSave()" (deleteClick)="onDelete()" (cancelClick)="closeDialog()">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="showNavigation && activeStep !== 'upload' ? {label:  'Previous' , color: 'secondary', closeDialogOnClick: false} : undefined"
+        (firstButtonClick)="onPrevious()"
+        [secondButtonOptions]="showNavigation && activeStep !== 'review' ? {label:  'Next' , color: 'info', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onNext()"
+        [thirdButtonOptions]="!transformedPreviewResponse.error ? {label: saving ? 'Saving...' : 'Save', color: 'primary', disable: !showNavigation || saving || !!transformedPreviewResponse.error, closeDialogOnClick: false} : undefined"
+        (thirdButtonClick)="onSave()"
+        [fourthButtonOptions]="importSource.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (fourthButtonClick)="onDelete()"
+        [fifthButtonOptions]="{label: 'cancel', color: 'secondary', closeDialogOnClick: false} "
+        (fifthButtonClick)="closeDialog()">
 
         <!-- Wizard Tab Navigation -->
         <div class="mb-3">
             <ul class="nav nav-tabs">
                 <li class="nav-item" *ngFor="let step of wizardSteps">
-                    <button type="button" class="nav-link d-flex align-items-center gap-1" [class.active]="activeStep === step"
-                        [class.disabled]="isStepDisabled(step)" (click)="onStepTabClick(step)">
+                    <button type="button" class="nav-link d-flex align-items-center gap-1"
+                        [class.active]="activeStep === step" [class.disabled]="isStepDisabled(step)"
+                        (click)="onStepTabClick(step)">
                         <span class="step-badge"
                             [class.bg-success]="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step"
                             [class.bg-danger]="hasStepBeenVisited(step) && !isStepValid(step) && activeStep !== step"
@@ -224,20 +231,6 @@
 
                     </div>
                 </div>
-
-
-                <!-- Navigation buttons -->
-                <div *ngIf="showNavigation" class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
-                    <button type="button" *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
-                        (click)="onPrevious()">
-                        Previous
-                    </button>
-
-                    <button type="button" *ngIf="activeStep !== 'review'" class="btn btn-sm btn-outline-primary" (click)="onNext()">
-                        Next
-                    </button>
-                </div>
-
             </div>
 
             <!-- Right column: Preview tables -->
@@ -283,6 +276,17 @@
 
     </app-dialog>
 
-    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="importSource.name" [itemType]="'import specification'"
-        (deleteConfirmed)="onDeleteConfirm()" />
+    <app-confirmation-dialog #dlgSaveConfirm [title]="'Save Import Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
+        <p>
+            Are you sure you want to save the import specification <strong>{{ importSource.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Import Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the import specification <strong>{{ importSource.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

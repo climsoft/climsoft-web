@@ -63,7 +63,13 @@
                             <div>{{form.name}}</div>
                           </div>
                           <div class="ms-1 me-1">-</div>
-                          <div>{{form.description}}</div>
+                          <div>
+                            <ng-container *ngFor="let seg of form.description | linkify">
+                              <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
+                                rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                              <ng-template #plainText>{{ seg.content }}</ng-template>
+                            </ng-container>
+                          </div>
                         </div>
                       </td>
                     </tr>

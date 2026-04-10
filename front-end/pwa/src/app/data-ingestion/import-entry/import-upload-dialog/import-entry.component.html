@@ -1,6 +1,9 @@
 <ng-container *ngIf="open && viewSource">
-  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
-    [closeOnOkClick]="false" [closeOnCancelClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
+  <app-dialog [(open)]="open" [title]="title"
+    [firstButtonOptions]="{label: 'Confirm Import', color: 'primary', disable: !enableConfirmImport, closeDialogOnClick: false}"
+    (firstButtonClick)="onConfirmImport()"
+    [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+    (secondButtonClick)="closeDialog()">
 
     <div>
 
@@ -23,7 +26,7 @@
       <div>
         <!-- Status message -->
         <div *ngIf="importMessage" class="alert py-2 mt-3"
-          [ngClass]="{ 'alert-danger': importStage === ImportStage.ERROR, 'alert-success': importStage === ImportStage.SUCCESS, 'alert-info': importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING }">
+          [ngClass]="{ 'alert-danger': importStage === ImportStage.ERROR, 'alert-success': importStage === ImportStage.SUCCESS, 'alert-info': importStage === ImportStage.IDLE || ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING }">
           <div class="d-flex align-items-center" style="gap: 8px;">
             <app-spinner
               *ngIf="importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING"

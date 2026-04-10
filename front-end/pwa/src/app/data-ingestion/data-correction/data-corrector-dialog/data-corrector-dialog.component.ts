@@ -22,7 +22,7 @@ export class DataCorrectorDialogComponent {
     this.open = true;
     this.enableSubmitButton = false;
     // setTimeout needed because child is behind *ngIf="open"
-    setTimeout(() => this.dataCorrector.query({ ...queryFilter }));
+    setTimeout(() => this.dataCorrector.executeQuery({ ...queryFilter }));
   }
 
   protected onUserChanges(changedCount: number) {

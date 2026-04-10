@@ -451,6 +451,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
       AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.selectedIds });
     }
     this.searchedIdsChange.emit(this.selectedIds);
+    this.open = false;
   }
 
   private scrollToTop(): void {

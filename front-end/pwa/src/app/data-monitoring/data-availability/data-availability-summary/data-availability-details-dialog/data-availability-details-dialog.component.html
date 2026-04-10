@@ -1,0 +1,37 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'Data Availability'"
+        [firstButtonOptions]="canGoBack ? {label: 'Back',  closeDialogOnClick: false, color: 'info'} : undefined"
+        (firstButtonClick)="onBack()"
+        [secondButtonOptions]="activeTab === 'viewdata' ? {label: 'Submit', disable: !enableSubmitButton , closeDialogOnClick: false, color: 'primary'} : undefined"
+        (secondButtonClick)="onSubmit()"
+        [thirdButtonOptions]="{label: 'Close', closeDialogOnClick: true, color: 'secondary'}">
+
+        <div *ngIf="currentFilter" class="d-flex gap-2 text-muted small mb-2">
+            <span class="fw-semibold">From:</span> {{ getPresentableDateTime(currentFilter.fromDate) }}
+            <span class="fw-semibold">To:</span> {{ getPresentableDateTime(currentFilter.toDate) }}
+        </div>
+
+        <ul class="nav nav-tabs mb-2">
+            <li *ngIf="!hideDrillDown" class="nav-item">
+                <button type="button" class="nav-link" [class.active]="activeTab === 'drilldown'"
+                    (click)="onTabChange('drilldown')">
+                    Drill Down
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="activeTab === 'viewdata'"
+                    (click)="onTabChange('viewdata')">
+                    View Data
+                </button>
+            </li>
+        </ul>
+
+        <div [hidden]="activeTab !== 'drilldown'">
+            <app-data-availability-heatmap #heatmap (cellClick)="onCellClick($event)" />
+        </div>
+        <div [hidden]="activeTab !== 'viewdata'" style="min-height: 50vh;">
+            <app-data-corrector #dataCorrector (userChanges)="onUserChanges($event)" />
+        </div>
+
+    </app-dialog>
+</ng-container>

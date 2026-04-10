@@ -1,8 +1,8 @@
 <ng-container *ngIf="open">
-    <app-dialog [(open)]="open" [title]="'Bulk Update Observations'" [displayOkOption]="displayOkOption"
-        [disableOkOption]="disableOkOption" [okButtonLabel]="okButtonLabel" [closeOnOkClick]="false"
-        [displayCancelOption]="displayCancelOption" [cancelButtonLabel]="cancelButtonLabel" [closeOnCancelClick]="false"
-        [displayDeleteOption]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+    <app-dialog [(open)]="open" [title]="'Bulk Update Observations'"
+        [firstButtonOptions]="displayOkOption ? {label: okButtonLabel, color: 'primary', disable: disableOkOption, closeDialogOnClick: false} : undefined"
+        [secondButtonOptions]="displayCancelOption ? {label: cancelButtonLabel, closeDialogOnClick: false} : undefined"
+        (firstButtonClick)="onOkClick()" (secondButtonClick)="onCancelClick()">
         <div style="min-height: 70vh;">
             <!-- Step 1: Configure -->
             <div *ngIf="step === 'configure'">

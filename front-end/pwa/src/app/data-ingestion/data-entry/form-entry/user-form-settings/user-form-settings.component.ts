@@ -59,8 +59,4 @@ export class UserFormSettingsComponent {
     this.open = false;
     this.ok.emit(this.userFormSettings);
   }
-
-  protected onCancelClick(): void {
-    this.open = false;
-  }
 }

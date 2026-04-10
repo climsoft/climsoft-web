@@ -1,0 +1,10 @@
+<app-spinner *ngIf="loading" [message]="'loading...'" />
+<div *ngIf="vmMax > 0" class="d-flex justify-content-center align-items-center gap-1 mb-1 small">
+    <span class="text-muted me-1">Visual range:</span>
+    <app-number-input id="'visual_range_min'" title="''minimum" [value]="vmMin" (valueChange)="onVmMinChange($event)"
+        style="width: 70px;" />
+    <span class="mx-2 text-muted">to</span>
+    <app-number-input id="'visual_range_max'" title="'maximum'" [value]="vmMax" (valueChange)="onVmMaxChange($event)"
+        style="width: 70px;" />
+</div>
+<div #chartContainer style="min-width: 80vw; min-height: 80vh;"></div>

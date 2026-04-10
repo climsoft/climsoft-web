@@ -1,5 +1,14 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
+export type DialogButtonColor = 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'info';
+
+export interface DialogButtonOptions {
+  label: string;
+  closeDialogOnClick?: boolean;
+  disable?: boolean;
+  color?: DialogButtonColor;
+}
+
 @Component({
   selector: 'app-dialog',
   templateUrl: './dialog.component.html',
@@ -7,60 +16,66 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class DialogComponent {
   @Input() title: string = '';
-
-  @Input() okButtonLabel: string = 'Ok';
-
-  @Input() cancelButtonLabel: string = 'Cancel';
-
-  @Input() deleteButtonLabel: string = 'Delete';
-
-  @Input() displayOkOption: boolean = true;
-
-  @Input() disableOkOption: boolean = false;
-
-  @Input() displayCancelOption: boolean = true;
-
-  @Input() displayDeleteOption: boolean = false;
-
-  @Input() closeOnOkClick: boolean = true;
-
-  @Input() closeOnCancelClick: boolean = true;
-
-  @Input() closeOnDeleteClick: boolean = true;
-
   @Input() open: boolean = false;
-
   @Output() openChange = new EventEmitter<boolean>();
 
-  @Output() okClick = new EventEmitter<void>();
+  @Input() firstButtonOptions: DialogButtonOptions | undefined;
+  @Input() secondButtonOptions: DialogButtonOptions | undefined;
+  @Input() thirdButtonOptions: DialogButtonOptions | undefined;
+  @Input() fourthButtonOptions: DialogButtonOptions | undefined;
+  @Input() fifthButtonOptions: DialogButtonOptions | undefined;
 
-  @Output() cancelClick = new EventEmitter<void>();
-
-  @Output() deleteClick = new EventEmitter<void>();
+  @Output() firstButtonClick = new EventEmitter<void>();
+  @Output() secondButtonClick = new EventEmitter<void>();
+  @Output() thirdButtonClick = new EventEmitter<void>();
+  @Output() fourthButtonClick = new EventEmitter<void>();
+  @Output() fifthButtonClick = new EventEmitter<void>();
 
   public openDialog() {
     this.open = true;
   }
 
-  protected onOkClick(): void {
-    if (this.closeOnOkClick) {
-      this.onClose();
-    }
-    this.okClick.emit();
+  protected onCloseClick(): void {
+    this.onClose();
   }
 
-  protected onCancelClick(): void {
-    if (this.closeOnCancelClick) {
+  protected onFirstButtonClick(): void {
+    if (this.firstButtonOptions?.closeDialogOnClick) {
       this.onClose();
     }
-    this.cancelClick.emit();
+    this.firstButtonClick.emit();
   }
 
-  protected onDeleteClick(): void {
-    if (this.closeOnDeleteClick) {
+  protected onSecondButtonClick(): void {
+    if (this.secondButtonOptions?.closeDialogOnClick) {
       this.onClose();
     }
-    this.deleteClick.emit();
+    this.secondButtonClick.emit();
+  }
+
+  protected onThirdButtonClick(): void {
+    if (this.thirdButtonOptions?.closeDialogOnClick) {
+      this.onClose();
+    }
+    this.thirdButtonClick.emit();
+  }
+
+  protected onFourthButtonClick(): void {
+    if (this.fourthButtonOptions?.closeDialogOnClick) {
+      this.onClose();
+    }
+    this.fourthButtonClick.emit();
+  }
+
+  protected onFifthButtonClick(): void {
+    if (this.fifthButtonOptions?.closeDialogOnClick) {
+      this.onClose();
+    }
+    this.fifthButtonClick.emit();
+  }
+
+  protected btnClass(options: DialogButtonOptions): string {
+    return `btn btn-sm btn-outline-${options.color ?? 'secondary'}`;
   }
 
   private onClose(): void {

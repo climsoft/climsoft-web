@@ -289,6 +289,7 @@ export class ElementsSearchDialogComponent implements OnDestroy {
       AppDatabase.instance.elementsSearchHistory.put({ name: this.searchName, elementIds: this.selectedIds });
     }
     this.searchedIdsChange.emit(this.selectedIds);
+    this.open = false;
   }
 
   private scrollToTop(): void {

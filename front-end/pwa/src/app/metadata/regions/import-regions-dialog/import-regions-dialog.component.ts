@@ -2,7 +2,7 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { RegionTypeEnum } from 'src/app/metadata/regions/models/region-types.enum';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
@@ -31,13 +31,13 @@ export class ImportRegionsDialogComponent implements OnChanges {
   protected fileName: string = '';
 
   protected selectedRegionType!: RegionTypeEnum | null;
- 
+
   constructor(
-     private appConfigService: AppConfigService,
+    private appConfigService: AppConfigService,
     private regionsCacheService: RegionsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
-      
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -124,12 +124,12 @@ export class ImportRegionsDialogComponent implements OnChanges {
 
           let response: string = (event.body as any).message;
           if (response === "success") {
-            this.open = false; // close the dialog
             this.pagesDataService.showToast({ title: 'Regions Import', message: 'Regions imported successfully', type: ToastEventTypeEnum.SUCCESS });
 
             // Refresh the cache
             this.regionsCacheService.checkForUpdates();
             this.okClick.emit();
+            this.open = false; // close the dialog
           } else {
             this.uploadMessage = response;
             this.uploadError = true;
@@ -141,6 +141,7 @@ export class ImportRegionsDialogComponent implements OnChanges {
 
   protected onCancelClick(): void {
     this.cancelClick.emit();
+    this.open = false; // close the dialog
   }
 
 

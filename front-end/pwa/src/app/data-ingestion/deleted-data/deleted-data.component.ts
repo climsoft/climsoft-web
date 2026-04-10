@@ -8,7 +8,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Interva
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BulkRestoreDialogComponent } from './bulk-restore-dialog/bulk-restore-dialog.component';

@@ -332,30 +332,21 @@ export class ObservationsService {
     return this.http.get<DataAvailabilitySummaryModel[]>(
       `${this.endPointUrl}/data-availability-summary`,
       { params: StringUtils.getQueryParams<DataAvailabilitySummaryQueryModel>(query) }
-    )
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    );
   }
 
   public findDataAvailabilityDetails(query: DataAvailabilityDetailsQueryModel): Observable<DataAvailaibilityDetailsModel[]> {
     return this.http.get<DataAvailaibilityDetailsModel[]>(
       `${this.endPointUrl}/data-availability-details`,
       { params: StringUtils.getQueryParams<DataAvailabilityDetailsQueryModel>(query) }
-    )
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    );
   }
 
   public findDataFlow(query: DataFlowQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(
       `${this.endPointUrl}/data-flow`,
       { params: StringUtils.getQueryParams<DataFlowQueryModel>(query) }
-    )
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    );
   }
 
 

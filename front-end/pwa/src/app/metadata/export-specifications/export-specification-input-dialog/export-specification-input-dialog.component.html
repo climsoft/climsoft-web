@@ -1,7 +1,10 @@
 <ng-container *ngIf="viewExportSpecification && open">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
-        [displayDeleteOption]="viewExportSpecification.id > 0" [closeOnOkClick]="false" [closeOnDeleteClick]="false"
-        (okClick)="onSubmitClick()" (deleteClick)="onDeleteButtonClick()">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onSubmitClick()"
+        [secondButtonOptions]="viewExportSpecification.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDeleteButtonClick()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewExportSpecification.name" />

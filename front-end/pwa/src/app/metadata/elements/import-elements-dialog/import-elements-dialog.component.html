@@ -1,9 +1,8 @@
 <ng-container *ngIf="open">
   <app-dialog [(open)]="open" [title]="'Import Elements'"
-    [okButtonLabel]="importing ? 'Importing...' : 'Confirm Import' "
-    [displayOkOption]="activeStep === 'review' && !transformedPreviewResponse.error"
-    [disableOkOption]="importing || !!transformedPreviewResponse.error" [closeOnOkClick]="false"
-    [closeOnCancelClick]="false" (okClick)="onConfirmImport()" (cancelClick)="onCancelClick()">
+    [firstButtonOptions]="activeStep === 'review' && !transformedPreviewResponse.error ? {label: importing ? 'Importing...' : 'Confirm Import', color: 'primary', disable: importing || !!transformedPreviewResponse.error, closeDialogOnClick: false} : undefined"
+    [secondButtonOptions]="{label: 'Cancel', closeDialogOnClick: false}"
+    (firstButtonClick)="onConfirmImport()" (secondButtonClick)="onCancelClick()">
 
     <!-- Wizard Tab Navigation -->
     <div class="mb-3">

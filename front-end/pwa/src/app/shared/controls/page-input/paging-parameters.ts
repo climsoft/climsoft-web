@@ -49,6 +49,14 @@ export class PagingParameters {
         this.setTotalPages();
     }
 
+    public setPage(page: number): boolean {
+        if (page < 1 || page > this._pageSize) {
+            return false;
+        }
+        this._page = page;
+        return true;
+    }
+
     public onFirst(): boolean {
         if (this.page <= 1) {
             return false;

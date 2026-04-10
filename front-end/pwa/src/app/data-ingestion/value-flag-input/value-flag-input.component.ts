@@ -12,6 +12,7 @@ import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';
 import { ViewFlagModel } from 'src/app/metadata/flags/models/view-flag.model';
+import { DialogComponent } from 'src/app/shared/controls/dialog/dialog.component';
 
 /**
  * Component for data entry of observations
@@ -29,6 +30,7 @@ interface RangeThreshold {
 })
 export class ValueFlagInputComponent implements OnChanges {
   @ViewChild('appVFTextInput') textInputComponent!: TextInputComponent;
+  @ViewChild('dlgExtraInfo') dlgExtraInfo!: DialogComponent;
 
   @Input() public id!: string;
 
@@ -66,12 +68,15 @@ export class ValueFlagInputComponent implements OnChanges {
   @Output() public enterKeyPress = new EventEmitter<void>();
 
   protected activeTab: 'new' | 'history' | 'qctests' = 'new';
-  protected displayExtraInfoDialog: boolean = false;
   protected duplicateObservation: ViewObservationModel | undefined;
   protected viewObservationLog!: ViewObservationLogModel[];
   protected duplicateObservationLog!: ViewObservationLogModel[];
   protected viewQCTestLog!: ViewQCTestLog[];
   protected comment: string = '';
+
+  // Native HTML title shown on hover over the value/flag input.
+  // Contains the user name, email and entry time of the latest log entry.
+  protected titleTooltip: string = '';
 
 
   // Holds original value, flag and comment  values
@@ -98,6 +103,11 @@ export class ValueFlagInputComponent implements OnChanges {
       // set original database values for future comparison
       this.originalValues = `${this.valueFlagInput}-${this.comment}`;
       this.rangeThresholdToUse = this.getRangeThresholdToUse();
+
+      // Format observation log once here so both the history tab and the hover
+      // tooltip reuse the same formatted data.
+      this.viewObservationLog = this.formatObservationLog(this.observationEntry.observation.log);
+      this.titleTooltip = this.buildLastLogTitle(this.viewObservationLog);
     }
 
     if (changes['duplicateObservations'] && this.duplicateObservations && this.observationEntry) {
@@ -105,6 +115,15 @@ export class ValueFlagInputComponent implements OnChanges {
       if (this.duplicateObservation) {
         // If duplicate exist then disable entry.
         this.disableValueFlagEntry = true;
+
+        // If there is a duplicate and the current entry has no log of its own,
+        // hide the empty own log table under the history tab.
+        if (this.observationEntry.observation.log.length === 0) {
+          this.viewObservationLog = [];
+        }
+
+        // Precompute duplicate's log for the history tab.
+        this.duplicateObservationLog = this.formatObservationLog(this.duplicateObservation.log);
 
         // If there is no value flag, e.g it's an attempt to enter a new record, then show the duplicate values
         if (this.valueFlagInput === '') {
@@ -116,9 +135,34 @@ export class ValueFlagInputComponent implements OnChanges {
 
   }
 
+  private formatObservationLog(viewObservationLog: ViewObservationLogModel[]): ViewObservationLogModel[] {
+    // Transform the log data accordingly
+    return viewObservationLog.map(item => {
+      const viewLog: ViewObservationLogModel = { ...item };
+      // Display the values in scaled form 
+      if (this.applyEntryScaleFactor && viewLog.value && this.element.entryScaleFactor) {
+        // To remove rounding errors number utils round off
+        viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
+      }
+
+      // Convert the entry date time to current local time
+      viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, this.cachedMetadataService.utcOffSet);
+      return viewLog;
+    }
+    );
+  }
+
+  private buildLastLogTitle(log: ViewObservationLogModel[]): string {
+    if (!log || log.length === 0) {
+      return '';
+    }
+    const last = log[log.length - 1];
+    return [last.entryUserName, last.entryUserEmail, last.entryDateTime].filter(p => p).join(' - ');
+  }
+
   private getValueFlagString(value: number | null, flagId: number | null): string {
-    let valueStr;
-    const flagStr = flagId ? this.cachedMetadataService.getFlag(flagId).abbreviation : '';
+    let valueStr: string;
+    const flagStr: string = flagId ? this.cachedMetadataService.getFlag(flagId).abbreviation : '';
 
     // If scaling is on and entry scale factor is >=10 then just add zero.
     if (value === null) {
@@ -135,10 +179,19 @@ export class ValueFlagInputComponent implements OnChanges {
           valueStr = `0${valueStr}`;
         }
       }
-
-
     } else {
+
       valueStr = value.toString();
+
+      // For elements that have a scale factor then show the decimals for consistency.
+      // For elements whose scale factor is 1, then no need to enforce showing of consistent decimals. This applies to elements like clouds and thunderstorms that are reported through codes like 1,2 etc
+      if (this.element.entryScaleFactor > 1) {
+        // Ensure values always show at least one decimal place, e.g. 0 -> 0.0, 20 -> 20.0, 25.5 -> 25.5
+        if (!valueStr.includes('.')) {
+          valueStr = `${valueStr}.0`;
+        }
+      }
+
     }
 
     return `${valueStr}${flagStr}`;
@@ -215,37 +268,22 @@ export class ValueFlagInputComponent implements OnChanges {
     if (this.disableValueFlagEntry) {
       this.onTabChange('history');
     }
-    this.displayExtraInfoDialog = true;
+    this.dlgExtraInfo.openDialog();
   }
 
   protected onTabChange(selectedTab: 'new' | 'history' | 'qctests'): void {
     this.activeTab = selectedTab;
-    switch (this.activeTab) {
-      case 'history':
-        // If there is a duplicate and this is new entry then no need to show the log table for the new entry
-        if (!(this.duplicateObservation && this.observationEntry.observation.log.length === 0)) {
-          this.viewObservationLog = this.formatObservationLog(this.observationEntry.observation.log);
+    // 'history' tab uses viewObservationLog / duplicateObservationLog that were
+    // already precomputed in ngOnChanges, so nothing to do for it here.
+    if (this.activeTab === 'qctests') {
+      this.viewQCTestLog = [];
+      if (this.observationEntry.observation.qcTestLog) {
+        for (const obsQcTestLog of this.observationEntry.observation.qcTestLog) {
+          const qcTestMetadata = this.cachedMetadataService.getQCTest(obsQcTestLog.qcTestId);
+          this.viewQCTestLog.push({ id: obsQcTestLog.qcTestId, name: qcTestMetadata.name, qcStatus: obsQcTestLog.qcStatus })
         }
-
-        // If there is a duplicate then show the log for the duplicate as well
-        if (this.duplicateObservation) {
-          this.duplicateObservationLog = this.formatObservationLog(this.duplicateObservation.log);
-        }
-
-        break;
-      case 'qctests':
-        this.viewQCTestLog = [];
-        if (this.observationEntry.observation.qcTestLog) {
-          for (const obsQcTestLog of this.observationEntry.observation.qcTestLog) {
-            const qcTestMetadata = this.cachedMetadataService.getQCTest(obsQcTestLog.qcTestId);
-            this.viewQCTestLog.push({ id: obsQcTestLog.qcTestId, name: qcTestMetadata.name, qcStatus: obsQcTestLog.qcStatus })
-          }
-        }
-        break;
-      default:
-        break;
+      }
     }
-
   }
 
   protected onExtraInfoOkClicked(): void {
@@ -254,23 +292,6 @@ export class ValueFlagInputComponent implements OnChanges {
       this.validateAndUpdateValueFlagFromUserInput(this.valueFlagInput, this.comment);
       this.userInputVF.emit(this.observationEntry);
     }
-  }
-
-  private formatObservationLog(viewObservationLog: ViewObservationLogModel[]): ViewObservationLogModel[] {
-    // Transform the log data accordingly
-    return viewObservationLog.map(item => {
-      const viewLog: ViewObservationLogModel = { ...item };
-      // Display the values in scaled form 
-      if (this.applyEntryScaleFactor && viewLog.value && this.element.entryScaleFactor) {
-        // To remove rounding errors number utils round off
-        viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
-      }
-
-      // Convert the entry date time to current local time
-      viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, this.cachedMetadataService.utcOffSet);
-      return viewLog;
-    }
-    );
   }
 
   protected getSourceName(sourceId: number): string {

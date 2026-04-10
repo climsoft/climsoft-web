@@ -1,15 +1,17 @@
-<app-dialog [(open)]="open" [title]="'Search Elements'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()">
+<app-dialog [(open)]="open" [title]="'Search Elements'"
+    [firstButtonOptions]=" {label: 'Ok', closeDialogOnClick: false, color: 'primary'}" (firstButtonClick)="onOkClick()"
+    [secondButtonOptions]="{label: 'Close', closeDialogOnClick: true, color: 'secondary'}">
     <div *ngIf="open" class="card border-0">
 
         <!-- tab header -->
         <div class="card-header d-flex">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
-                    <button class="nav-link" [class.active]="activeTab === 'history'"
+                    <button type="button" class="nav-link" [class.active]="activeTab === 'history'"
                         (click)="onTabClick('history')">History</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link active" [class.active]="activeTab === 'new'"
+                    <button type="button" class="nav-link active" [class.active]="activeTab === 'new'"
                         (click)="onTabClick('new')">New</button>
                 </li>
             </ul>
@@ -25,7 +27,7 @@
                     style="max-height: 300px;">
                     <table class="table table-sm table-hover">
                         <colgroup>
-                            <col style="width: 2%;" /> 
+                            <col style="width: 2%;" />
                         </colgroup>
                         <tbody class="overflow-y-scroll">
                             <tr *ngFor="let item of previousSearches" [class.table-primary]="item.name === searchName">

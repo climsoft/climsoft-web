@@ -5,11 +5,10 @@ import { StationFormSelectionComponent } from './data-entry/station-form-selecti
 import { FormEntryComponent } from './data-entry/form-entry/form-entry.component';
 import { UserFormSettingsComponent } from './data-entry/form-entry/user-form-settings/user-form-settings.component';
 import { GridLayoutComponent } from './data-entry/form-entry/grid-layout/grid-layout.component';
-import { LinearLayoutComponent } from './data-entry/form-entry/linear-layout/linear-layout.component'; 
+import { LinearLayoutComponent } from './data-entry/form-entry/linear-layout/linear-layout.component';
 import { AssignSameInputComponent } from './data-entry/form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-entry/import-source-selection/import-selection.component';
-import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
-import { MissingDataComponent } from './missing-data/missing-data.component';
+import { DataCorrectionComponent } from './data-correction/data-correction.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { BulkPkUpdateDialogComponent } from './data-correction/bulk-pk-update-dialog/bulk-pk-update-dialog.component';
 import { BulkDeleteDialogComponent } from './data-correction/bulk-delete-dialog/bulk-delete-dialog.component';
@@ -18,10 +17,13 @@ import { BulkPermanentDeleteDialogComponent } from './deleted-data/bulk-permanen
 import { SourceCheckDialogComponent } from './data-correction/source-check-dialog/source-check-dialog.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
-import { MetadataModule } from '../metadata/metadata.module';  
-import { ObservationsModule } from '../observations/observations.module'; 
+import { MetadataModule } from '../metadata/metadata.module';
 import { DataCorrectorComponent } from './data-correction/data-corrector/data-corrector.component';
 import { DataCorrectorDialogComponent } from './data-correction/data-corrector-dialog/data-corrector-dialog.component';
+import { ValueFlagInputComponent } from './value-flag-input/value-flag-input.component';
+import { PivotDataViewerComponent } from './data-correction/data-corrector/pivot-data-viewer/pivot-data-viewer.component';
+import { StackedDataViewerComponent } from './data-correction/data-corrector/stacked-data-viewer/stacked-data-viewer.component';
+import { QuerySelectionComponent } from './data-correction/query-selection/query-selection.component';
 
 @NgModule({
   declarations: [
@@ -30,27 +32,36 @@ import { DataCorrectorDialogComponent } from './data-correction/data-corrector-d
     FormEntryComponent,
     UserFormSettingsComponent,
     GridLayoutComponent,
-    LinearLayoutComponent, 
-    AssignSameInputComponent, 
+    LinearLayoutComponent,
+    AssignSameInputComponent,
     ImportSelectionComponent,
     DataCorrectionComponent,
     DataCorrectorDialogComponent,
-    DataCorrectorComponent, 
-    MissingDataComponent,
+    DataCorrectorComponent,
     DeletedDataComponent,
     BulkPkUpdateDialogComponent,
     BulkDeleteDialogComponent,
     BulkRestoreDialogComponent,
     BulkPermanentDeleteDialogComponent,
     SourceCheckDialogComponent,
+    QuerySelectionComponent,
+    StackedDataViewerComponent,
+    PivotDataViewerComponent,
+    ValueFlagInputComponent,
   ],
   imports: [
     DataIngestionRoutingModule,
     SharedModule,
     MetadataModule,
-    ObservationsModule,
   ],
   exports: [
+    DataCorrectorComponent,
+    DataCorrectorDialogComponent,
+    QuerySelectionComponent,
+    StackedDataViewerComponent,
+    StackedDataViewerComponent,
+    PivotDataViewerComponent,
+    ValueFlagInputComponent,
   ]
 })
 export class DataIngestionModule { }

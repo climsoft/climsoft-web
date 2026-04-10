@@ -1,7 +1,10 @@
 <ng-container *ngIf="open && viewFlag">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
-        [displayDeleteOption]="viewFlag.id > 0" [closeOnDeleteClick]="false" (okClick)="onSaveClick()"
-        (deleteClick)="onDeleteClick()">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onSaveClick()"
+        [secondButtonOptions]="viewFlag.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDeleteClick()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <app-text-input [label]="'Abbreviation'" [(value)]="viewFlag.abbreviation" />

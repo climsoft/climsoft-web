@@ -1,5 +1,6 @@
-<app-dialog [(open)]="open" [title]="'Delete ' + itemType" [okButtonLabel]="deleteButtonLabel"
-    [displayDeleteOption]="false" (okClick)="onDeleteConfirm()">
+<app-dialog [(open)]="open" [title]="'Delete ' + itemType"
+    [firstButtonOptions]="{label: deleteButtonLabel, color: 'danger', closeDialogOnClick: true}"
+    (firstButtonClick)="onDeleteConfirm()" [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
     <div>
         <p>Are you sure you want to delete the {{ itemType }} <strong>{{ itemName }}</strong>?</p>
         <p class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>This action cannot be undone.</p>

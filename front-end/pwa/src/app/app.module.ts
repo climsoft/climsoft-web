@@ -24,7 +24,6 @@ import { AppAuthInterceptor } from './app-auth.interceptor';
 import { DataExtractionModule } from './data-extraction/data-extraction.module';
 import { DataIngestionModule } from './data-ingestion/data-ingestion.module';
 import { DataMonitoringModule } from './data-monitoring/data-monitoring.module';
-import { ObservationsModule } from './observations/observations.module';
 import { QualityControlModule } from './quality-control/quality-control.module';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
@@ -47,7 +46,6 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     SharedModule,
     MetadataModule,
     AdminModule,
-    ObservationsModule,
     DataIngestionModule,
     DataMonitoringModule,
     QualityControlModule,

@@ -1,6 +1,5 @@
 <ng-container *ngIf="open && setting">
-  <app-dialog [(open)]="open" [title]="'Edit General Setting'" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
-    (okClick)="onSaveClick()">
+  <app-dialog [(open)]="open" [title]="'Edit General Setting'" [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}" (firstButtonClick)="onSaveClick()" [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
     <div>
       <div class="mb-3">

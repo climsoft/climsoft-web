@@ -29,7 +29,8 @@
                         <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
                             [applyEntryScaleFactor]="false" [observationEntry]="obsEntry"
                             [disableValueFlagEntry]="!allowDataEdits || obsEntry.delete"
-                            (userInputVF)="onUserInput($event)" />
+                            (userInputVF)="onUserInput($event)"
+                            (enterKeyPress)="onVFEnterKeyPressed(i)"/>
                     </div>
                 </td>
                 <td>{{ obsEntry.observation.comment }}</td>

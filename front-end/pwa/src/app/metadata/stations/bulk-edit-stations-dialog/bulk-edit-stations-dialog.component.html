@@ -1,7 +1,8 @@
 <ng-container *ngIf="open">
-  <app-dialog [(open)]="open" [title]="'Bulk Edit Stations'" [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
-    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0" [closeOnOkClick]="false"
-    [closeOnCancelClick]="false" (okClick)="onSave()" (cancelClick)="onCancelClick()">
+  <app-dialog [(open)]="open" [title]="'Bulk Edit Stations'"
+    [firstButtonOptions]="{label: saving ? 'Saving...' : 'Save Changes', color: 'primary', disable: saving || changedCount === 0, closeDialogOnClick: false}"
+    [secondButtonOptions]="{label: 'Cancel', closeDialogOnClick: true}"
+    (firstButtonClick)="onSave()">
 
     <div class="d-flex justify-content-end align-items-center mb-2">
       <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />

@@ -1,0 +1,140 @@
+<ng-container *ngIf="observationEntry">
+    <app-text-input #appVFTextInput [id]="id" [label]="label" [labelSuperScript]="labelSuperScript"
+        [displaylabelFullColon]="false" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
+        [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
+        [showChanges]="observationEntry.change === 'valid_change'" [errorMessage]="validationErrorMessage"
+        [warningMessage]="validationWarningMessage" [displayExtraInfoOption]="displayExtraInfoOption"
+        [simulateTabOnEnter]="simulateTabOnEnter" [title]="titleTooltip"
+        (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
+        (valueChange)="onInputEntry($event)" (inputEnterKeyPress)="onEnterKeyPressed()" />
+
+        <app-dialog #dlgExtraInfo [title]="'Extra Information'"
+            [firstButtonOptions]="{label: 'Ok', color: 'primary', closeDialogOnClick: true}"
+            (firstButtonClick)="onExtraInfoOkClicked()"
+            [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}"
+            [open]="false">
+            <div class="card border-0">
+                <!-- tab header -->
+                <div class="card-header d-flex">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li *ngIf="!disableValueFlagEntry" class="nav-item">
+                            <button type="button" class="nav-link active" [class.active]="activeTab === 'new'"
+                                (click)="onTabChange('new')">New</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link" [class.active]="activeTab === 'history'"
+                                (click)="onTabChange('history')">History</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link" [class.active]="activeTab === 'qctests'"
+                                (click)="onTabChange('qctests')">QC Tests</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- selected tab contents -->
+                <div class="card-body p-0">
+                    <div *ngIf="activeTab === 'new'" class="mt-2">
+                        <div>
+                            <app-text-input [label]="'Comment'" [(value)]="comment" />
+                        </div>
+                    </div>
+
+                    <div *ngIf="activeTab === 'history'">
+                        <div *ngIf="viewObservationLog">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Value</th>
+                                        <th>Flag</th>
+                                        <th>QC Status</th>
+                                        <th>Comment</th>
+                                        <th>Deleted</th>
+                                        <th>Entry User Name</th>
+                                        <th>Entry User Email</th>
+                                        <th>Entry Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let row of viewObservationLog">
+                                        <td>{{ row.value }}</td>
+                                        <td>{{getFlagAbbreviation(row.flagId)}}</td>
+                                        <td>{{ row.qcStatus }}</td>
+                                        <td>{{ row.comment }}</td>
+                                        <td>
+                                            <app-check-box-input [id]="'obs_log_'+row.entryDateTime" [disabled]="true"
+                                                [value]="row.deleted" />
+                                        </td>
+                                        <td>{{row.entryUserName}}</td>
+                                        <td>{{row.entryUserEmail}}</td>
+                                        <td>{{ row.entryDateTime }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div *ngIf="duplicateObservation">
+                            <div class="text-info mt-2">
+                                Observation already exists from source: {{ getSourceName(duplicateObservation.sourceId
+                                )}}
+                            </div>
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Value</th>
+                                        <th>Flag</th>
+                                        <th>QC Status</th>
+                                        <th>Comment</th>
+                                        <th>Deleted</th>
+                                        <th>Entry User Name</th>
+                                        <th>Entry User Email</th>
+                                        <th>Entry Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let row of duplicateObservationLog">
+                                        <td>{{ row.value }}</td>
+                                        <td>{{getFlagAbbreviation(row.flagId)}}</td>
+                                        <td>{{ row.qcStatus }}</td>
+                                        <td>{{ row.comment }}</td>
+                                        <td>
+                                            <app-check-box-input [id]="'duplicate_obs_log_'+ row.entryDateTime"
+                                                [disabled]="true" [value]="row.deleted" />
+                                        </td>
+                                        <td>{{row.entryUserName}}</td>
+                                        <td>{{row.entryUserEmail}}</td>
+                                        <td>{{ row.entryDateTime }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+
+                    <div *ngIf="activeTab === 'qctests'">
+                        <div *ngIf="viewQCTestLog.length === 0" class="p-4">
+                            No QC tests done.
+                        </div>
+                        <div *ngIf="viewQCTestLog.length > 0">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>QC Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let row of viewQCTestLog">
+                                        <td>{{ row.name }}</td>
+                                        <td>{{ row.qcStatus }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </app-dialog>
+   
+</ng-container>
