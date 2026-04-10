@@ -16,8 +16,9 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let obsEntry of observationsEntries; let rowIndex = index;" [class.table-warning]="rowHasDuplicate[rowIndex]">
-                <td>{{ getRowNumber(rowIndex) }}</td>
+            <tr *ngFor="let obsEntry of observationsEntries; trackBy: trackByEntry; let rowIndex = index;"
+                [class.table-warning]="rowHasDuplicate[rowIndex]">
+                <td>{{ startingRowNumber + rowIndex + 1 }}</td>
                 <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
                 <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
                 <td>{{ obsEntry.observation.level }}</td>
@@ -26,19 +27,17 @@
                 <td>{{ obsEntry.sourceName }}</td>
                 <td>
                     <div class="app-value-flag-container">
-                        <app-value-flag-input [id]="rowIndex + '_vf'" [displayExtraInfoOption]="true"
-                            [applyEntryScaleFactor]="false" [observationEntry]="obsEntry"
+                        <app-value-flag-input [id]="'stacked-' + instanceId + '-' + rowIndex + '-vf'"
+                            [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false"
+                            [observationEntry]="obsEntry"
                             [disableValueFlagEntry]="!allowDataEdits || obsEntry.delete"
-                            (userInputVF)="onUserInput($event)"
+                            (userInputVF)="entryChanged.emit($event)"
                             (enterKeyPress)="onVFEnterKeyPressed(rowIndex)"/>
                     </div>
                 </td>
                 <td>{{ obsEntry.observation.comment }}</td>
                 <td>
-                    <span class="badge" [ngClass]="{ 
-                        'bg-secondary': obsEntry.observation.qcStatus === 'none', 
-                        'bg-success': obsEntry.observation.qcStatus === 'passed', 
-                        'bg-danger': obsEntry.observation.qcStatus === 'failed' }">
+                    <span class="badge" [ngClass]="qcBadgeClass[obsEntry.observation.qcStatus]">
                         {{ obsEntry.observation.qcStatus }}
                     </span>
                 </td>
@@ -46,7 +45,7 @@
                     <button type="button" class="btn btn-sm"
                         [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
                         [disabled]="obsEntry.change !== 'no_change'" title="Delete"
-                        (click)="onUserDeleteClick(obsEntry)">
+                        (click)="deleteRequested.emit(obsEntry)">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>

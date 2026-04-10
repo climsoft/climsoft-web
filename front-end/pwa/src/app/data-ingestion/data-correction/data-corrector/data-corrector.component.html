@@ -43,12 +43,13 @@
                 <div *ngIf="viewMode === 'Stacked'">
                     <app-stacked-data-viewer [allowDataEdits]="allowDataEdits"
                         [pageInputDefinition]="pageInputDefinition" [observationsEntries]="observationsEntries"
-                        (valueChange)="onUserCorrectInput()" />
+                        (entryChanged)="onUserCorrectInput()"
+                        (deleteRequested)="onUserDeleteClick($event)" />
                 </div>
                 <div *ngIf="viewMode !== 'Stacked'">
                     <app-pivot-data-viewer [allowDataEdits]="allowDataEdits" [pageInputDefinition]="pageInputDefinition"
                         [pivotBy]="pivotBy" [observationsEntries]="observationsEntries"
-                        (valueChange)="onUserCorrectInput()" />
+                        (entryChanged)="onUserCorrectInput()" />
                 </div>
             </div>
         </div>

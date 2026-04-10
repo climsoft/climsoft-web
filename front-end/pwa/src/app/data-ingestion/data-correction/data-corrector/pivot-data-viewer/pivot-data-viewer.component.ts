@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationEntry } from '../../../models/observation-entry.model';
-import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 /**
@@ -238,6 +237,8 @@ interface PivotRow {
   cells: Map<string, ObservationEntry>;
 }
 
+let nextPivotViewerInstanceId = 0;
+
 @Component({
   selector: 'app-pivot-data-viewer',
   templateUrl: './pivot-data-viewer.component.html',
@@ -260,17 +261,21 @@ export class PivotDataViewerComponent implements OnChanges {
    */
   @Input() public pivotBy: PivotDimension = 'element';
 
-  /**
-   * Used to determine the row number
-   */
-   @Input() public pageInputDefinition: PagingParameters= new PagingParameters();
+  /** Used to compute the row number column. */
+  @Input() public pageInputDefinition: PagingParameters = new PagingParameters();
 
   /**
    * Bubbled up from the value-flag input inside each cell so the parent can
    * recount pending changes. The emitted reference is the same
    * `ObservationEntry` instance that lives in `observationsEntries`.
    */
-  @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>();
+  @Output() public entryChanged = new EventEmitter<ObservationEntry>();
+
+  /** Per-instance prefix so cell ids stay unique if multiple viewers coexist on the same page. */
+  protected readonly instanceId: number = ++nextPivotViewerInstanceId;
+
+  /** Pre-computed `(page - 1) * pageSize`; the template adds `rowIndex + 1`. */
+  protected startingRowNumber: number = 0;
 
   /**
    * Row dimensions in display order — i.e. `ROW_DIMENSION_ORDER` with the
@@ -296,8 +301,11 @@ export class PivotDataViewerComponent implements OnChanges {
     // change is a full rebuild rather than an incremental update — input
     // sets are typically a single page (≤100 rows) so this is fast enough
     // and keeps the logic simple.
-    if ((changes['observationsEntries'] || changes['pivotBy'] || changes['pageInputDefinition'])) {
+    if (changes['observationsEntries'] || changes['pivotBy']) {
       this.buildPivot();
+    }
+    if (changes['pageInputDefinition']) {
+      this.startingRowNumber = (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
     }
   }
 
@@ -388,11 +396,6 @@ export class PivotDataViewerComponent implements OnChanges {
     this.rows = Array.from(rowsByKey.values());
   }
 
-  /** Forwarded to the parent so it can recount pending changes. */
-  protected onUserInput(observationEntry: ObservationEntry) {
-    this.valueChange.emit(observationEntry);
-  }
-
   /** Angular `trackBy` for the row `*ngFor`, so DOM nodes survive rebuilds. */
   protected trackByRowKey(_index: number, row: PivotRow): string {
     return row.rowKey;
@@ -402,8 +405,4 @@ export class PivotDataViewerComponent implements OnChanges {
   protected trackByColumnKey(_index: number, column: PivotColumn): string {
     return column.key;
   }
-
-   protected getRowNumber(currentRowIndex: number): number {
-      return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);
-    }
 }

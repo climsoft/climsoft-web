@@ -10,15 +10,15 @@
         </thead>
         <tbody>
             <tr *ngFor="let row of rows; trackBy: trackByRowKey; let rowIndex = index;">
-                <td>{{ getRowNumber(rowIndex) }}</td>
+                <td>{{ startingRowNumber + rowIndex + 1 }}</td>
                 <td *ngFor="let leading of row.leading">{{ leading }}</td>
                 <td>{{ row.intervalDisplay }}</td>
                 <td *ngFor="let column of columns; trackBy: trackByColumnKey; let colIndex = index;">
                     <div *ngIf="row.cells.get(column.key) as ev" class="app-value-flag-container">
-                        <app-value-flag-input [id]="rowIndex + '_' + colIndex + '_vf'"
+                        <app-value-flag-input [id]="'stacked-' + instanceId + '-' + rowIndex + '-' + colIndex + '-vf'"
                             [displayExtraInfoOption]="true" [applyEntryScaleFactor]="false" [observationEntry]="ev"
                             [disableValueFlagEntry]="!allowDataEdits || ev.delete" [simulateTabOnEnter]="true"
-                            (userInputVF)="onUserInput($event)" />
+                            (userInputVF)="entryChanged.emit($event)" />
                     </div>
                 </td>
             </tr>
