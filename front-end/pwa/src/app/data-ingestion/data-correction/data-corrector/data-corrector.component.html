@@ -46,8 +46,9 @@
                         (valueChange)="onUserCorrectInput()" />
                 </div>
                 <div *ngIf="viewMode !== 'Stacked'">
-                    <app-pivot-data-viewer [allowDataEdits]="allowDataEdits" [pivotBy]="pivotBy"
-                        [observationsEntries]="observationsEntries" (valueChange)="onUserCorrectInput()" />
+                    <app-pivot-data-viewer [allowDataEdits]="allowDataEdits" [pageInputDefinition]="pageInputDefinition"
+                        [pivotBy]="pivotBy" [observationsEntries]="observationsEntries"
+                        (valueChange)="onUserCorrectInput()" />
                 </div>
             </div>
         </div>

@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationEntry } from '../../../models/observation-entry.model';
+import { NumberUtils } from 'src/app/shared/utils/number.utils';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 /**
  * ============================================================================
@@ -259,6 +261,11 @@ export class PivotDataViewerComponent implements OnChanges {
   @Input() public pivotBy: PivotDimension = 'element';
 
   /**
+   * Used to determine the row number
+   */
+   @Input() public pageInputDefinition: PagingParameters= new PagingParameters();
+
+  /**
    * Bubbled up from the value-flag input inside each cell so the parent can
    * recount pending changes. The emitted reference is the same
    * `ObservationEntry` instance that lives in `observationsEntries`.
@@ -289,7 +296,7 @@ export class PivotDataViewerComponent implements OnChanges {
     // change is a full rebuild rather than an incremental update — input
     // sets are typically a single page (≤100 rows) so this is fast enough
     // and keeps the logic simple.
-    if ((changes['observationsEntries'] || changes['pivotBy']) && this.observationsEntries) {
+    if ((changes['observationsEntries'] || changes['pivotBy'] || changes['pageInputDefinition'])) {
       this.buildPivot();
     }
   }
@@ -395,4 +402,8 @@ export class PivotDataViewerComponent implements OnChanges {
   protected trackByColumnKey(_index: number, column: PivotColumn): string {
     return column.key;
   }
+
+   protected getRowNumber(currentRowIndex: number): number {
+      return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);
+    }
 }

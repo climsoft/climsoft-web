@@ -16,8 +16,8 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let obsEntry of observationsEntries; let i = index;" [class.table-warning]="rowHasDuplicate[i]">
-                <td>{{ getRowNumber(i) }}</td>
+            <tr *ngFor="let obsEntry of observationsEntries; let rowIndex = index;" [class.table-warning]="rowHasDuplicate[rowIndex]">
+                <td>{{ getRowNumber(rowIndex) }}</td>
                 <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
                 <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
                 <td>{{ obsEntry.observation.level }}</td>
@@ -26,11 +26,11 @@
                 <td>{{ obsEntry.sourceName }}</td>
                 <td>
                     <div class="app-value-flag-container">
-                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
+                        <app-value-flag-input [id]="rowIndex + '_vf'" [displayExtraInfoOption]="true"
                             [applyEntryScaleFactor]="false" [observationEntry]="obsEntry"
                             [disableValueFlagEntry]="!allowDataEdits || obsEntry.delete"
                             (userInputVF)="onUserInput($event)"
-                            (enterKeyPress)="onVFEnterKeyPressed(i)"/>
+                            (enterKeyPress)="onVFEnterKeyPressed(rowIndex)"/>
                     </div>
                 </td>
                 <td>{{ obsEntry.observation.comment }}</td>

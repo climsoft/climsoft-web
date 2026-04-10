@@ -12,10 +12,26 @@ import { ValueFlagInputComponent } from '../../../value-flag-input/value-flag-in
 export class StackedDataViewerComponent implements OnChanges {
   @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
 
+  /** When false, the underlying `<app-value-flag-input>` is disabled. */
   @Input() public allowDataEdits: boolean = true;
-  @Input() public pageInputDefinition!: PagingParameters;
+
+  /**
+   * Used to determine the row number
+   */
+  @Input() public pageInputDefinition: PagingParameters = new PagingParameters();
+
+  /**
+ * The flat list of observations to render. Each item carries its own
+ * editing state (`change`, `delete`) which is shared by reference with
+ * the parent — edits made through this viewer mutate the parent's array.
+ */
   @Input() public observationsEntries: ObservationEntry[] = [];
 
+  /**
+ * Bubbled up from the value-flag input inside each cell so the parent can
+ * recount pending changes. The emitted reference is the same
+ * `ObservationEntry` instance that lives in `observationsEntries`.
+ */
   @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
 
   protected rowHasDuplicate: boolean[] = [];

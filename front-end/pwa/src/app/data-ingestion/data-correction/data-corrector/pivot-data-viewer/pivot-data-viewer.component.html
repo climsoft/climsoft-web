@@ -10,7 +10,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let row of rows; trackBy: trackByRowKey; let rowIndex = index;">
-                <td>{{ rowIndex + 1 }}</td>
+                <td>{{ getRowNumber(rowIndex) }}</td>
                 <td *ngFor="let leading of row.leading">{{ leading }}</td>
                 <td>{{ row.intervalDisplay }}</td>
                 <td *ngFor="let column of columns; trackBy: trackByColumnKey; let colIndex = index;">
