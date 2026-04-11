@@ -5,21 +5,21 @@ import { GeneralSettingParameters } from "../dtos/update-general-setting-params.
 @Entity("general_settings")
 export class GeneralSettingEntity extends AppBaseEntity {
   @PrimaryColumn({ name: 'id', type: 'int' })
-  id: number;
+  id!: number;
 
   @Column({ name: 'name', type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ name: 'description', type: 'varchar', unique: true })
-  description: string;
+  description!: string;
 
   @Column({ name: 'parameters', type: 'jsonb' })
-  parameters: GeneralSettingParameters; 
+  parameters!: GeneralSettingParameters;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: 'log', type: 'jsonb', nullable: true })
-  log: BaseLogVo[] | null;
+  log!: BaseLogVo[] | null;
 }
 

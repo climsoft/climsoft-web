@@ -23,44 +23,44 @@ export enum JobTriggerEnum {
 @Entity('job_queues')
 export class JobQueueEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
-  id: number;
+  id!: number;
 
   @Column({ name: 'name', type: 'varchar' })
   @Index()
-  name: string;
+  name!: string;
 
   @Column({ name: 'job_type', type: 'enum', enum: JobTypeEnum })
   @Index()
-  jobType: JobTypeEnum;
+  jobType!: JobTypeEnum;
 
   @Column({ name: 'triggered_by', type: 'enum', enum: JobTriggerEnum })
   @Index()
-  triggeredBy: JobTriggerEnum;
+  triggeredBy!: JobTriggerEnum;
 
   @Column({ name: 'payload', type: 'jsonb' })
-  payload: Record<string, any>;
+  payload!: Record<string, any>;
 
   @Column({ name: 'scheduled_at', type: 'timestamptz' })
   @Index()
-  scheduledAt: Date;
+  scheduledAt!: Date;
 
   @Column({ name: 'processed_at', type: 'timestamptz', nullable: true })
   @Index()
-  processedAt: Date | null;
+  processedAt!: Date | null;
 
   @Column({ name: 'status', type: 'enum', enum: JobQueueStatusEnum, default: JobQueueStatusEnum.PENDING })
   @Index()
-  status: JobQueueStatusEnum;
+  status!: JobQueueStatusEnum;
 
   @Column({ name: 'attempts', type: 'int', default: 0 })
   @Index()
-  attempts: number;
+  attempts!: number;
 
   @Column({ name: 'max_attempts', type: 'int', default: 3 })
-  maxAttempts: number;
+  maxAttempts!: number;
 
   @Column({ name: 'error_message', type: 'varchar', nullable: true })
-  errorMessage: string | null;
+  errorMessage!: string | null;
 }
 
 // Connector-specific payload interface

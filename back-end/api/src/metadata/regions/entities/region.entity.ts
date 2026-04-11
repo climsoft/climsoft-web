@@ -6,29 +6,29 @@ import { RegionTypeEnum } from "../../regions/enums/region-types.enum";
 @Check("CHK_regions_name_not_empty", `"name" <> ''`)
 export class RegionEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
-  id: number;
+  id!: number;
 
   @Column({ name: 'name', type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ name: 'description', type: 'varchar', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'region_type', type: 'enum', enum: RegionTypeEnum })
   @Index()
-  regionType: RegionTypeEnum;
+  regionType!: RegionTypeEnum;
 
   @Column({ name: 'boundary', type: 'geometry', spatialFeatureType: 'MultiPolygon', srid: 4326 })
   @Index({ spatial: true })
-  boundary: MultiPolygon;
+  boundary!: MultiPolygon;
 
   @Column({ name: "color", type: "varchar", nullable: true })
-  color: string | null;
+  color!: string | null;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: 'log', type: 'jsonb', nullable: true })
-  log: BaseLogVo[] | null;
+  log!: BaseLogVo[] | null;
 }
 

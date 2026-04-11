@@ -6,48 +6,48 @@ import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "../dto
 @Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
 export class ConnectorSpecificationEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
-  id: number;
+  id!: number;
 
   @Column({ name: 'name', type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ name: 'description', type: 'varchar', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'connector_type', type: 'enum', enum: ConnectorTypeEnum })
   @Index()
-  connectorType: ConnectorTypeEnum;
+  connectorType!: ConnectorTypeEnum;
 
   @Column({ name: 'protocol', type: 'enum', enum: EndPointTypeEnum })
   @Index()
-  endPointType: EndPointTypeEnum;
+  endPointType!: EndPointTypeEnum;
 
   @Column({ name: 'host_name', type: 'varchar' })
-  hostName: string;
+  hostName!: string;
 
   @Column({ name: 'timeout', type: 'int' })
-  timeout: number; // in seconds
+  timeout!: number; // in seconds
 
   @Column({ name: 'max_attempts', type: "int" })
-  maxAttempts: number;
+  maxAttempts!: number;
 
   @Column({ name: 'cron_schedule', type: 'varchar' })
-  cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
+  cronSchedule!: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
   @Column({ name: "parameters", type: 'jsonb' })
-  parameters: ConnectorParameters;
+  parameters!: ConnectorParameters;
 
   @Column({ name: "order_number", type: "int", nullable: true })
   @Index()
-  orderNumber: number | null;
+  orderNumber!: number | null;
 
   @Column({ name: 'disabled', type: 'bool', default: false })
   @Index()
-  disabled: boolean;
+  disabled!: boolean;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
-  log: BaseLogVo[] | null;
+  log!: BaseLogVo[] | null;
 }

@@ -27,20 +27,20 @@ export class ObservationEntity extends AppBaseEntity {
   //------------------
   @PrimaryColumn({ name: "station_id", type: "varchar" })
   @Index()
-  stationId: string;
+  stationId!: string;
 
   @ManyToOne(() => StationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "station_id" })
-  station: StationEntity;
+  station!: StationEntity;
   //------------------
   // ------------------
   @PrimaryColumn({ name: "element_id", type: "int" })
   @Index()
-  elementId: number;
+  elementId!: number;
 
   @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "element_id" })
-  element: ElementEntity;
+  element!: ElementEntity;
   //------------------
 
   /**
@@ -48,64 +48,64 @@ export class ObservationEntity extends AppBaseEntity {
    */
   @PrimaryColumn({ name: "level", type: "int" })
   @Index()
-  level: number;
+  level!: number;
 
   @PrimaryColumn({ name: "date_time", type: "timestamptz" })
-  datetime: Date;
+  datetime!: Date;
 
   @PrimaryColumn({ name: "interval", type: "int" })
   @Index()
-  interval: number;
+  interval!: number;
 
   //------------------------------------
   @PrimaryColumn({ name: "source_id", type: "int" })
   @Index()
-  sourceId: number;
+  sourceId!: number;
 
   @ManyToOne(() => SourceSpecificationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
-  source: SourceSpecificationEntity;
+  source!: SourceSpecificationEntity;
   //------------------------------------
 
   // Note, as of 14/01/2026, TypeORM `float` translates to Postgres `DOUBLE PRECISION`. Used `float` here because TYPEORM does not support `double`
   @Column({ name: "value", type: "float", nullable: true })
-  value: number | null;
+  value!: number | null;
 
   //------------------------------------
   @Column({ name: "flag_id", type: "int", nullable: true })
   @Index()
-  flagId: number | null;
+  flagId!: number | null;
 
   @ManyToOne(() => FlagEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "flag_id" })
-  flagEntity: FlagEntity;
+  flagEntity!: FlagEntity;
 
   @Column({ name: "flag", type: "enum", enum: FlagEnum, nullable: true })
   @Index()
-  flag: FlagEnum | null; // TODO. Deprecate this column after preview 3 release
+  flag!: FlagEnum | null; // TODO. Deprecate this column after preview 3 release
   //------------------------------------
 
   @Column({ name: "qc_status", type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NONE })
   @Index()
-  qcStatus: QCStatusEnum;
+  qcStatus!: QCStatusEnum;
 
   @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
-  qcTestLog: QCTestLogVo[] | null;
+  qcTestLog!: QCTestLogVo[] | null;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "deleted", type: "boolean", default: false })
   @Index()
-  deleted: boolean;
+  deleted!: boolean;
 
   @Column({ name: "log", type: "jsonb", nullable: true })
-  log: ObservationLogVo[] | null;
+  log!: ObservationLogVo[] | null;
 
   // After full migration to v5 model, this column will no longer be needed.
   @Column({ name: "saved_to_v4", type: "boolean", default: false })
   @Index()
-  savedToV4: boolean; // True when value has been uploaded to v4 database
+  savedToV4!: boolean; // True when value has been uploaded to v4 database
 }
 
 export interface ObservationLogVo extends BaseLogVo {

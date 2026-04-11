@@ -7,43 +7,43 @@ import { ElementTypeEntity } from "./element-type.entity";
 @Check("CHK_elements_name_not_empty", `"name" <> ''`)
 export class ElementEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
-  id: number;
+  id!: number;
 
   @Column({ type: "varchar", name: "abbreviation", unique: true })
-  abbreviation: string;
+  abbreviation!: string;
 
   @Column({ type: "varchar", name: "name", unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: "varchar", name: "description", nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ type: "varchar", name: "units", nullable: true })
-  units: string | null;
+  units!: string | null;
 
   //---------------------------
   @Column({ type: "int", name: "type_id", nullable: true })
   @Index()
-  typeId: number | null;
+  typeId!: number | null;
   // ManyToOne relationship with ElementTypeEntity
   @ManyToOne(() => ElementTypeEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "type_id" })
-  elementType: ElementTypeEntity | null;
+  elementType!: ElementTypeEntity | null;
   //---------------------------
 
   // Stored as a whole number (divisor) rather than a decimal multiplier to avoid
   // floating point precision issues. E.g. a scale factor of 10 means user enters
   // 250 and 25.0 is stored (value / 10), not 0.1 which risks rounding errors.
   @Column({ type: "int", name: "entry_scale_factor", nullable: true })
-  entryScaleFactor: number | null;
+  entryScaleFactor!: number | null;
 
   // TODO. Add a `entry_digits` column that will be used for re-inforcing the number of digits that an entry clerk has to type in.
 
   @Column({ type: "varchar", name: "comment", nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ type: "jsonb", name: "log", nullable: true })
-  log: ElementLogVo[] | null;
+  log!: ElementLogVo[] | null;
 }
 
 export interface ElementLogVo extends BaseLogVo {

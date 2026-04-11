@@ -7,32 +7,32 @@ export type ExecutionActivity = ImportFileServerExecutionActivityVo | ExportFile
 @Entity("connector_execution_log")
 export class ConnectorExecutionLogEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
-    id: number;
+    id!: number;
 
     //---------------------------
     @Column({ name: 'connector_id', type: 'int' })
     @Index()
-    connectorId: number;
+    connectorId!: number;
     // ManyToOne relationship with ElementTypeEntity
     @ManyToOne(() => ConnectorSpecificationEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: 'connector_id' })
-    connectorSpecification: ConnectorSpecificationEntity;
+    connectorSpecification!: ConnectorSpecificationEntity;
     //---------------------------
 
     @Column({ name: 'execution_start_date_time', type: 'timestamptz' })
     @Index()
-    executionStartDatetime: Date;
+    executionStartDatetime!: Date;
 
     @Column({ name: 'execution_end_date_time', type: 'timestamptz' })
     @Index()
-    executionEndDatetime: Date;
+    executionEndDatetime!: Date;
 
     @Column({ name: 'execution_activities', type: 'jsonb', nullable: true })
-    executionActivities: ExecutionActivity[];
+    executionActivities!: ExecutionActivity[];
 
     @Column({ name: "total_errors", type: 'int' })
     @Index()
-    totalErrors: number;
+    totalErrors!: number;
 }
 
 // Used by File Servers
