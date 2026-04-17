@@ -1,15 +1,15 @@
 <div class="card border-0">
    <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-2">
          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onAddConnectorClick()">
             Add
          </button>
-         <div class="ms-2">
+         <div>
             <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
                (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
          </div>
-         <div *ngIf="connectors" class="d-flex mx-2">
-            [{{ connectors.length | number:'1.0-0' }}]
+         <div>
+            <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadConnectorSpecifications()" />
          </div>
       </div>
    </div>
@@ -30,17 +30,23 @@
             <thead>
                <tr>
                   <th></th>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Host</th>
-                  <th>Schedule</th>
-                  <th>Order</th>
-                  <th>Description</th>
+                  <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Name</th>
+                  <th appSortableHeader="connectorType" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Type</th>
+                  <th appSortableHeader="hostName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Host</th>
+                  <th appSortableHeader="cronSchedule" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Schedule</th>
+                  <th appSortableHeader="orderNumber" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Order</th>
+                  <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Description</th>
                   <th>Actions</th>
                </tr>
             </thead>
             <tbody>
-               <tr class="app-cursor-pointer" *ngFor="let connector of connectors"
+               <tr class="app-cursor-pointer" *ngFor="let connector of pageItems"
                   [class.connector-disabled]="connector.disabled" (click)="onConnectorClick(connector.id, $event)">
                   <td><i class="bi bi-arrow-right-short"></i></td>
                   <td>{{ connector.name }}</td>

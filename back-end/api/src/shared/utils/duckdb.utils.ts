@@ -50,7 +50,20 @@ export class DuckDBUtils {
      * @returns 
      */
     public static getTableNameFromFileName(filePathName: string): string {
-        return path.basename(filePathName, path.extname(filePathName)).replace(/\s+/g, '_');
+        return path
+            // Extract file name without directory and extension
+            .basename(filePathName, path.extname(filePathName))
+
+            // Replace any sequence of non-alphanumeric characters with underscore
+            // e.g. "my-data file!" → "my_data_file_"
+            .replace(/[^a-zA-Z0-9]+/g, '_')
+
+            // Remove leading and trailing underscores
+            // e.g. "_my_data_" → "my_data"
+            .replace(/^_+|_+$/g, '')
+
+            // Convert to lowercase for consistency (useful for DB table names)
+            .toLowerCase();
     }
 
     public static async getColumnNames(conn: DuckDBConnection, tableName: string): Promise<string[]> {

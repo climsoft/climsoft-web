@@ -100,7 +100,7 @@ export class ViewSourcesComponent implements OnDestroy {
   protected onDeleteAllConfirm(): void {
     this.sourcesCacheService.deleteAll().pipe(
       take(1)
-    ).subscribe(data => {
+    ).subscribe(() => {
       this.pagesDataService.showToast({ title: "Source Specifications Deleted", message: `All source specifications deleted`, type: ToastEventTypeEnum.SUCCESS });
     });
   }
@@ -149,9 +149,14 @@ export class ViewSourcesComponent implements OnDestroy {
     if (!this.selectedSource) return;
     this.sourcesCacheService.delete(this.selectedSource.id).pipe(
       take(1)
-    ).subscribe(() => {
-      this.pagesDataService.showToast({ title: 'Source Specification', message: 'Source specification deleted', type: ToastEventTypeEnum.SUCCESS });
-      this.selectedSource = null;
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: 'Source specification deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.selectedSource = null;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: err.error?.message || `Something bad happened`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
@@ -173,8 +178,8 @@ export class ViewSourcesComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Source Specification', message: `Source specification ${action}`, type: ToastEventTypeEnum.SUCCESS });
         this.selectedSource = null;
       },
-      error: err => {
-        this.pagesDataService.showToast({ title: 'Source Specification', message: `Error updating source specification - ${err.message}`, type: ToastEventTypeEnum.ERROR });
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: err.error?.message || `Something bad happened`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
@@ -211,7 +216,7 @@ export class ViewSourcesComponent implements OnDestroy {
 
   private updatePaging(): void {
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setPageSize(365);
     this.pageInputDefinition.setTotalRowCount(this.sources.length);
   }
 

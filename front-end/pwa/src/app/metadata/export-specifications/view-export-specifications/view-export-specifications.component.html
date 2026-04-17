@@ -1,22 +1,22 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
 
-    <div class="d-flex align-items-center">
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgExportInput.showDialog()">
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewExport()">
         Add
       </button>
-      <div class="ms-2">
+      <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
-      <div *ngIf="exports" class="d-flex mx-2">
-        [{{ exports.length | number:'1.0-0' }}]
+      <div>
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadExportSpecifications()" />
       </div>
     </div>
   </div>
 
   <div class="card-body px-0">
-    <div *ngIf="exports" class="app-table-container" style="max-height: 80vh;">
+    <div class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -28,17 +28,21 @@
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="exportType" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let export of exports" [class.export-disabled]="export.disabled">
-            <td (click)="dlgExportInput.showDialog(export.id)"><i class="bi bi-arrow-right-short"></i></td>
-            <td (click)="dlgExportInput.showDialog(export.id)">{{ export.name }}</td>
-            <td (click)="dlgExportInput.showDialog(export.id)">
+          <tr class="app-cursor-pointer" *ngFor="let export of pageItems" [class.export-disabled]="export.disabled"
+            (click)="onEditExport(export)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ export.name }}</td>
+            <td>
               <span class="badge" [ngClass]="{
                 'bg-info': export.exportType === 'raw',
                 'bg-warning text-dark': export.exportType === 'aggregate',
@@ -47,10 +51,10 @@
                 {{ export.exportType }}
               </span>
             </td>
-            <td (click)="dlgExportInput.showDialog(export.id)">
+            <td>
               <ng-container *ngFor="let seg of export.description | linkify">
-                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
-                  rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
                 <ng-template #plainText>{{ seg.content }}</ng-template>
               </ng-container>
             </td>
@@ -69,10 +73,16 @@
               </div>
             </td>
           </tr>
+          <tr *ngIf="pageItems.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">
+              No exports yet. Click "Add" to create one.
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
+
   <app-export-specification-input-dialog #dlgExportInput (ok)="onExportInput()" />
 
   <!-- Delete Confirmation Dialog -->
@@ -85,6 +95,5 @@
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedExport?.name || ''"
     [itemType]="'export specification'" [isCurrentlyDisabled]="selectedExport?.disabled || false"
-    [operationType]="selectedExport?.exportType + ' export' || ''"
-    (toggleConfirmed)="onToggleDisabledConfirm()" />
+    [operationType]="selectedExport?.exportType + ' export' || ''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

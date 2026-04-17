@@ -1,16 +1,16 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center gap-2">
       <div>
         <app-drop-down-button [buttonText]="'Add'" [dropDownItems]="['Form', 'Import']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="false" />
       </div>
-      <div class="ms-2">
+      <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
-      <div class="ms-2">
-        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      <div>
+        <app-page-input [pageInputDefinition]="pageInputDefinition" />
       </div>
     </div>
   </div>
@@ -22,8 +22,7 @@
           <col style="width: 2%;" />
           <col style="width: 20%;" />
           <col style="width: 10%;" />
-          <col style="width: 44%;" />
-          <col style="width: 12%;" />
+          <col style="width: 56%;" />
           <col style="width: 12%;" />
         </colgroup>
         <thead>
@@ -54,8 +53,8 @@
             </td>
             <td>
               <ng-container *ngFor="let seg of source.description | linkify">
-                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
-                  rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
                 <ng-template #plainText>{{ seg.content }}</ng-template>
               </ng-container>
             </td>
@@ -84,11 +83,17 @@
               </div>
             </td>
           </tr>
+          <tr *ngIf="pageItems.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">
+              No sources yet. Click "Add" to create one.
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
-    <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignFormToStationsInput($event)" />
   </div>
+
+  <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignFormToStationsInput($event)" />
 
   <!-- Delete Confirmation Dialog -->
   <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Source Specification'" [okButtonLabel]="'Yes'"
