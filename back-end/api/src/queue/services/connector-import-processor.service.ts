@@ -3,10 +3,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ConnectorJobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { ObservationImportService } from 'src/observation/services/observations-import.service';
-import * as path from 'node:path';
-import * as fs from 'node:fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import { Client as FtpClient } from 'basic-ftp';
-import * as SftpClient from 'ssh2-sftp-client';
+import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
 import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
@@ -35,7 +35,7 @@ export class ConnectorImportProcessorService {
         const payload = job.payload as ConnectorJobPayloadDto;
 
         this.logger.log(`Processing import job for connector ${payload.connectorId}`);
-        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
+        const connector: ViewConnectorSpecificationDto =  this.connectorService.find(payload.connectorId);
         try {
             await this.processImportSpecifications(connector, job.entryUserId);
         } catch (error) {

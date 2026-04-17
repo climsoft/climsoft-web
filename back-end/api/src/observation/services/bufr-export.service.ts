@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { BufrExportParametersDto, DAYCLI_BUFR_ELEMENTS } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { AppConfig } from 'src/app.config';

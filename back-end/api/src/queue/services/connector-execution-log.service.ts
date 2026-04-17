@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindManyOptions, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import * as path from 'node:path';
+import path from 'node:path';
 import { ConnectorExecutionLogEntity, ExecutionActivity, ExportFileServerExecutionActivityVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
 
 export interface CreateConnectorExecutionLogDto {

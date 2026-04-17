@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as mariadb from 'mariadb';
+import mariadb from 'mariadb';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { StationsService } from 'src/metadata/stations/services/stations.service';

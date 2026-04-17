@@ -2,9 +2,9 @@ import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDes
 import { Interval } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import {

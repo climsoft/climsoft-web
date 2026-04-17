@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { ElementImportTransformer } from './element-import-transformer';
 import { ElementsService } from './elements.service';
-import * as path from 'node:path';
+import path from 'node:path';
 import { DataSource } from 'typeorm';
 
 @Injectable()
