@@ -9,9 +9,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class ToggleDisabledConfirmationDialogComponent {
   @Input() public itemName: string = '';
   @Input() public itemType: string = '';
-   @Input() public operationType: string = ''; // e.g., 'import' or 'export'
-  @Input() public isCurrentlyDisabled: boolean = false; 
-  //@Input() public schedule: string = ''; // cron schedule for enable message
+  @Input() public operationType: string = ''; // e.g., 'import' or 'export'
+  @Input() public isCurrentlyDisabled: boolean = false;
   @Output() public toggleConfirmed = new EventEmitter<void>();
 
   protected open: boolean = false;
@@ -19,7 +18,6 @@ export class ToggleDisabledConfirmationDialogComponent {
   public showDialog(): void {
     this.open = true;
   }
-
 
   protected onToggleConfirm(): void {
     this.open = false;
