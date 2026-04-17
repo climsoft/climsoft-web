@@ -164,6 +164,7 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         // 1GB to accomodate preview of large files. Note, should always be same us that used in `ImportPreviewController` for upload endpoint to ensure smooth preview of files uploaded for import.
+        // TODO. In future, this should come from environment variables
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
         new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
