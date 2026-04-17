@@ -147,6 +147,9 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
+      case OptionEnum.DOWNLOAD:
+        window.open(this.stationsCacheService.getDownloadUrl(), '_blank');
+        break;
       case OptionEnum.DELETE_ALL:
         this.dlgDeleteAllConfirm.openDialog();
         break;
@@ -195,10 +198,6 @@ export class ViewStationsComponent implements OnDestroy {
     } else if (option === 'Tree Map') {
       this.showTreeMapDialog = true;
     }
-  }
-
-  protected get downloadLink(): string {
-    return this.stationsCacheService.downloadLink;
   }
 
 }

@@ -199,7 +199,7 @@ export class StationsCacheService {
             );
     }
 
-    public get downloadLink(): string {
+    public getDownloadUrl(): string {
         return `${this.endPointUrl}/download`;
     }
 

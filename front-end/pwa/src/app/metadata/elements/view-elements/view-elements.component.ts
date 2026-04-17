@@ -158,7 +158,10 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
-      case 'Delete All':
+      case OptionEnum.DOWNLOAD:
+        window.open(this.elementsCacheService.getDownloadUrl(), '_blank');
+        break;
+      case OptionEnum.DELETE_ALL:
         this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
@@ -170,10 +173,6 @@ export class ViewElementsComponent implements OnDestroy {
     this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
       this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
     });
-  }
-
-  protected get downloadLink(): string {
-    return this.elementsCacheService.downloadLink;
   }
 
 }
