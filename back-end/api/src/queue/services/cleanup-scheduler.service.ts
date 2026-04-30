@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CronJob } from 'cron';
@@ -9,11 +9,11 @@ import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { CleanupScheduleDto, SchedulerSettingDto } from 'src/settings/dtos/settings/scheduler-setting.dto';
 import { JobQueueService } from './job-queue.service';
 import { ConnectorExecutionLogService } from './connector-execution-log.service';
-import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
+import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
 
 @Injectable()
-export class CleanupSchedulerService implements OnModuleInit {
+export class CleanupSchedulerService implements OnApplicationBootstrap {
     private readonly logger = new Logger(CleanupSchedulerService.name);
 
     constructor(
@@ -21,11 +21,17 @@ export class CleanupSchedulerService implements OnModuleInit {
         private generalSettingsService: GeneralSettingsService,
         private jobQueueService: JobQueueService,
         private connectorExecutionLogService: ConnectorExecutionLogService,
-        private sourceSpecificationsService: SourceSpecificationsService,
+        private adaptersService: AdaptersService,
         private fileIOService: FileIOService,
     ) { }
 
-    public async onModuleInit() {
+    /**
+     * Register cleanup cron jobs once the whole app is ready.
+     * Uses onApplicationBootstrap (not onModuleInit) because the cron callbacks
+     * reach back into other modules — we want every dependency fully wired up
+     * before any cron can fire.
+     */
+    public async onApplicationBootstrap() {
         this.logger.log('Initializing cleanup schedules...');
         await this.initializeCleanupSchedules();
     }
@@ -131,8 +137,8 @@ export class CleanupSchedulerService implements OnModuleInit {
     }
 
     /**
-     * Delete files in import/export directories that are not referenced by any
-     * connector execution log or source specification and are older than the configured daysOld
+     * Delete orphaned operation directories and unreferenced adapter script directories.
+     * Operation directories that are still referenced by connector execution logs are preserved.
      */
     private async cleanupFiles() {
         const schedule = this.getSchedule('fileCleanup');
@@ -142,70 +148,95 @@ export class CleanupSchedulerService implements OnModuleInit {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - schedule.daysOld);
 
-        // Gather all referenced file names
-        const referencedByLogs = await this.connectorExecutionLogService.findAllReferencedFileNames();
-        const referencedBySpecs = this.sourceSpecificationsService.findAllReferencedSampleFiles();
-        const referencedFiles = new Set([...referencedByLogs, ...referencedBySpecs]);
+        let totalDeleted: number = 0;
 
-        let totalDeleted = 0;
+        // Clean operation directories
+        totalDeleted += await this.cleanupOperations(cutoffDate);
 
-        // Clean import directory
-        totalDeleted += await this.cleanupDirectory(
-            this.fileIOService.apiImportsDir,
-            referencedFiles,
-            cutoffDate,
-            (fileName) => fileName !== 'duckdb',
-        );
+        // Clean adapter script directories — remove unreferenced directories
+        // that were created by upload-preview but never saved to a spec.
+        const referencedScriptDirs: Set<string> = this.adaptersService.findAllReferencedScriptDirs();
+        totalDeleted += await this.cleanupAdapterScriptDirs(this.fileIOService.apiAdaptersDir, referencedScriptDirs, cutoffDate);
 
-        // Clean export directory
-        totalDeleted += await this.cleanupDirectory(
-            this.fileIOService.apiExportsDir,
-            referencedFiles,
-            cutoffDate,
-        );
-
-        this.logger.log(`File cleanup completed. Deleted ${totalDeleted} unreferenced file(s)`);
+        this.logger.log(`File cleanup completed. Deleted ${totalDeleted} unreferenced file(s)/directory(ies)`);
     }
 
     /**
-     * Delete unreferenced files older than cutoffDate from a directory
+     * Delete orphaned operation directories older than cutoffDate.
+     * Skips the 'duckdb' directory and any operations still referenced
+     * by connector execution logs.
      */
-    private async cleanupDirectory(
-        directory: string,
-        referencedFiles: Set<string>,
+    private async cleanupOperations(cutoffDate: Date): Promise<number> {
+        let deletedCount: number = 0;
+        const operationsDir = this.fileIOService.apiOperationsDir;
+
+        try {
+            // Gather all referenced operation IDs from connector logs
+            const referencedOperationIds: Set<string> = await this.connectorExecutionLogService.findAllReferencedOperationIds();
+
+            const allEntries = await fs.promises.readdir(operationsDir, { withFileTypes: true });
+            const dirs = allEntries.filter(entry => entry.isDirectory());
+
+            for (const dir of dirs) {
+                // Skip the DuckDB data directory
+                if (dir.name === 'duckdb') continue;
+
+                // Skip referenced operations
+                if (referencedOperationIds.has(dir.name)) continue;
+
+                try {
+                    const dirPath = path.posix.join(operationsDir, dir.name);
+                    const stats = await fs.promises.stat(dirPath);
+
+                    if (stats.mtime < cutoffDate) {
+                        await fs.promises.rm(dirPath, { recursive: true, force: true });
+                        deletedCount++;
+                    }
+                } catch (error) {
+                    this.logger.warn(`Could not delete operation dir ${dir.name}: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Error reading operations directory ${operationsDir}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        return deletedCount;
+    }
+
+    /**
+     * Delete unreferenced adapter script directories older than cutoffDate.
+     * These are directories created by upload-preview but never saved to a spec.
+     */
+    private async cleanupAdapterScriptDirs(
+        scriptsDir: string,
+        referencedDirs: Set<string>,
         cutoffDate: Date,
-        fileFilter?: (fileName: string) => boolean,
     ): Promise<number> {
         let deletedCount = 0;
 
         try {
-            const allEntries = await fs.promises.readdir(directory, { withFileTypes: true });
-            // Only process files, not directories
-            const files = allEntries.filter(entry => entry.isFile());
+            const allEntries = await fs.promises.readdir(scriptsDir, { withFileTypes: true });
+            const dirs = allEntries.filter(entry => entry.isDirectory());
 
-            for (const file of files) {
-                if (fileFilter && !fileFilter(file.name)) {
-                    continue;
-                }
-
-                if (referencedFiles.has(file.name)) {
+            for (const dir of dirs) {
+                if (referencedDirs.has(dir.name)) {
                     continue;
                 }
 
                 try {
-                    const filePath = path.posix.join(directory, file.name);
-                    const stats = await fs.promises.stat(filePath);
+                    const dirPath = path.posix.join(scriptsDir, dir.name);
+                    const stats = await fs.promises.stat(dirPath);
 
                     if (stats.mtime < cutoffDate) {
-                        await fs.promises.unlink(filePath);
+                        await fs.promises.rm(dirPath, { recursive: true, force: true });
                         deletedCount++;
                     }
                 } catch (error) {
-                    this.logger.warn(`Could not delete file ${file.name}: ${error instanceof Error ? error.message : String(error)}`);
+                    this.logger.warn(`Could not delete adapter dir ${dir.name}: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
         } catch (error) {
-            this.logger.error(`Error reading directory ${directory}: ${error instanceof Error ? error.message : String(error)}`);
+            this.logger.error(`Error reading adapter scripts dir ${scriptsDir}: ${error instanceof Error ? error.message : String(error)}`);
         }
 
         return deletedCount;

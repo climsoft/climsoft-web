@@ -37,8 +37,6 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "int", name: "entry_scale_factor", nullable: true })
   entryScaleFactor!: number | null;
 
-  // TODO. Add a `entry_digits` column that will be used for re-inforcing the number of digits that an entry clerk has to type in.
-
   @Column({ type: "varchar", name: "comment", nullable: true })
   comment!: string | null;
 

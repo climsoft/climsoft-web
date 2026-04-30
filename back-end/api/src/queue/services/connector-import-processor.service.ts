@@ -5,16 +5,18 @@ import { ConnectorSpecificationsService } from 'src/metadata/connector-specifica
 import { ObservationImportService } from 'src/observation/services/observations-import.service';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
-import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
+import { ViewConnectorSpecificationModel } from 'src/metadata/connector-specifications/dtos/view-connector-specification.model';
 import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
-import { FileIOService } from 'src/shared/services/file-io.service';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
 import { FileMetadataVo, ImportFileProcessingResultVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
 
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 @Injectable()
 export class ConnectorImportProcessorService {
@@ -32,23 +34,24 @@ export class ConnectorImportProcessorService {
      */
     @OnEvent('connector.import', { suppressErrors: false })
     public async handleImportJob(job: JobQueueEntity) {
-        const payload = job.payload as ConnectorJobPayloadDto;
 
-        this.logger.log(`Processing import job for connector ${payload.connectorId}`);
-        const connector: ViewConnectorSpecificationDto =  this.connectorService.find(payload.connectorId);
         try {
+            const payload = job.payload as ConnectorJobPayloadDto;
+            const connector: ViewConnectorSpecificationModel = this.connectorService.find(payload.connectorId, false);
+            
+            this.logger.log(`Processing import job: ${job.id} for connector: ${connector.name}. Specs to be processed: ${connector.parameters.specifications.length}`);
             await this.processImportSpecifications(connector, job.entryUserId);
+            this.logger.log(`Finished processing import job: ${job.id} for connector: ${connector.name}`);
         } catch (error) {
-            this.logger.error(`Failed to process import job for connector ${connector.name}`, error);
+            this.logger.error(`Failed to process import job ${job.id}`, error);
             throw error; // Re-throw to mark job as failed
         }
-
     }
 
     /**
      * Process a single connector import specification
      */
-    private async processImportSpecifications(connector: ViewConnectorSpecificationDto, userId: number) {
+    private async processImportSpecifications(connector: ViewConnectorSpecificationModel, userId: number) {
 
         // create new connector log
         const newConnectorLog: CreateConnectorExecutionLogDto = {
@@ -62,8 +65,10 @@ export class ConnectorImportProcessorService {
 
         let startTime: number;
 
+        //----------------------------------------     
         // Step 1. Download the files
         startTime = new Date().getTime();
+        this.logger.log(`Downloading files from connector: ${connector.name}`);
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
                 await this.downloadFromFileServer(connector, newConnectorLog);
@@ -74,33 +79,57 @@ export class ConnectorImportProcessorService {
             default:
                 throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
         }
-        this.logger.log(`Completed downloading imports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
+        this.logger.log(`Completed downloading files from connector ${connector.name}. Time taken: ${new Date().getTime() - startTime} milliseconds`);
 
-        // Step 2. Process downloaded files and save them as processed files
+        //----------------------------------------
+        // Step 2. Process downloaded files and import into database
         startTime = new Date().getTime();
+        this.logger.log(`Processing and importing files from connector: ${connector.name}`);
         for (const importExecutionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
             for (const file of importExecutionActivity.processedFiles) {
 
                 // If not downloaded due to errors then skip processing
-                if (!file.downloadedFileName) {
+                if (!file.downloadedFileName || !file.operationId) {
                     continue;
                 }
 
                 try {
-                    const downloadedFilePathName = path.posix.join(this.fileIOService.apiImportsDir, file.downloadedFileName);
-                    this.logger.log(`Processing file ${downloadedFilePathName} `);
-                    const processedFilePathName = await this.observationImportService.processFileForImport(importExecutionActivity.specificationId, downloadedFilePathName, userId, importExecutionActivity.stationId);
+                    const op: OperationContext = this.fileIOService.getOperationContext(file.operationId as crypto.UUID);
+                    const inputFilePathName = path.posix.join(op.inputDir, file.downloadedFileName);
+                    this.logger.log(`Processing file ${inputFilePathName}`);
+                    const result: FileProcessingError | void = await this.observationImportService.processFileForImport(importExecutionActivity.specificationId, inputFilePathName, op.intermediateDir, op.outputDir, userId, importExecutionActivity.stationId || null);
 
-                    // Get file stats for processed file metadata
-                    const fileStats = await fs.promises.stat(processedFilePathName);
+                    // If there is any errors, then just log the error message
+                    if (result) {
+                        file.errorMessage = result.message;
+                        newConnectorLog.totalErrors++;
+                        continue;
+                    }
+
+                    // Import to database from the operation's output directory
+                    const outputFiles: string[] = await fs.promises.readdir(op.outputDir);
+
+                    if (outputFiles.length == 0) {
+                        file.errorMessage = 'No files processed';
+                        newConnectorLog.totalErrors++;
+                        continue;
+                    }
+
+                    const fileName: string = outputFiles[0];
+                    const apiProcessedFilePathName = path.posix.join(op.outputDir, fileName);
+                    const dbProcessedFilePathName = path.posix.join(op.dbOutputDir, fileName);
+                    await this.observationImportService.importProcessedFileToDatabase(dbProcessedFilePathName);
+
+                    const fileStats = await fs.promises.stat(apiProcessedFilePathName);
                     file.processedFileMetadata = {
-                        fileName: processedFilePathName,
+                        fileName: outputFiles[0],
                         modifiedDate: fileStats.mtime.toISOString(),
                         size: fileStats.size,
                     };
-                    this.logger.log(`Successfully processed file ${path.basename(file.downloadedFileName)} into ${processedFilePathName}`);
+                    this.logger.log(`Successfully processed and imported file ${file.downloadedFileName}`);
+
                 } catch (error) {
-                    let errorMessage = error instanceof Error ? error.message : String(error);
+                    let errorMessage: string = error instanceof Error ? error.message : String(error);
                     errorMessage = `Failed to process file ${file.remoteFileMetadata.fileName}: ${errorMessage}`;
                     file.errorMessage = errorMessage;
                     newConnectorLog.totalErrors++;
@@ -108,36 +137,15 @@ export class ConnectorImportProcessorService {
                 }
             }
         }
-        this.logger.log(`Completed processing imports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
-
-        // Step 3. Import all processed files into database
-        this.logger.log(`Starting import for connector ${connector.name}`);
-        startTime = new Date().getTime();
-        for (const executionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
-            for (const file of executionActivity.processedFiles) {
-                if (file.processedFileMetadata) {
-                    const processedFilePath = path.posix.join(this.fileIOService.apiImportsDir, file.processedFileMetadata.fileName);
-                    try {
-                        await this.observationImportService.importProcessedFileToDatabase(processedFilePath);
-                    } catch (error) {
-                        let errorMessage = error instanceof Error ? error.message : String(error);
-                        errorMessage = `Failed to import file ${file.remoteFileMetadata.fileName}: ${errorMessage}`;
-                        file.errorMessage = errorMessage;
-                        newConnectorLog.totalErrors++;
-                        this.logger.error(errorMessage);
-                    }
-
-                }
-            }
-        }
-        this.logger.log(`Completed importing for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
+        this.logger.log(`Completed processing and importing file form connector ${connector.name}. Time taken: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 4. Save the new the connector log
         newConnectorLog.executionEndDatetime = new Date();
         await this.connectorExecutionLogService.create(newConnectorLog);
     }
 
-    private async downloadFromFileServer(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto): Promise<void> {
+
+    private async downloadFromFileServer(connector: ViewConnectorSpecificationModel, newConnectorLog: CreateConnectorExecutionLogDto): Promise<void> {
         // Get last known processed files for file change detection
         let lastKnownConnectorLog = await this.connectorExecutionLogService.findLatestByConnector(connector.id);
         const lastProcessedRemoteFiles = new Map<string, FileMetadataVo>();
@@ -166,13 +174,18 @@ export class ConnectorImportProcessorService {
         }
     }
 
-    private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastProcessedRemoteFiles: Map<string, FileMetadataVo>): Promise<void> {
+    private async downloadFileOverFtp(
+        connector: ViewConnectorSpecificationModel,
+        newConnectorLog: CreateConnectorExecutionLogDto,
+        lastProcessedRemoteFiles: Map<string, FileMetadataVo>): Promise<void> {
         const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
 
+        let startTime: number = new Date().getTime();
         try {
             const connectorParams = connector.parameters as ImportFileServerParametersDto;
 
             // Step 1: Connect to FTP server
+            this.logger.log(`Connecting to FTP server ${connector.name}`);
             await client.access({
                 host: connector.hostName,
                 port: connector.parameters.port,
@@ -184,17 +197,18 @@ export class ConnectorImportProcessorService {
                     : undefined,
             });
 
-            this.logger.log(`Connected to FTP server ${connector.name}`);
+            this.logger.log(`Connecting to FTP server ${connector.name} took ${Date.now() - startTime} milliseconds`);
 
             // Set the working directory
             await client.cd(connectorParams.remotePath);
 
             // Step 2: Get the list of files in remote directory (with optional recursion)
+            startTime = new Date().getTime();
+            this.logger.log(`Getting file lists from from FTP server ${connector.name}`);
             const fileList = connectorParams.recursive
                 ? await this.listFtpFilesRecursively(client, '.')
                 : await client.list();
-
-            this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
+            this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found ${fileList.length} files and took ${Date.now() - startTime} milliseconds`);
 
             // Step 3: Map FTP file list to RemoteFileMetadataVo[]
             const remoteFiles: FileMetadataVo[] = fileList.map((file: any) => ({
@@ -204,6 +218,8 @@ export class ConnectorImportProcessorService {
             }));
 
             // Step 4: Process specifications and download files
+            startTime = new Date().getTime();
+            this.logger.log(`Downloading files from FTP server ${connector.name}`);
             await this.downloadFileFromFileServer(
                 connector,
                 connectorParams,
@@ -214,18 +230,24 @@ export class ConnectorImportProcessorService {
                     await client.downloadTo(localPath, fileName);
                 }
             );
+            this.logger.log(`Downloading from FTP server ${connector.name} took ${Date.now() - startTime} milliseconds`);
         } finally {
             client.close();
         }
     }
 
-    private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastProcessedRemoteFiles: Map<string, FileMetadataVo>): Promise<void> {
+    private async downloadFileOverSftp(
+        connector: ViewConnectorSpecificationModel,
+        newConnectorLog: CreateConnectorExecutionLogDto,
+        lastProcessedRemoteFiles: Map<string, FileMetadataVo>): Promise<void> {
         const client = new SftpClient();
 
+        let startTime: number = new Date().getTime();
         try {
             const connectorParams = connector.parameters as ImportFileServerParametersDto;
 
             // Step 1: Connect to SFTP server
+            this.logger.log(`Connecting to SFTP server ${connector.name}`);
             await client.connect({
                 host: connector.hostName,
                 port: connector.parameters.port,
@@ -233,15 +255,16 @@ export class ConnectorImportProcessorService {
                 password: await EncryptionUtils.decrypt(connector.parameters.password), // Decrypt password
                 readyTimeout: connector.timeout ? connector.timeout * 1000 : undefined,
             });
-
-            this.logger.log(`Connected to SFTP server ${connector.name}`);
+            this.logger.log(`Connecting to SFTP server ${connector.name} took ${Date.now() - startTime} milliseconds`);
 
             // Step 2: Get the list of files in remote directory (with optional recursion)
+            startTime = new Date().getTime();
+            this.logger.log(`Getting file lists from from SFTP server ${connector.name}`);
             const fileList = connectorParams.recursive
                 ? await this.listSftpFilesRecursively(client, connectorParams.remotePath)
                 : await client.list(connectorParams.remotePath);
 
-            this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
+            this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found ${fileList.length} files and took ${Date.now() - startTime} milliseconds`);
 
             // Step 3: Map SFTP file list to RemoteFileMetadataVo[]
             const remoteFiles: FileMetadataVo[] = fileList.map((file: any) => ({
@@ -251,6 +274,8 @@ export class ConnectorImportProcessorService {
             }));
 
             // Step 4: Process specifications and download files
+            startTime = new Date().getTime();
+            this.logger.log(`Downloading files from SFTP server ${connector.name}`);
             await this.downloadFileFromFileServer(
                 connector,
                 connectorParams,
@@ -258,10 +283,16 @@ export class ConnectorImportProcessorService {
                 lastProcessedRemoteFiles,
                 newConnectorLog,
                 async (fileName: string, localPath: string) => {
+                    // SFTP requires the full remote path on every operation because the SFTP client
+                    // (ssh2-sftp-client) is stateless — it has no concept of a working directory.
+                    // FTP differs because basic-ftp supports `client.cd()` (set earlier in
+                    // downloadFileOverFtp), which makes subsequent operations relative to that directory.
+                    // That's also why list operations differ: FTP lists with '.', SFTP lists with the full path.
                     const remoteFilePath = path.posix.join(connectorParams.remotePath, fileName);
                     await client.get(remoteFilePath, localPath);
                 }
             );
+            this.logger.log(`Downloading from SFTP server ${connector.name} took ${Date.now() - startTime} milliseconds`);
         } finally {
             await client.end();
         }
@@ -274,7 +305,7 @@ export class ConnectorImportProcessorService {
      * Common handler that works with normalized file metadata from any protocol
      */
     private async downloadFileFromFileServer(
-        connector: ViewConnectorSpecificationDto,
+        connector: ViewConnectorSpecificationModel,
         connectorParams: ImportFileServerParametersDto,
         remoteFiles: FileMetadataVo[],
         lastProcessedRemoteFiles: Map<string, FileMetadataVo>,
@@ -283,9 +314,17 @@ export class ConnectorImportProcessorService {
     ): Promise<void> {
 
         for (const spec of connectorParams.specifications) {
-            // Step 3: Find matching files
-            const matchingFiles = remoteFiles.filter(file =>
-                file.fileName.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
+            // Step 3: Find matching files by converting the user's glob pattern to a regex.
+            // First, escape all regex-special characters (e.g. "." becomes "\." so it matches a literal dot, not "any character"). 
+            // Then replace the glob wildcard "*" with ".*" (which means "any sequence of characters" in regex). 
+            // Finally, anchor with "^" and "$" so the pattern matches the full file name (e.g. "*.csv" won't match "data.csv.bak").
+            // Examples:
+            //   "*.csv"       → "^.*\.csv$"       → matches "data.csv", "report.csv"
+            //   "data_*.txt"  → "^data_.*\.txt$"   → matches "data_01.txt", "data_abc.txt"
+            //   "report.csv"  → "^report\.csv$"    → matches only "report.csv" (not "reportXcsv")
+            const regexPattern: string = '^' + spec.filePattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$';
+            const matchingFiles: FileMetadataVo[] = remoteFiles.filter(file =>
+                path.basename(file.fileName).match(new RegExp(regexPattern))
             );
 
             if (matchingFiles.length === 0) {
@@ -309,19 +348,20 @@ export class ConnectorImportProcessorService {
                 };
 
                 if (!this.hasFileChanged(remoteFile, lastProcessedRemoteFiles)) {
-                    this.logger.log(`Skipping unchanged file: ${remoteFile.fileName}`);
+                    this.logger.warn(`Skipping unchanged file: ${remoteFile.fileName}`);
                     fileProcessingResult.unchangedFile = true;
                 } else {
-                    // Flatten directory structure by replacing path separators with underscores
-                    const flatFileName: string = remoteFile.fileName.replace(/\//g, '_');
-                    const downloadedFileName: string = `import_${connector.id}_${spec.specificationId}_${flatFileName}`;
-                    const localDownloadFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, downloadedFileName);
                     try {
+                        // Create an operation directory for this file
+                        const op: OperationContext = await this.fileIOService.createOperation();
+                        const downloadedFileName: string = path.basename(remoteFile.fileName);
+                        const localDownloadFilePathName: string = path.posix.join(op.inputDir, downloadedFileName);
                         await downloadFile(remoteFile.fileName, localDownloadFilePathName);
+                        fileProcessingResult.operationId = op.operationId;
                         fileProcessingResult.downloadedFileName = downloadedFileName;
                         this.logger.log(`Downloaded file ${remoteFile.fileName} to ${localDownloadFilePathName}`);
                     } catch (error) {
-                        let errorMessage = error instanceof Error ? error.message : String(error);
+                        let errorMessage: string = error instanceof Error ? error.message : String(error);
                         errorMessage = `Failed to download file ${remoteFile.fileName}: ${errorMessage}`;
                         fileProcessingResult.errorMessage = errorMessage;
                         newConnectorLog.totalErrors++;

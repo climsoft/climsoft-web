@@ -5,13 +5,12 @@ services:
     environment:
       POSTGRES_DB: climsoft
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-my_password} 
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-my_password}
     ports:
       - "5432:5432"
     volumes:
       - climsoft_dev_data:/var/lib/postgresql/data
-      - ./back-end/api/temp/imports:/var/lib/postgresql/imports  # Mount host directory
-      - ./back-end/api/temp/exports:/var/lib/postgresql/exports  # Mount host directory
+      - ./back-end/api/temp/operations:/var/lib/postgresql/operations
 
   climsoft_csv2bufr:
     build:
@@ -21,7 +20,63 @@ services:
     ports:
       - "5001:5001"
     volumes:
-      - ./back-end/api/temp/exports:/app/exports
+      - ./back-end/api/temp/operations:/app/operations
+
+  climsoft_python_runner:
+    build:
+      context: ./back-end/runners/python
+      dockerfile: Dockerfile
+    container_name: climsoft-python-runner
+    profiles: ["adapters-python"]
+    ports:
+      - "5101:5101"
+    volumes:
+      - ./back-end/api/temp/adapters:/app/adapters
+      - ./back-end/api/temp/operations:/app/operations
+    mem_limit: 1g
+    cpus: 1.0
+
+  climsoft_r_runner:
+    build:
+      context: ./back-end/runners/r
+      dockerfile: Dockerfile
+    container_name: climsoft-r-runner
+    profiles: ["adapters-r"]
+    ports:
+      - "5102:5102"
+    volumes:
+      - ./back-end/api/temp/adapters:/app/adapters
+      - ./back-end/api/temp/operations:/app/operations
+    mem_limit: 1g
+    cpus: 1.0
+
+  climsoft_javascript_runner:
+    build:
+      context: ./back-end/runners/javascript
+      dockerfile: Dockerfile
+    container_name: climsoft-javascript-runner
+    profiles: ["adapters-javascript"]
+    ports:
+      - "5103:5103"
+    volumes:
+      - ./back-end/api/temp/adapters:/app/adapters
+      - ./back-end/api/temp/operations:/app/operations
+    mem_limit: 1g
+    cpus: 1.0
+
+  climsoft_duckdb_runner:
+    build:
+      context: ./back-end/runners/duckdb
+      dockerfile: Dockerfile
+    container_name: climsoft-duckdb-runner
+    profiles: ["adapters-duckdb"]
+    ports:
+      - "5104:5104"
+    volumes:
+      - ./back-end/api/temp/adapters:/app/adapters
+      - ./back-end/api/temp/operations:/app/operations
+    mem_limit: 1g
+    cpus: 1.0
 
 volumes:
   climsoft_dev_data:

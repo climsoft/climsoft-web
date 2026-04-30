@@ -9,6 +9,9 @@ import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/meta
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { RegionEntity } from '../entities/region.entity';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 
 @Injectable()
 export class RegionsService implements OnModuleInit {
@@ -85,12 +88,13 @@ export class RegionsService implements OnModuleInit {
     }
 
     public async extractAndsaveRegions(regionType: RegionTypeEnum, file: Express.Multer.File, userId: number) {
-        const filePathName: string = `${this.fileUploadService.apiImportsDir}/user_${userId}_regions_upload_${new Date().getTime()}.json`;
+        const op = await this.fileUploadService.createOperation();
+        const uuid: crypto.UUID = crypto.randomUUID();
+        const filePathName: string = path.posix.join(op.inputDir, `${uuid}.json`);
 
-        // Save the file to the temporary directory
-        await this.fileUploadService.saveFile(file, filePathName);
+        await fs.promises.writeFile(`${filePathName}`, file.buffer);
 
-        const geoJsonData = JSON.parse(await this.fileUploadService.readFile(filePathName));
+        const geoJsonData = JSON.parse(await fs.promises.readFile(filePathName, { encoding: 'utf-8' }));
 
         const features = geoJsonData.features;
 
@@ -103,9 +107,12 @@ export class RegionsService implements OnModuleInit {
                 name: name,
             });
 
+
+
             if (!entity) {
-                entity = await this.regionsRepo.create();
+                entity = this.regionsRepo.create();
             }
+
 
             entity.name = name; // Assuming the name is in properties
             entity.description = null;
@@ -113,13 +120,23 @@ export class RegionsService implements OnModuleInit {
             entity.boundary = region.geometry;
             entity.entryUserId = userId;
 
-            regionsToSave.push(entity);
+            // This is a temporary fix. For some reasons the level 2 GADM files seem to contain duplicates. 
+            // Investigate further when refactoring the regions generally
+            const duplicateIndex = regionsToSave.findIndex(item => item.name === name);
+            if (duplicateIndex !== -1) {
+                regionsToSave[duplicateIndex] = entity;
+            } else {
+                regionsToSave.push(entity);
+            }
         }
+
+        console.log(regionsToSave);
+        console.log('regionsToSave length: ', regionsToSave.length, ' | features length: ', features.length);
 
         await this.regionsRepo.save(regionsToSave);
         await this.cache.invalidate();
 
-        this.fileUploadService.deleteFile(filePathName);
+        await this.fileUploadService.deleteOperation(op.operationId);
     }
 
     public async delete(id: number): Promise<number> {

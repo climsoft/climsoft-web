@@ -45,6 +45,7 @@ export enum SubMenuNameEnum {
     SOURCE_SPECIFICATIONS = 'Source Specifications',
     EXPORT_SPECIFICATIONS = 'Export Specifications',
     CONNECTOR_SPECIFICATIONS = 'Connector Specifications',
+    ADAPTERS_SPECIFICATIONS = 'Adapter Specifications',
 
     USER_GROUPS = 'User Groups',
     USERS = 'Users',
@@ -194,6 +195,10 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.CONNECTOR_SPECIFICATIONS,
                     url: '/view-connector-specifications',
+                },
+                {
+                    name: SubMenuNameEnum.ADAPTERS_SPECIFICATIONS,
+                    url: '/view-adapters',
                 },
             ]
         }

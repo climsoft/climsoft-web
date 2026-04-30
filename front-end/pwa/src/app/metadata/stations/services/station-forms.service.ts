@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, concat, from, map, take, tap, throwError } from 'rxjs';
-import { ViewSourceModel } from '../../source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from '../../source-specifications/models/view-source-specification.model';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
@@ -17,7 +17,7 @@ export class StationFormsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-forms`;
   }
 
-  public getFormsAssignedToStation(stationId: string): Observable<ViewSourceModel[]> {
+  public getFormsAssignedToStation(stationId: string): Observable<ViewSourceSpecificationModel[]> {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(AppDatabase.instance.stationForms.get(stationId)).pipe(
       map(localData => {
@@ -27,7 +27,7 @@ export class StationFormsService {
     );
 
     // Step 2: Observable for fetching from the server
-    const serverData$ = this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`).pipe(
+    const serverData$ = this.http.get<ViewSourceSpecificationModel[]>(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`).pipe(
       take(1), // Ensure serverData$ emits once and completes
       tap(serverData => {
         // Save the server data to the local database. This ensures that the local database is in sync with the server database.

@@ -27,12 +27,11 @@ export type ConnectorParameters = ImportFileServerParametersModel | ExportFileSe
 export interface CreateConnectorSpecificationModel {
     name: string;
 
-    description?: string;
+    description: string;
 
     connectorType: ConnectorTypeEnum;
 
     endPointType: EndPointTypeEnum;
-
 
     hostName: string;
 
@@ -42,16 +41,11 @@ export interface CreateConnectorSpecificationModel {
 
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
-
-    orderNumber?: number; // Auto-generated if not provided
-
-
     parameters: ConnectorParameters;
 
+    disabled: boolean;
 
-    disabled?: boolean;
-
-    comment?: string;
+    comment: string | null;
 }
 
 export interface FileServerParametersModel {
@@ -68,7 +62,7 @@ export interface FileServerParametersModel {
 
 export interface ImportFileServerParametersModel extends FileServerParametersModel {
 
-    recursive?: boolean; // When true, files in subdirectories will be included
+    recursive: boolean; // When true, files in subdirectories will be included
 
     specifications: ImportFileServerSpecificationModel[];
 }
@@ -85,7 +79,7 @@ export interface ImportFileServerSpecificationModel {
 
     specificationId: number; // import source specification id
 
-    stationId?: string; // Used by import only
+    stationId: string | null; // Used by import only
 }
 
 export interface ExportFileServerSpecificationModel {
@@ -95,7 +89,7 @@ export interface ExportFileServerSpecificationModel {
 
     specificationId: number; // export specification id
 
-    stationId: string;
+    stationId: string | null;
 }
 
 export interface WebServerMetadataModel {
@@ -103,7 +97,7 @@ export interface WebServerMetadataModel {
     protocol: WebServerProtocolEnum;
 
 
-    token?: string;
+    token: string | null;
 
     specifications: {
         specificationId: number;

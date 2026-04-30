@@ -1,23 +1,40 @@
 import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as crypto from 'node:crypto';
-import { FileIOService } from 'src/shared/services/file-io.service';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
+import { AdapterRunnerService, AdapterRef, AdapterRunMetadata, AdapterRunResult } from 'src/shared/services/adapter-runner.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
-import { PreviewError, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
-import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
+import { BaseParamsDto, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { DuckDBUtils, getTableNameFromUUID } from 'src/shared/utils/duckdb.utils';
 import { ObservationImportService } from './observations-import.service';
 import { FlagsService } from 'src/metadata/flags/services/flags.service';
+import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
+import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
+import { ViewAdapterSpecificationDto } from 'src/metadata/adapters/dtos/view-adapter-specification.dto';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 interface PreviewSession {
     sessionId: string;
-    fileName: string; // TODO. Just store the file path like the `BulkPkUpdateSession` in `BulkPkUpdateService` to simplify the code.
+    operationId: crypto.UUID;
+    /** The original uploaded file name — never changes after init. */
+    originalFileName: string;
+    /**
+     * The basename of the "working file" the DuckDB preview operates on.
+     * When no adapter is applied, same as originalFileName.
+     * When an adapter is applied, this is the adapter's output file name.
+     */
+    workingFileName: string;
+    /** Which operation directory the working file lives in. */
+    fileLocation: 'input' | 'intermediate';
     rowsToSkip: number;
-    delimiter?: string;
+    delimiter: string | null;
+    /** Currently applied adapter, or null if none. */
+    importAdapterId: number | null;
     createdAt: number;
     lastAccessedAt: number;
 }
@@ -31,9 +48,11 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     constructor(
         private fileIOService: FileIOService,
+        private adapterRunnerService: AdapterRunnerService,
         private observationImportService: ObservationImportService,
         private elementsService: ElementsService,
         private flagsService: FlagsService,
+        private adaptersService: AdaptersService,
     ) { }
 
     public async onModuleDestroy() {
@@ -53,112 +72,149 @@ export class ImportPreviewService implements OnModuleDestroy {
         }
     }
 
-    public async initAndPreviewRawData(fileorFileName: string | Express.Multer.File, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
-        const sessionId = crypto.randomUUID();
+    public async initAndPreviewRawData(fileOrFileName: string | Express.Multer.File, dto: BaseParamsDto): Promise<RawPreviewResponse> {
+        const op = await this.fileIOService.createOperation();
+        const sessionId = op.operationId;
         const timestamp = Date.now();
-        let importFilePathName: string;
+        let fileName: string;
 
-        if (typeof fileorFileName === 'string') {
+        if (typeof fileOrFileName === 'string') {
+            // Existing file — resolve against the persistent samples directory.
+            // This path is used when reopening a preview from a saved source spec sample file.
+            // Note. It's important to retain the same file name because changes to sample file names are logged in the database.
+            fileName = fileOrFileName;
+            const samplesPath = path.posix.join(this.fileIOService.apiSamplesDir, fileName);
             try {
-                // Check if file exists
-                importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, path.basename(fileorFileName));
-                await fs.promises.access(importFilePathName, fs.constants.R_OK);
-            } catch (error) {
-                throw new NotFoundException(`File not found for preview: ${fileorFileName}`);
+                await fs.promises.access(samplesPath, fs.constants.R_OK);
+            } catch {
+                throw new NotFoundException(`Sample file not found: ${fileName}`);
             }
+            this.logger.log(`copying file from ${samplesPath} to ${op.inputDir}`);
+            await fs.promises.copyFile(samplesPath, path.posix.join(op.inputDir, fileName));
         } else {
-            // Save file from memory to disk for processing.
-            const ext = path.extname(fileorFileName.originalname);
-            importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`);
-            await fs.promises.writeFile(importFilePathName, fileorFileName.buffer);
+            // New upload — save from memory to the operation's input directory
+            // For uploads, always use the new operation id as the original name because new "sample file" uploads need to be logged as changes
+            // Note. Auto import doesn't need this because the downloaded file names will never be used as sample file names in that operation
+            fileName = op.operationId;
+            this.logger.log(`writing uploaded file ${fileOrFileName.originalname} from memory to file: ${fileName}`);
+            await fs.promises.writeFile(path.posix.join(op.inputDir, fileName), fileOrFileName.buffer);
         }
 
         const session: PreviewSession = {
-            sessionId,
-            fileName: path.basename(importFilePathName),
-            rowsToSkip,
-            delimiter,
+            sessionId: sessionId,
+            operationId: op.operationId,
+            originalFileName: fileName,
+            workingFileName: fileName, // By default, original file name is the working file name, exception being when there is an adpater
+            fileLocation: 'input',
+            rowsToSkip: dto.rowsToSkip,
+            delimiter: dto.delimiter,
+            importAdapterId: dto.importAdapterId,
             createdAt: timestamp,
             lastAccessedAt: timestamp,
         };
 
         this.sessions.set(sessionId, session);
 
+        await this.applyAdapter(session, dto.importAdapterId);
+
         return this.previewRawData(session);
     }
 
 
-    public async updateBaseParamsAndPreviewRawData(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
-        const session = this.getSession(sessionId);
-        session.rowsToSkip = rowsToSkip;
-        session.delimiter = delimiter;
+    public async updateBaseParamsAndPreviewRawData(sessionId: string, dto: BaseParamsDto): Promise<RawPreviewResponse> {
+        const session: PreviewSession = this.getSession(sessionId);
+        session.rowsToSkip = dto.rowsToSkip;
+        session.delimiter = dto.delimiter;
+
+        if (session.importAdapterId === dto.importAdapterId) {
+            return this.previewRawData(session);
+        }
+
+        await this.applyAdapter(session, dto.importAdapterId);
 
         return this.previewRawData(session);
+    }
+
+    private async applyAdapter(session: PreviewSession, importAdapterId: number | null): Promise<void> {
+        if (importAdapterId) {
+            const adapterOutputFileName = await this.runAdapterForPreview(session, importAdapterId, 0);
+            session.workingFileName = adapterOutputFileName;
+            session.fileLocation = 'intermediate';
+        } else {
+            session.workingFileName = session.originalFileName;
+            session.fileLocation = 'input';
+        }
+        session.importAdapterId = importAdapterId;
     }
 
     public async previewRawData(session: PreviewSession): Promise<RawPreviewResponse> {
-        // Load the whole file into DuckDB (resets to raw state for idempotent preview)
-        const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
+        const op = this.fileIOService.getOperationContext(session.operationId);
+        const workingDir = session.fileLocation === 'input' ? op.inputDir : op.intermediateDir;
+        const importFilePathName = path.posix.join(workingDir, session.workingFileName);
+        const tableName: string = getTableNameFromUUID(crypto.randomUUID());
+
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        // Get preview data
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
             totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
         };
-        const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService.duckDbConn, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        return { sessionId: session.sessionId, fileName: session.fileName, previewData, skippedData };
+        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+
+        const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+
+        return { sessionId: session.sessionId, fileName: session.workingFileName, previewData, skippedData };
     }
 
-    public async previewTransformedData(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<TransformedPreviewResponse> {
+    public async previewTransformedData(sessionId: string, sourceDef: ViewSourceSpecificationModel, stationId: string | null): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
+        const op = this.fileIOService.getOperationContext(session.operationId);
+        const workingDir = session.fileLocation === 'input' ? op.inputDir : op.intermediateDir;
+        const importFilePathName = path.posix.join(workingDir, session.workingFileName);
+        const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        // Reset table to raw state for idempotent processing
-        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        // Apply transformations based on the source definition.
         const elements: CreateViewElementDto[] = this.elementsService.find();
-        const flags = this.flagsService.find();
-        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, flags, stationId);
+        const flags: ViewFlagDto[] = this.flagsService.find();
+        const error: FileProcessingError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, flags, stationId, null);
 
-        // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
             totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
         };
+
+        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
 
         return { previewData, error: error || undefined };
     }
 
     public async importData(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
         const session = this.getSession(sessionId);
+        const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
+        const inputFilePathName = path.posix.join(op.inputDir, session.workingFileName);
+        await this.observationImportService.processFileForImport(dto.sourceId, inputFilePathName, op.intermediateDir, op.outputDir, userId, dto.stationId ?? null);
 
-        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const processedFilePathName: string = await this.observationImportService.processFileForImport(dto.sourceId, importFilePathName, userId, dto.stationId);
-
+        // Import to database from the operation's output directory
+        const outputFiles = await fs.promises.readdir(op.outputDir);
+        if (outputFiles.length === 0) {
+            throw new Error('No processed file produced');
+        }
+        const processedFilePathName = path.posix.join(op.dbOutputDir, outputFiles[0]);
         await this.observationImportService.importProcessedFileToDatabase(processedFilePathName);
     }
 
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
-        if (!session) return;
+        if (!session) {
+            this.logger.warn(`${sessionId} not found`);
+            return;
+        };
 
-        try {
-            const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
-            await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
-        } catch (e) {
-            this.logger.warn(`Could not drop preview table ${session.fileName}: ${e}`);
-        }
-
-        // Files are NOT deleted here — they may be referenced by saved specifications.
-        // Orphaned files are cleaned up by the CleanupSchedulerService.
-
+        await this.fileIOService.deleteOperation(session.operationId);
         this.sessions.delete(sessionId);
     }
 
@@ -170,6 +226,54 @@ export class ImportPreviewService implements OnModuleDestroy {
         session.lastAccessedAt = Date.now();
 
         return session;
+    }
+
+    /**
+     * Runs an adapter on the session's original file and stores the output
+     * in the operation's intermediate directory. Returns the basename
+     * of the adapter output file.
+     */
+    private async runAdapterForPreview(session: PreviewSession, adapterId: number, userId: number): Promise<string> {
+        const adapter: ViewAdapterSpecificationDto = this.adaptersService.find(adapterId);
+
+        if (adapter.disabled) {
+            throw new Error(`Adapter '${adapter.name}' is disabled`);
+        }
+
+        if (!this.adapterRunnerService.isRunnerEnabled(adapter.language)) {
+            throw new Error(`The ${adapter.language} runner is not enabled in this deployment`);
+        }
+
+        const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
+
+        const adapterRef: AdapterRef = {
+            id: adapter.id,
+            name: adapter.name,
+            language: adapter.language,
+            scriptDirName: adapter.scriptDirName,
+            entryPoint: adapter.entryPoint,
+        };
+
+        const metadata: AdapterRunMetadata = {
+            uploadedByUserId: userId,
+            uploadedAt: new Date().toISOString(),
+            sourceSpecId: null,
+            sourceSpecName: null,
+            stationId: null,
+            utcOffset: null,
+            specParameters: null,
+            testRun: false,
+        };
+
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, op.inputDir, op.intermediateDir, metadata);
+
+        if (result.status !== 'success') {
+            throw new Error(`Adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
+        }
+
+        const adapterOutputFileName: string = path.basename(result.outputFiles[0]);
+        this.logger.log(`Adapter '${adapter.name}' produced preview file: ${adapterOutputFileName}`);
+        return adapterOutputFileName;
     }
 
 }

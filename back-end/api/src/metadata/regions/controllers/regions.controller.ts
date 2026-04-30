@@ -37,7 +37,7 @@ export class RegionsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB. 
-        new FileTypeValidator({ fileType: 'application/json' }),
+        new FileTypeValidator({ fileType: /application\/json/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {

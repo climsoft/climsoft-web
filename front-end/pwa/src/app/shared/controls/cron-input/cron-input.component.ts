@@ -75,7 +75,7 @@ export class CronInputComponent {
     { id: 6, name: 'Saturday', shortName: 'Sat', selected: false },
   ];
 
-  protected minuteIntervals: number[] = [1, 2, 5, 10, 15, 20, 30];
+  protected minuteIntervals: number[] = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
   protected hourIntervals: number[] = [1, 2, 3, 4, 6, 8, 12];
   protected dayIntervals: number[] = [1, 2, 3, 5, 10, 15];
   protected hours: number[] = Array.from({ length: 24 }, (_, i) => i);

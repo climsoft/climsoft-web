@@ -8,7 +8,6 @@ import { JobQueueProcessorService } from './services/job-queue-processor.service
 import { ConnectorSchedulerService } from './services/connector-scheduler.service';
 import { ConnectorImportProcessorService } from './services/connector-import-processor.service';
 import { ConnectorExportProcessorService } from './services/connector-export-processor.service';
-import { ConnectorSpecificationsModule } from 'src/metadata/connector-specifications/connector-specifications.module';
 import { MetadataModule } from 'src/metadata/metadata.module';
 import { ObservationModule } from 'src/observation/observation.module';
 import { ConnectorExecutionLogEntity } from './entity/connector-execution-log.entity';
@@ -27,7 +26,6 @@ import { SettingsModule } from 'src/settings/settings.module';
         SharedModule,
         UserModule,
         SettingsModule,
-        ConnectorSpecificationsModule,
         MetadataModule,
         ObservationModule,
     ],

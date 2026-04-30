@@ -1,10 +1,10 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { StationColumnMappingDto } from 'src/metadata/dtos/metadata-import-preview.dto';
+import { StationColumnMappingDto } from 'src/metadata/metadata-import-preview.dto';
 import { DateTimeDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { PreviewError } from 'src/observation/dtos/import-preview.dto';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
  * imported CSV data into the stations table schema.
@@ -63,7 +63,7 @@ export class StationImportTransformer {
         tableName: string,
         mapping: StationColumnMappingDto,
         userId?: number,
-    ): Promise<PreviewError | void> {
+    ): Promise<FileProcessingError | void> {
 
         const steps: { name: string; buildSql: () => string[] }[] = [
             { name: 'Id', buildSql: () => StationImportTransformer.buildAlterIdColumnSQL(tableName, mapping) },

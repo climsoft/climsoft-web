@@ -11,9 +11,7 @@ import { AppConfigService } from 'src/app/app-config.service';
   templateUrl: './import-regions-dialog.component.html',
   styleUrls: ['./import-regions-dialog.component.scss']
 })
-export class ImportRegionsDialogComponent implements OnChanges {
-  @Input()
-  public open: boolean = false;
+export class ImportRegionsDialogComponent  {
 
   @Output()
   public okClick = new EventEmitter<void>();
@@ -32,6 +30,8 @@ export class ImportRegionsDialogComponent implements OnChanges {
 
   protected selectedRegionType!: RegionTypeEnum | null;
 
+    protected open: boolean = false;
+
   constructor(
     private appConfigService: AppConfigService,
     private regionsCacheService: RegionsCacheService,
@@ -40,13 +40,8 @@ export class ImportRegionsDialogComponent implements OnChanges {
 
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.open) {
-      this.setupDialog();
-    }
-  }
-
-  private setupDialog(): void {
+  public openDialog(): void {
+    this.open = true;
     this.uploadMessage = "";
     this.uploadError = false;
     this.uploadProgress = 0;
@@ -97,7 +92,9 @@ export class ImportRegionsDialogComponent implements OnChanges {
         observe: 'events',
       }).pipe(
         catchError(error => {
-          console.log("Error returned: ", error);
+          console.error(error);
+          this.uploadMessage = "Something went wrong!";
+          this.uploadError = true;
           return throwError(() => new Error('Something bad happened. Please try again later.'));
         })
       ).subscribe(event => {
@@ -138,18 +135,5 @@ export class ImportRegionsDialogComponent implements OnChanges {
       });
 
   }
-
-  protected onCancelClick(): void {
-    this.cancelClick.emit();
-    this.open = false; // close the dialog
-  }
-
-
-
-
-
-
-
-
 
 }

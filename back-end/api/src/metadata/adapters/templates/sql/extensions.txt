@@ -1,0 +1,5 @@
+# List DuckDB extensions to load, one per line.
+# These are loaded via INSTALL/LOAD before your script runs.
+# Example:
+# httpfs
+# spatial

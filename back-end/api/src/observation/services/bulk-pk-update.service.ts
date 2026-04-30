@@ -5,8 +5,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { FileIOService } from 'src/shared/services/file-io.service';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
+import { DuckDBUtils, getTableNameFromUUID } from 'src/shared/utils/duckdb.utils';
 import {
     BulkPkUpdateCheckDto,
     BulkPkUpdateCheckResponse,
@@ -24,9 +24,9 @@ import { GeneralSettingsService } from 'src/settings/services/general-settings.s
 
 interface BulkPkUpdateSession {
     sessionId: string;
+    operationId: crypto.UUID;
     filter: BulkObservationFilterDto;
     change: PkChangeSpecDto;
-    conflictFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
     conflictCount: number;
@@ -68,7 +68,10 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     public async checkForConflicts(dto: BulkPkUpdateCheckDto): Promise<BulkPkUpdateCheckResponse> {
         this.validateChangeSpec(dto.change);
 
-        const sessionId = crypto.randomUUID();
+        // Create an operation for file I/O
+        const op: OperationContext = await this.fileIOService.createOperation();
+
+        const sessionId: string = op.operationId;
 
         // Count all matching rows
         const matchingCountSql = this.buildMatchingRowsQuery(dto.filter, dto.change);
@@ -77,7 +80,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         if (totalMatchingRows === 0) {
             const session: BulkPkUpdateSession = {
-                sessionId, filter: dto.filter, change: dto.change,
+                sessionId, operationId: op.operationId, filter: dto.filter, change: dto.change,
                 totalMatchingRows: 0, conflictCount: 0,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -97,45 +100,42 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             // COPY does not support parameterized queries, so we first materialize into a
             // temp table (parameterized SELECT works fine), then COPY from the temp table.
             const conflictQuery = this.buildConflictSelectQuery(dto.filter, dto.change);
-            const csvFileName = `conflict_${sessionId}.csv`;
-            const dbCsvPath = path.posix.join(this.fileIOService.dbExportsDir, csvFileName);
-            const apiCsvPath = path.posix.join(this.fileIOService.apiExportsDir, csvFileName);
-            const tmpTable = `conflict_tmp_${sessionId.replaceAll('-', '_')}`;
+            const csvFileName: string = `${op.operationId}.csv`;
+            const dbCsvPath: string = path.posix.join(op.dbOutputDir, csvFileName);
+            const apiCsvPath: string = path.posix.join(op.outputDir, csvFileName);
+            const tableName: string = getTableNameFromUUID(op.operationId);
 
             const queryRunner = this.dataSource.createQueryRunner();
             await queryRunner.connect();
             try {
                 await queryRunner.query(
-                    `CREATE TEMP TABLE ${tmpTable} AS ${conflictQuery.sql}`,
+                    `CREATE TEMP TABLE ${tableName} AS ${conflictQuery.sql}`,
                     conflictQuery.params,
                 );
-                await queryRunner.query(`COPY ${tmpTable} TO '${dbCsvPath}' WITH CSV HEADER`);
+                await queryRunner.query(`COPY ${tableName} TO '${dbCsvPath}' WITH CSV HEADER`);
             } finally {
-                await queryRunner.query(`DROP TABLE IF EXISTS ${tmpTable}`);
+                await queryRunner.query(`DROP TABLE IF EXISTS ${tableName}`);
                 await queryRunner.release();
             }
 
-            // Load into DuckDB for preview
-            const duckDbTableName = `conflict_${sessionId.replaceAll('-', '_')}`;
-            await DuckDBUtils.createTableFromFile(
-                this.fileIOService.duckDbConn, apiCsvPath, duckDbTableName, true, 0, 0
-            );
+            // Load into DuckDB for preview 
+            await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, apiCsvPath, tableName, true, 0, 0);
 
-            const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, duckDbTableName);
-            const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, duckDbTableName, this.MAX_PREVIEW_ROWS);
+            const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
+            const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS);
 
             previewData = { columns, rows, totalRowCount: conflictCount };
 
             const session: BulkPkUpdateSession = {
-                sessionId, filter: dto.filter, change: dto.change,
-                conflictFile: apiCsvPath, duckDbTableName,
+                sessionId, operationId: op.operationId, filter: dto.filter, change: dto.change,
+                duckDbTableName: tableName,
                 totalMatchingRows, conflictCount,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
             this.sessions.set(sessionId, session);
         } else {
             const session: BulkPkUpdateSession = {
-                sessionId, filter: dto.filter, change: dto.change,
+                sessionId, operationId: op.operationId, filter: dto.filter, change: dto.change,
                 totalMatchingRows, conflictCount: 0,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -174,7 +174,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     private buildPermanentDeleteCountQuery(filter: BulkObservationFilterDto, change: PkChangeSpecDto): { sql: string; params: any[] } {
         const joinConditions = this.buildTargetPkJoinConditions(change, 'o', 'existing', 1);
         const whereClause = this.buildFilterWhereClause(filter, change, 'o', joinConditions.params.length + 1);
-        const sql = `
+        const sql: string = `
             SELECT COUNT(*)::int AS cnt
             FROM observations o
             INNER JOIN observations existing ON ${joinConditions.sql}
@@ -191,7 +191,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
         // Build target value expression with metadata enrichment
         let targetValueExpr: string;
-        let targetJoin = '';
+        let targetJoin: string = '';
         if (change.field === PkFieldEnum.DATE_TIME) {
             // The INTERVAL keyword requires a string literal, that is, `INTERVAL $1` is a PostgreSQL syntax error.
             // The correct parameterized form is `$1::interval` (cast), but since shiftAmount is a
@@ -261,8 +261,8 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         await queryRunner.startTransaction();
 
         try {
-            const isOverwrite = dto.conflictResolution === ConflictResolutionEnum.OVERWRITE && session.conflictCount > 0;
-            const isSkip = dto.conflictResolution === ConflictResolutionEnum.SKIP && session.conflictCount > 0;
+            const isOverwrite: boolean = dto.conflictResolution === ConflictResolutionEnum.OVERWRITE && session.conflictCount > 0;
+            const isSkip: boolean = dto.conflictResolution === ConflictResolutionEnum.SKIP && session.conflictCount > 0;
 
             // Permanent-delete target rows at the destination PK to free PK slots.
             // SKIP: removes only deleted targets; 
@@ -356,13 +356,16 @@ export class BulkPkUpdateService implements OnModuleDestroy {
 
     public async downloadConflictCsv(sessionId: string): Promise<StreamableFile> {
         const session = this.getSession(sessionId);
+        const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
 
-        if (!session.conflictFile) {
+        const csvFiles: string[] = await fs.promises.readdir(op.outputDir);
+        if (csvFiles.length === 0) {
             throw new BadRequestException('No conflict file available for this session');
         }
 
-        const fileName = path.basename(session.conflictFile);
-        return new StreamableFile(fs.createReadStream(session.conflictFile), {
+        const csvPath: string = path.posix.join(op.outputDir, csvFiles[0]);
+        const fileName: string = path.basename(csvPath);
+        return new StreamableFile(fs.createReadStream(csvPath), {
             type: 'text/csv',
             disposition: `attachment; filename="${fileName}"`,
         });
@@ -381,14 +384,8 @@ export class BulkPkUpdateService implements OnModuleDestroy {
             }
         }
 
-        // Delete conflict CSV
-        if (session.conflictFile && fs.existsSync(session.conflictFile)) {
-            try {
-                await fs.promises.unlink(session.conflictFile);
-            } catch (err) {
-                this.logger.warn(`Failed to delete conflict CSV ${session.conflictFile}: ${err}`);
-            }
-        }
+        // Delete operation directory
+        await this.fileIOService.deleteOperation(session.operationId);
 
         this.sessions.delete(sessionId);
     }

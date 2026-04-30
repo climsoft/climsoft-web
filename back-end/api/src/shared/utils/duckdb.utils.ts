@@ -1,9 +1,47 @@
 import { DuckDBConnection } from '@duckdb/node-api';
-import * as path from 'node:path';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { FileIOService } from '../services/file-io.service';
+
+export function getTableNameFromUUID(uuid: crypto.UUID): string {
+    return uuid
+        // replace uuid dashes with underscores
+        .replaceAll('-', '_')
+
+        // Prefix with 't_' so UUIDS starting with digits are valid SQL identifiers
+        .replace(/^(\d)/, 't_$1');
+}
+
+export function getUniqueTableName(): string {
+    return getTableNameFromUUID(crypto.randomUUID());
+}
+
+// TODO. Left here for future reference
+/**
+ * Gets a valid SQL table name from the uploaded file name by removing the extension and replacing special characters with underscores.
+ * @param filePathName 
+ * @returns 
+ */
+ function getTableNameFromFileName(filePathName: string): string {
+    return path
+        // Extract file name without directory and extension
+        .basename(filePathName, path.extname(filePathName))
+
+        // Replace any sequence of non-alphanumeric characters with underscore
+        // e.g. "my-data file!" → "my_data_file_"
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+
+        // Remove leading and trailing underscores
+        // e.g. "_my_data_" → "my_data"
+        .replace(/^_+|_+$/g, '')
+
+        // Convert to lowercase for consistency (useful for DB table names)
+        .toLowerCase();
+}
 
 export class DuckDBUtils {
 
-    public static buildCsvImportParams(header: boolean, rowsToSkip: number, delimiter?: string): string[] {
+    public static buildCsvImportParams(header: boolean, rowsToSkip: number, delimiter?: string | null): string[] {
 
         const params: string[] = [];
 
@@ -24,7 +62,7 @@ export class DuckDBUtils {
         return params;
     }
 
-    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, header: boolean, rowsToSkip: number, maxRows: number, delimiter?: string): Promise<void> {
+    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, header: boolean, rowsToSkip: number, maxRows: number, delimiter?: string | null): Promise<void> {
         // Read CSV with the configured params
         const importParams = DuckDBUtils.buildCsvImportParams(header, rowsToSkip, delimiter);
         const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
@@ -41,29 +79,6 @@ export class DuckDBUtils {
             await conn.run(renameSQLs.join('; '));
         }
 
-    }
-
-
-    /**
-     * Gets a valid SQL table name from the uploaded file name by removing the extension and replacing special characters with underscores.
-     * @param filePathName 
-     * @returns 
-     */
-    public static getTableNameFromFileName(filePathName: string): string {
-        return path
-            // Extract file name without directory and extension
-            .basename(filePathName, path.extname(filePathName))
-
-            // Replace any sequence of non-alphanumeric characters with underscore
-            // e.g. "my-data file!" → "my_data_file_"
-            .replace(/[^a-zA-Z0-9]+/g, '_')
-
-            // Remove leading and trailing underscores
-            // e.g. "_my_data_" → "my_data"
-            .replace(/^_+|_+$/g, '')
-
-            // Convert to lowercase for consistency (useful for DB table names)
-            .toLowerCase();
     }
 
     public static async getColumnNames(conn: DuckDBConnection, tableName: string): Promise<string[]> {
@@ -148,22 +163,26 @@ export class DuckDBUtils {
     }
 
     static async getSkippedData(
-        conn: DuckDBConnection,
+         fileIOService: FileIOService,
         importFilePathName: string,
         rowsToSkip: number,
         maxPreviewRows: number,
-        delimiter?: string,
+        delimiter?: string | null,
     ): Promise<{ columns: string[]; rows: string[][]; totalRowCount: number }> {
+
         const skippedData = { totalRowCount: 0, columns: [] as string[], rows: [] as string[][] };
 
         if (rowsToSkip <= 0) return skippedData;
 
-        const tableName = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
-        await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
+        // Important. Use uuid here to avoid unintentionally deleting any existing table that use the file name as its table name
+        const tableName: string = getTableNameFromUUID(crypto.randomUUID());
+        await DuckDBUtils.createTableFromFile(fileIOService.duckDbConn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
 
-        skippedData.totalRowCount = await DuckDBUtils.getPreviewRowCount(conn, tableName);
-        skippedData.columns = await DuckDBUtils.getColumnNames(conn, tableName);
-        skippedData.rows = await DuckDBUtils.getPreviewRows(conn, tableName, maxPreviewRows);
+        skippedData.totalRowCount = await DuckDBUtils.getPreviewRowCount(fileIOService.duckDbConn, tableName);
+        skippedData.columns = await DuckDBUtils.getColumnNames(fileIOService.duckDbConn, tableName);
+        skippedData.rows = await DuckDBUtils.getPreviewRows(fileIOService.duckDbConn, tableName, maxPreviewRows);
+
+         await fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
 
         return skippedData;
     }

@@ -1,6 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { ViewRegionModel } from "./metadata/regions/models/view-region.model";
-import { ViewSourceModel } from "./metadata/source-specifications/models/view-source.model";
+import { ViewSourceSpecificationModel } from "./metadata/source-specifications/models/view-source-specification.model";
 import { ViewStationObsEnvModel } from "./metadata/stations/models/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "./metadata/stations/models/view-station-obs-focus.model"; 
 import { CreateViewElementModel } from "./metadata/elements/models/create-view-element.model";
@@ -22,7 +22,7 @@ export interface MetadataModificationLogModel {
 
 export interface StationForm {
     stationId: string;
-    forms: ViewSourceModel[];
+    forms: ViewSourceSpecificationModel[];
 }
 
 export interface FormStation {
@@ -68,7 +68,7 @@ export class AppDatabase extends Dexie {
     elementSubdomains!: Table<ViewElementSubdomainModel, number>;
     elementTypes!: Table<ViewElementTypeModel, number>;
     elements!: Table<CreateViewElementModel, number>;
-    sourceTemplates!: Table<ViewSourceModel, number>;
+    sourceTemplates!: Table<ViewSourceSpecificationModel, number>;
     generalSettings!: Table<ViewGeneralSettingModel, number>;
     flags!: Table<ViewFlagModel, number>;
 

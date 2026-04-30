@@ -1,25 +1,25 @@
-import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsString, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
-import { StringUtils } from 'src/shared/utils/string.utils'; 
 import { FormSourceDTO as FormSourceDto } from './form-source.dto';
 import { BadRequestException } from '@nestjs/common';
-import { ClimsoftV4ImportParametersDto } from 'src/observation/dtos/climsoft-v4-import-parameters.dto';  
+import { ClimsoftV4ImportParametersDto } from 'src/observation/dtos/climsoft-v4-import-parameters.dto';
 import { ImportSourceDto } from './import-source.dto';
 
 // Note, the `ClimsoftV4ImportParametersDto` will be deprecated after full migration to the Climsoft Web
-export type SourceParameters = FormSourceDto | ImportSourceDto | ClimsoftV4ImportParametersDto; 
+export type SourceParameters = FormSourceDto | ImportSourceDto | ClimsoftV4ImportParametersDto;
 
 export class CreateSourceSpecificationDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
-  description: string;
+  @IsNotEmpty()
+  description!: string;
 
   @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
-  sourceType: SourceTypeEnum;
+  sourceType!: SourceTypeEnum;
 
   @ValidateNested()
   @Type((options) => {
@@ -43,7 +43,7 @@ export class CreateSourceSpecificationDto {
         throw new BadRequestException('source type is not recognised');
     }
   })
-  parameters: SourceParameters;
+  parameters!: SourceParameters;
 
   /** 
 * Determines whether entry date time should be converted to UTC or not. 
@@ -52,37 +52,43 @@ export class CreateSourceSpecificationDto {
 */
   @IsInt()
   @Min(0)
-  utcOffset: number;
+  utcOffset!: number;
 
   /**
 * Determines whether to allow missing values or not.
 * If true, entry of missing values will be allowed.
 */
-  @IsOptional()
-  @Type(() => String) // Required to stop transformer from converting the value type to boolean
-  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-  allowMissingValue?: boolean;
+  @IsBoolean()
+  allowMissingValue!: boolean;
 
   /**
 * Determines whether to scale the values. 
 * To be used when data being imported is not scaled
 */
-  @IsOptional()
-  @Type(() => String) // Required to stop transformer from converting the value type to boolean
-  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-  scaleValues?: boolean;
+  @IsBoolean()
+  scaleValues!: boolean;
 
-  /** Sample file name that resembles the source design (can be form image, pdf or import file csv, dat). Note this stores the file name without the path. */
-  @IsOptional()
+  /**
+ * Optional FK to a pre-import adapter. When set, the adapter is run
+ * on the uploaded file before the existing import pipeline processes it.
+ */
+
+  @ValidateIf((_o, v) => v !== null)
+  @IsInt()
+  @Min(1)
+  adapterId!: number | null;
+
+  /** Operation ID from the preview session that contains the sample file. Used to copy the file to the persistent samples directory on save. */
+  @ValidateIf((_o, v) => v !== null)
   @IsString()
-  sampleFileName?: string;
+  @IsNotEmpty()
+  sampleFileOperationId!: string | null;
 
-  @IsOptional()
-  @Type(() => String) // Required to stop transformer from converting the value type to boolean
-  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-  disabled?: boolean;
+  @IsBoolean()
+  disabled!: boolean;
 
-  @IsOptional()
+  @ValidateIf((_o, v) => v !== null)
   @IsString()
-  comment?: string | null;
+  @IsNotEmpty()
+  comment!: string | null;
 }

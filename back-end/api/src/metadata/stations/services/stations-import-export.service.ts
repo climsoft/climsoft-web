@@ -4,6 +4,8 @@ import { StationImportTransformer } from './station-import-transformer';
 import { StationsService } from './stations.service';
 import path from 'node:path';
 import { DataSource } from 'typeorm';
+import { getUniqueTableName } from 'src/shared/utils/duckdb.utils';
+import crypto from 'node:crypto';
 
 @Injectable()
 export class StationsImportExportService {
@@ -20,17 +22,16 @@ export class StationsImportExportService {
      * Uses a staging table approach to handle duplicates efficiently.
      * The file is expected to contain columns matching StationImportTransformer.ALL_COLUMNS.
      */
-    public async importProcessedFileToDatabase(filePathName: string): Promise<void> {
+    public async importProcessedFileToDatabase(dbIputFilePathName: string): Promise<void> {
         const startTime = Date.now();
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            this.logger.log(`Importing file ${path.basename(filePathName)} into database`);
-            const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(filePathName));
+            this.logger.log(`Importing stations file ${dbIputFilePathName} into database`);
 
-            const stagingTableName = `stn_staging_${Date.now()}`;
+            const stagingTableName: string = getUniqueTableName();
 
             // Step 1: Create temporary staging table (no constraints for fast COPY)
             const createStagingTableQuery = `
@@ -63,7 +64,7 @@ export class StationsImportExportService {
             const allColumns = StationImportTransformer.ALL_COLUMNS.join(', ');
             const copyQuery = `
                 COPY ${stagingTableName} (${allColumns})
-                FROM '${dbFilePathName}'
+                FROM '${dbIputFilePathName}'
                 WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
             `;
 
@@ -142,29 +143,30 @@ export class StationsImportExportService {
             await queryRunner.commitTransaction();
             await this.stationsService.invalidateCache();
 
-            this.logger.log(`Successfully imported ${path.basename(filePathName)} into database`);
+            this.logger.log(`Successfully imported ${dbIputFilePathName} into database. Time taken ${Date.now() - startTime} milliseconds`);
 
         } catch (error) {
             await queryRunner.rollbackTransaction();
 
             let errorMessage = error instanceof Error ? error.message : String(error);
-            errorMessage = `Database import failed for ${path.basename(filePathName)}: ${errorMessage}`;
+            errorMessage = `Database import failed for ${dbIputFilePathName}: ${errorMessage}`;
             this.logger.error(errorMessage);
-            throw new Error(errorMessage);
+            throw new BadRequestException(errorMessage);
         } finally {
             await queryRunner.release();
         }
 
-        this.logger.log(`PostgreSQL import took ${Date.now() - startTime} milliseconds`);
+
     }
 
     //------------------------------------
     // EXPORT FUNCTIONAILTY
 
-    public async export(userId: number): Promise<string> {
-        const tmpTableName = `stations_download_user_${userId}_${Date.now()}`;
-        const dbFilePathName = path.posix.join(this.fileIOService.dbExportsDir, `${tmpTableName}.csv`);
-        const apiFilePathName = path.posix.join(this.fileIOService.apiExportsDir, `${tmpTableName}.csv`);
+    public async export(): Promise<string> {
+        const op = await this.fileIOService.createOperation();
+        const uuid: crypto.UUID = crypto.randomUUID();
+        const dbFilePathName = path.posix.join(op.dbOutputDir, `${uuid}.csv`);
+        const apiFilePathName = path.posix.join(op.outputDir, `${uuid}.csv`);
 
         try {
             await this.dataSource.query(`
@@ -195,6 +197,7 @@ export class StationsImportExportService {
 
             return apiFilePathName;
         } catch (error) {
+            await this.fileIOService.deleteOperation(op.operationId);
             this.logger.error('Stations Export Failed: ', error);
             throw new BadRequestException('File export Failed');
         }

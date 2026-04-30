@@ -41,8 +41,7 @@
         <hr />
 
         <div>
-            <app-element-selector-multiple [label]="'Element(s)'" [errorMessage]="elementsErrorMessage"
-                [(selectedIds)]="selectedElementIds" />
+            <app-element-selector-multiple [label]="'Element(s)'" [(selectedIds)]="selectedElementIds" />
         </div>
 
         <hr />
@@ -110,15 +109,19 @@
             <app-text-input [label]="'Comment'" [(value)]="viewSource.comment" />
         </div>
 
-        <div *ngIf="errorMessage">
-            <hr />
-            <div class="text-danger">
-                {{ errorMessage }}
-            </div>
-        </div>
-
     </app-dialog>
 
-    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewSource.name"
-        [itemType]="'form specification'" (deleteConfirmed)="onDeleteConfirm()" />
+    <app-confirmation-dialog #dlgSaveConfirm [title]="'Save Form Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
+        <p>
+            Are you sure you want to save the form specification <strong>{{ viewSource.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Form Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the form specification <strong>{{ viewSource.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

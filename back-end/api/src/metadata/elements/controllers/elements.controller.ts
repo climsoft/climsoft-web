@@ -38,11 +38,9 @@ export class ElementsController {
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="elements.csv"')
-  async downloadStationsCsv(
-    @Req() request: Request,
-  ) {
-    const csvFilePath = await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
-    return this.fileIOService.createStreamableFile(csvFilePath);
+  async downloadStationsCsv() {
+    const apiFilePathName = await this.elementsImportExportService.export();
+    return this.fileIOService.createStreamableFile(apiFilePathName);
   }
 
   @Admin()

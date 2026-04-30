@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
-import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
+import { BaseParamsDto, RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
 import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
 
 @Injectable({ providedIn: 'root' })
@@ -16,21 +16,23 @@ export class ImportPreviewHttpService {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/import-preview`;
     }
 
-    public upload(file: File, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
+    public upload(file: File, model: BaseParamsDto): Observable<RawPreviewResponse> {
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('rowsToSkip', rowsToSkip.toString());
-        if (delimiter) {
-            formData.append('delimiter', delimiter);
+        formData.append('file', file, file.name);
+        for (const [key, value] of Object.entries(model)) {
+            if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
+            }
         }
         return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/upload`, formData);
     }
 
-    public updateBaseParams(sessionId: string, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
-        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/base-params/${sessionId}`, {
-            rowsToSkip,
-            delimiter,
-        });
+    public initFromFile(fileName: string, model: BaseParamsDto): Observable<RawPreviewResponse> {
+        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/init-from-file/${fileName}`, model);
+    }
+
+    public updateBaseParams(sessionId: string, model: BaseParamsDto): Observable<RawPreviewResponse> {
+        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/base-params/${sessionId}`, model);
     }
 
     public previewStep(sessionId: string, sourceDefinition: CreateSourceSpecificationModel, stationId?: string): Observable<TransformedPreviewResponse> {
@@ -40,22 +42,14 @@ export class ImportPreviewHttpService {
         });
     }
 
-    public initFromFile(fileName: string, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
-        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/init-from-file`, {
-            fileName,
-            rowsToSkip,
-            delimiter,
-        });
-    }
-
-    public previewForImport(sessionId: string, sourceId: number, stationId?: string): Observable<TransformedPreviewResponse> {
+    public previewForImport(sessionId: string, sourceId: number, stationId?: string | null): Observable<TransformedPreviewResponse> {
         return this.http.post<TransformedPreviewResponse>(`${this.endPointUrl}/process-for-import/${sessionId}`, {
             sourceId,
             stationId,
         });
     }
 
-    public confirmImport(sessionId: string, sourceId: number, stationId?: string): Observable<any> {
+    public confirmImport(sessionId: string, sourceId: number, stationId?: string | null): Observable<any> {
         return this.http.post(`${this.endPointUrl}/confirm-import/${sessionId}`, {
             sourceId,
             stationId,

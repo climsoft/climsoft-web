@@ -12,6 +12,10 @@
       {
         "include": "observation/services/**/*.json",
         "watchAssets": true
+      },
+      {
+        "include": "metadata/adapters/templates/**/*",
+        "watchAssets": true
       }
     ]
   }

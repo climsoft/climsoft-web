@@ -7,6 +7,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import * as L from 'leaflet';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ImportRegionsDialogComponent } from '../import-regions-dialog/import-regions-dialog.component';
 
 type optionsType = 'Import' | 'Delete All';
 
@@ -17,6 +18,7 @@ type optionsType = 'Import' | 'Delete All';
 })
 export class ViewRegionsComponent implements OnDestroy {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgImportRegions') dlgImportRegions!: ImportRegionsDialogComponent;
 
   protected regions: ViewRegionModel[] = [];
 
@@ -70,6 +72,8 @@ export class ViewRegionsComponent implements OnDestroy {
     this.optionClicked = option;
     if (option === 'Delete All') {
       this.dlgDeleteAllConfirm.openDialog();
+    } else if (option === 'Import') {
+      this.dlgImportRegions.openDialog()
     }
   }
 
@@ -79,9 +83,7 @@ export class ViewRegionsComponent implements OnDestroy {
     });
   }
 
-  protected onOptionsDialogClosed(): void {
-    this.optionClicked = undefined;
-  }
+
 
   protected onVisualiseClick(): void {
     this.showMapDialog = true;

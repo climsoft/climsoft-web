@@ -1,0 +1,5 @@
+Title: Climsoft Adapter
+Version: 1.0.0
+Description: Adapter script for Climsoft data transformation.
+Imports:
+    jsonlite

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs'; 
-import { ViewSourceModel } from '../../models/view-source.model';
+import { ViewSourceSpecificationModel } from '../../models/view-source-specification.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
@@ -17,8 +17,8 @@ export class SourceSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public selectedIds!: number[];
   @Output() public selectedIdsChange = new EventEmitter<number[]>();
 
-  protected templates!: ViewSourceModel[];
-  protected selectedTemplates!: ViewSourceModel[];
+  protected templates!: ViewSourceSpecificationModel[];
+  protected selectedTemplates!: ViewSourceSpecificationModel[];
   private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
@@ -54,11 +54,11 @@ export class SourceSelectorMultipleComponent implements OnChanges, OnDestroy {
     this.selectedTemplates = this.selectedIds && this.selectedIds.length > 0 ? this.templates.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 
-  protected optionDisplayFunction(option: ViewSourceModel): string {
-    return `${option.id} - ${option.name}`;
+  protected optionDisplayFunction(option: ViewSourceSpecificationModel): string {
+    return `${option.name}`;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: ViewSourceModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: ViewSourceSpecificationModel[]) {
     this.selectedIds.length = 0;
     this.selectedIds.push(...selectedOptions.map(data => data.id));
     this.selectedIdsChange.emit(this.selectedIds);

@@ -45,6 +45,7 @@ export class ConnectorSpecificationInputDialogComponent {
         username: '',
         password: '',
         remotePath: '/',
+        recursive: false,
         specifications: [],
       };
 
@@ -58,10 +59,9 @@ export class ConnectorSpecificationInputDialogComponent {
         timeout: 300,
         maxAttempts: 1,
         cronSchedule: '',
-        orderNumber: 0,
         parameters: ftpMetadata,
         disabled: true, // New connectors are disabled by default. User can enable after creating the connection.
-        comment: '',
+        comment: null,
         entryUserId: 0,
         log: null,
       };
@@ -102,17 +102,16 @@ export class ConnectorSpecificationInputDialogComponent {
 
     const createConnector: CreateConnectorSpecificationModel = {
       name: this.connector.name,
-      description: this.connector.description ? this.connector.description : undefined,
+      description: this.connector.description,
       connectorType: this.connector.connectorType,
       endPointType: this.connector.endPointType,
       hostName: this.connector.hostName,
       timeout: this.connector.timeout,
       maxAttempts: this.connector.maxAttempts,
       cronSchedule: this.connector.cronSchedule,
-      orderNumber: this.connector.orderNumber ? this.connector.orderNumber : undefined,
       parameters: this.connector.parameters,
       disabled: this.connector.disabled,
-      comment: this.connector.comment ? this.connector.comment : undefined,
+      comment: this.connector.comment || null,
     };
 
     let saveSubscription: Observable<ViewConnectorSpecificationModel>;
@@ -135,10 +134,6 @@ export class ConnectorSpecificationInputDialogComponent {
         this.pagesDataService.showToast({ title: 'Connector Specification', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
-  }
-
-  protected onOrderNumberChange(value: number | null) {
-    if (value) this.connector.orderNumber = value;
   }
 
   protected onDeleteButtonClick(): void {

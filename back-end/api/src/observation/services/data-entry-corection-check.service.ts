@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
@@ -60,7 +60,7 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
 
     private async reloadFormParameters() {
         this.sourceParameters.clear();
-        const sources: ViewSourceSpecificationDto[] = await this.sourceService.findAll();
+        const sources: ViewSourceSpecificationModel[] = this.sourceService.findAll();
         for (const source of sources) {
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const form = source.parameters as FormSourceDTO;

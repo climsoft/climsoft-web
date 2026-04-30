@@ -1,7 +1,7 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
@@ -15,7 +15,7 @@ import { ImportEntryDialogComponent } from '../import-upload-dialog/import-entry
 export class ImportSelectionComponent implements OnDestroy {
   @ViewChild('dlgImportEntry') dlgImportEntry!: ImportEntryDialogComponent;
 
-  protected importSources!: ViewSourceModel[];
+  protected importSources!: ViewSourceSpecificationModel[];
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -29,13 +29,13 @@ export class ImportSelectionComponent implements OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe((data) => {
       // Important. Remove disabled sources
-      let allImportSources: ViewSourceModel[] = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
+      let allImportSources: ViewSourceSpecificationModel[] = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
       allImportSources = allImportSources.filter(item => item.name !== 'climsoft_v4');
       this.setStationsBasedOnPermissions(allImportSources);
     });
   }
 
-  private setStationsBasedOnPermissions(allImportSources: ViewSourceModel[]) {
+  private setStationsBasedOnPermissions(allImportSources: ViewSourceSpecificationModel[]) {
     this.appAuthService.user.pipe(
       take(1),
     ).subscribe(user => {
@@ -66,7 +66,7 @@ export class ImportSelectionComponent implements OnDestroy {
 
   protected onSearch(): void { }
 
-  protected onSourceClick(source: ViewSourceModel): void {
+  protected onSourceClick(source: ViewSourceSpecificationModel): void {
     this.dlgImportEntry.openDialog(source);
   }
 

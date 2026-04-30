@@ -1,15 +1,15 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { JobQueueService } from './job-queue.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConnectorJobPayloadDto, JobQueueEntity, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity';
-import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
+import { ViewConnectorSpecificationModel } from 'src/metadata/connector-specifications/dtos/view-connector-specification.model';
 import { ConnectorTypeEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
-export class ConnectorSchedulerService implements OnModuleInit {
+export class ConnectorSchedulerService implements OnApplicationBootstrap {
     private readonly logger = new Logger(ConnectorSchedulerService.name);
 
     constructor(
@@ -19,9 +19,12 @@ export class ConnectorSchedulerService implements OnModuleInit {
     ) { }
 
     /**
-     * Initialize all active connector schedules when module starts
+     * Initialize all active connector schedules once the whole app is ready.
+     * Uses onApplicationBootstrap (not onModuleInit) because the cron callbacks
+     * reach back into other modules — we want every dependency fully wired up
+     * before any cron can fire.
      */
-    public async onModuleInit() {
+    public async onApplicationBootstrap() {
         this.logger.log('Initializing connector schedules...');
         await this.initializeAllSchedules();
     }
@@ -31,7 +34,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async initializeAllSchedules() {
         try {
-            const connectors = await this.connectorSpecificationService.findActiveConnectors();
+            const connectors = this.connectorSpecificationService.findActiveConnectors();
 
             for (const connector of connectors) {
                 await this.addConnectorSchedule(connector.id, connector.cronSchedule);
@@ -47,7 +50,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      * Add a new connector schedule
      */
     private async addConnectorSchedule(connectorId: number, connectorCronSchedule: string) {
-        const jobName = `connector-${connectorId}`;
+        const jobName: string = `connector-${connectorId}`;
 
         // Remove existing job if it exists
         if (this.schedulerRegistry.doesExist('cron', jobName)) {
@@ -90,10 +93,10 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async scheduleConnectorJob(connectorId: number) {
         try {
-            const connector = await this.connectorSpecificationService.find(connectorId);
+            const connector: ViewConnectorSpecificationModel = this.connectorSpecificationService.find(connectorId, false);
 
             if (connector.disabled) {
-                this.logger.warn(`Connector ${connectorId} is disabled, skipping`);
+                this.logger.warn(`Connector ${connector.name} is disabled. Skipping`);
                 return;
             }
 
@@ -114,7 +117,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 connector.entryUserId, // User who created it
             );
 
-            this.logger.log(`Created ${connector.connectorType} job for connector ${connector.name}`);
+            this.logger.log(`Created "${connector.connectorType}" job for connector "${connector.name}"`);
 
         } catch (error) {
             this.logger.error(`Failed to schedule connector job ${connectorId}`, error);
@@ -136,7 +139,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      * Manually trigger a connector job
      */
     public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
-        const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId);
+        const connector: ViewConnectorSpecificationModel = this.connectorSpecificationService.find(connectorId);
 
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,

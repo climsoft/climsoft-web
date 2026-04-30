@@ -1,19 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewSpecificationExportDto } from '../dtos/view-export-specification.dto';
+import { ViewSpecificationExportModel } from '../dtos/view-export-specification.model';
 import { ExportSpecificationEntity } from '../entities/export-specification.entity';
 import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
 export class ExportSpecificationsService implements OnModuleInit {
-    private readonly cache: MetadataCache<ViewSpecificationExportDto>;
+    private readonly cache: MetadataCache<ViewSpecificationExportModel>;
 
     constructor(
         @InjectRepository(ExportSpecificationEntity) private exportsRepo: Repository<ExportSpecificationEntity>,
     ) {
-        this.cache = new MetadataCache<ViewSpecificationExportDto>(
+        this.cache = new MetadataCache<ViewSpecificationExportModel>(
             'ExportSpecifications',
             () => this.loadCacheData(),
             (dto) => dto.id,
@@ -24,7 +24,7 @@ export class ExportSpecificationsService implements OnModuleInit {
         await this.cache.init();
     }
 
-    private async loadCacheData(): Promise<CacheLoadResult<ViewSpecificationExportDto>> {
+    private async loadCacheData(): Promise<CacheLoadResult<ViewSpecificationExportModel>> {
         const entities = await this.exportsRepo.find({ order: { id: "ASC" } });
         const records = entities.map(entity => this.createViewDto(entity));
         const lastModifiedDate = entities.length > 0
@@ -33,7 +33,7 @@ export class ExportSpecificationsService implements OnModuleInit {
         return { records, lastModifiedDate };
     }
 
-    public find(id: number): ViewSpecificationExportDto {
+    public find(id: number): ViewSpecificationExportModel {
         const dto = this.cache.getById(id);
         if (!dto) {
             throw new NotFoundException(`Export #${id} not found`);
@@ -41,7 +41,7 @@ export class ExportSpecificationsService implements OnModuleInit {
         return dto;
     }
 
-    public findAll(ids?: number[]): ViewSpecificationExportDto[] {
+    public findAll(ids?: number[]): ViewSpecificationExportModel[] {
         if (ids && ids.length > 0) {
             const idSet = new Set(ids);
             return this.cache.getAll().filter(dto => idSet.has(dto.id));
@@ -49,7 +49,7 @@ export class ExportSpecificationsService implements OnModuleInit {
         return this.cache.getAll();
     }
 
-    public async create(dto: CreateExportSpecificationDto, userId: number): Promise<ViewSpecificationExportDto> {
+    public async create(dto: CreateExportSpecificationDto, userId: number): Promise<ViewSpecificationExportModel> {
         // Export templates are required to have unique names
         let entity = await this.exportsRepo.findOneBy({
             name: dto.name,
@@ -66,8 +66,9 @@ export class ExportSpecificationsService implements OnModuleInit {
         entity.description = dto.description;
         entity.exportType = dto.exportType;
         entity.parameters = dto.parameters;
-        entity.disabled = dto.disabled ? true : false;
-        entity.comment = dto.comment ? dto.comment : null;
+        entity.disabled = dto.disabled;
+        entity.comment = dto.comment;
+        entity.adapterId = dto.adapterId;
         entity.entryUserId = userId;
 
         await this.exportsRepo.save(entity);
@@ -77,13 +78,14 @@ export class ExportSpecificationsService implements OnModuleInit {
 
     }
 
-    public async update(id: number, dto: CreateExportSpecificationDto, userId: number): Promise<ViewSpecificationExportDto> {
+    public async update(id: number, dto: CreateExportSpecificationDto, userId: number): Promise<ViewSpecificationExportModel> {
         const entity = await this.findEntity(id);
         entity.name = dto.name;
         entity.description = dto.description;
         entity.exportType = dto.exportType;
         entity.parameters = dto.parameters;
-        entity.comment = dto.comment ? dto.comment : null;
+        entity.comment = dto.comment;
+        entity.adapterId = dto.adapterId;
         entity.entryUserId = userId;
 
         await this.exportsRepo.save(entity);
@@ -118,8 +120,8 @@ export class ExportSpecificationsService implements OnModuleInit {
         return entity;
     }
 
-    private createViewDto(entity: ExportSpecificationEntity): ViewSpecificationExportDto {
-        const dto: ViewSpecificationExportDto = {
+    private createViewDto(entity: ExportSpecificationEntity): ViewSpecificationExportModel {
+        const dto: ViewSpecificationExportModel = {
             id: entity.id,
             name: entity.name,
             description: entity.description,
@@ -127,6 +129,7 @@ export class ExportSpecificationsService implements OnModuleInit {
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment,
+            adapterId: entity.adapterId,
         }
         return dto;
     }

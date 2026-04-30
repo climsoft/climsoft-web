@@ -94,6 +94,11 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
 import { ViewFlagsComponent } from './flags/view-flags/view-flags.component';
 import { FlagInputDialogComponent } from './flags/flag-input-dialog/flag-input-dialog.component';
 import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-selector-single.component';
+import { ViewAdaptersComponent } from './adapters/view-adapters/view-adapters.component';
+import { AdapterDetailDialogComponent } from './adapters/adapter-detail-dialog/adapter-detail-dialog.component';
+import { AdapterTestRunPaneComponent } from './adapters/adapter-detail-dialog/adapter-test-run-pane/adapter-test-run-pane.component';
+import { AdapterLanguageSelectorSingleComponent } from './adapters/adapter-detail-dialog/adapter-language-selector-single/adapter-language-selector-single.component';
+import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-specification-selector-single/adapter-specification-selector-single.component';
 @NgModule({
   declarations: [
     ViewNetworkAffiliationsComponent,
@@ -216,6 +221,12 @@ import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-s
     FlagInputDialogComponent,
     FlagSelectorSingleComponent,
 
+    ViewAdaptersComponent,
+    AdapterDetailDialogComponent,
+    AdapterLanguageSelectorSingleComponent,
+    AdapterTestRunPaneComponent,
+    AdapterSpecificationSelectorSingleComponent,
+
   ],
   imports: [
     MetadataRoutingModule,
@@ -270,7 +281,6 @@ import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-s
 
     ConnectorSpecificationSelectorSingleComponent,
 
- 
     FlagSelectorSingleComponent,
 
   ]

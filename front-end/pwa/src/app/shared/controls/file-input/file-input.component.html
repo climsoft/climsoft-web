@@ -1,10 +1,13 @@
 <div>
-    <label class="form-label fw-bold">{{ label }}</label>
+     <div *ngIf="label" class="fw-bold">
+      <label [for]="id? id:label">{{ label }} </label>
+      <span *ngIf="labelSuperScript" class="app-label-super-script">{{ labelSuperScript }}</span>
+      <span *ngIf="displaylabelFullColon">:</span>
+    </div>
     <div class="d-flex align-items-center gap-2">
-        <input #fileInput type="file" style="display: none;" [accept]="accept" (change)="onFileChange($event)">
-        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="disabled"
-            (click)="fileInput.click()">
-            {{ fileName ? changeButtonLabel : buttonLabel }}
+        <input [id]="id? id: label" #fileInput type="file" style="display: none;" [accept]="accept" (change)="onFileChange($event)">
+        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="disabled" (click)="fileInput.click()">
+            {{ buttonLabel }}
         </button>
         <span *ngIf="fileName" class="badge bg-secondary">{{ fileName }}</span>
     </div>

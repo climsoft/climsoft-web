@@ -47,9 +47,9 @@ export class JobQueueProcessorService {
      * Process a single job
      */
     private async processJob(job: JobQueueEntity): Promise<void> {
-        this.logger.log(`Processing job ${job.id}: ${job.name}`);
-
         try {
+            this.logger.log(`Processing job ${job.id}: ${job.name}`);
+
             await this.queueService.markAsProcessing(job.id);
 
             // Emit event for job processors to handle based on job type

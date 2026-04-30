@@ -1,4 +1,4 @@
-<ng-container *ngIf="open && importSource">
+<ng-container *ngIf="open && viewSource">
     <app-dialog [(open)]="open" [title]="title"
         [firstButtonOptions]="showNavigation && activeStep !== 'upload' ? {label:  'Previous' , color: 'secondary', closeDialogOnClick: false} : undefined"
         (firstButtonClick)="onPrevious()"
@@ -6,7 +6,7 @@
         (secondButtonClick)="onNext()"
         [thirdButtonOptions]="!transformedPreviewResponse.error ? {label: saving ? 'Saving...' : 'Save', color: 'primary', disable: !showNavigation || saving || !!transformedPreviewResponse.error, closeDialogOnClick: false} : undefined"
         (thirdButtonClick)="onSave()"
-        [fourthButtonOptions]="importSource.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        [fourthButtonOptions]="viewSource.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
         (fourthButtonClick)="onDelete()"
         [fifthButtonOptions]="{label: 'cancel', color: 'secondary', closeDialogOnClick: false} "
         (fifthButtonClick)="closeDialog()">
@@ -50,21 +50,35 @@
                 <div class="step-content">
                     <!-- Step: File & Basics -->
                     <div *ngIf="activeStep === 'upload'">
-                        <div class="mb-3">
-                            <app-file-input [label]="'Sample File'" [buttonLabel]="'Upload Sample File'"
-                                [fileName]="uploadedFileName" (fileSelected)="onFileSelected($event)" />
+                        <div>
+                            <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
                         </div>
 
                         <hr />
 
                         <div>
-                            <app-text-input [label]="'Name'" [(value)]="importSource.name" />
+                            <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
                         </div>
 
                         <hr />
 
                         <div>
-                            <app-text-input [label]="'Description'" [(value)]="importSource.description" />
+                            <app-adapter-specification-selector-single [label]="'Pre-Import Adapter (optional)'"
+                                [placeholder]="'No adapter'" [selectedId]="viewSource.adapterId"
+                                (selectedItemChange)="onAdapterSelected($event)" [displayCancelOption]="true" />
+                            <div class="form-text text-muted">
+                                If set, the adapter script will process the uploaded file before the import pipeline
+                                runs.
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-file-input [label]="'Sample File'"
+                                [buttonLabel]="viewSource.sampleFileName? 'Change Sample File': 'Upload Sample File'"
+                                [disabled]="!canUploadFile" [fileName]="selectedFileName"
+                                (fileSelected)="onSampleFileSelected($event)" />
                         </div>
 
                         <hr />
@@ -108,7 +122,7 @@
                         <hr />
 
                         <div>
-                            <app-number-input [label]="'UTC Offset'" [(numValue)]="importSource.utcOffset" />
+                            <app-number-input [label]="'UTC Offset'" [(numValue)]="viewSource.utcOffset" />
                         </div>
                     </div>
 
@@ -127,8 +141,7 @@
                         <hr *ngIf="tabularImportParams.valueDefinition" />
 
                         <div>
-                            <app-import-source-missing-value-detail
-                                [(allowMissingValue)]="importSource.allowMissingValue"
+                            <app-import-source-missing-value-detail [(allowMissingValue)]="viewSource.allowMissingValue"
                                 [(sourceMissingValueIndicators)]="importSourceParams.sourceMissingValueIndicators" />
                         </div>
 
@@ -136,7 +149,7 @@
 
                         <div>
                             <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'"
-                                [(value)]="importSource.scaleValues" />
+                                [(value)]="viewSource.scaleValues" />
                         </div>
 
                         <hr />
@@ -158,11 +171,11 @@
                                 <tbody>
                                     <tr>
                                         <td class="text-muted review-label">Name</td>
-                                        <td>{{ importSource.name || '—' }}</td>
+                                        <td>{{ viewSource.name || '—' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Description</td>
-                                        <td>{{ importSource.description || '—' }}</td>
+                                        <td>{{ viewSource.description || '—' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Rows to Skip</td>
@@ -189,7 +202,7 @@
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">UTC Offset</td>
-                                        <td>{{ importSource.utcOffset }}</td>
+                                        <td>{{ viewSource.utcOffset }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Interval</td>
@@ -200,11 +213,11 @@
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Allow Missing</td>
-                                        <td>{{ importSource.allowMissingValue ? 'Yes' : 'No' }}</td>
+                                        <td>{{ viewSource.allowMissingValue ? 'Yes' : 'No' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Scale Values</td>
-                                        <td>{{ importSource.scaleValues ? 'Yes' : 'No' }}</td>
+                                        <td>{{ viewSource.scaleValues ? 'Yes' : 'No' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted review-label">Comment</td>
@@ -213,6 +226,10 @@
                                             tabularImportParams.commentColumnPosition : 'Not specified' }}
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Pre-Import Adapter</td>
+                                        <td>{{ selectedAdapter?.name || 'None' }}</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -220,13 +237,13 @@
                         <hr />
 
                         <div>
-                            <app-check-box-input [label]="'Disable'" [(value)]="importSource.disabled" />
+                            <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
                         </div>
 
                         <hr />
 
                         <div>
-                            <app-text-input [label]="'Comment'" [(value)]="importSource.comment" />
+                            <app-text-input [label]="'Comment'" [(value)]="viewSource.comment" />
                         </div>
 
                     </div>
@@ -279,14 +296,14 @@
     <app-confirmation-dialog #dlgSaveConfirm [title]="'Save Import Specification'" [okButtonLabel]="'Yes'"
         [cancelButtonLabel]="'No'" (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
         <p>
-            Are you sure you want to save the import specification <strong>{{ importSource.name }}</strong>?
+            Are you sure you want to save the import specification <strong>{{ viewSource.name }}</strong>?
         </p>
     </app-confirmation-dialog>
 
     <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Import Specification'" [okButtonLabel]="'Yes'"
         [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
         <p>
-            Are you sure you want to delete the import specification <strong>{{ importSource.name }}</strong>?
+            Are you sure you want to delete the import specification <strong>{{ viewSource.name }}</strong>?
         </p>
     </app-confirmation-dialog>
 </ng-container>

@@ -21,7 +21,7 @@ export class ImportFileServerParamsComponent {
     this.importFileServerParameters.specifications.push({
       filePattern: '',
       specificationId: 0,
-      stationId: undefined
+      stationId: null
     });
   }
 
@@ -35,7 +35,7 @@ export class ImportFileServerParamsComponent {
   }
 
   protected onStationIdChange(index: number, stationId: string): void {
-    this.importFileServerParameters.specifications[index].stationId = stationId || undefined;
+    this.importFileServerParameters.specifications[index].stationId = stationId || null;
   }
 
   protected onSpecificationIdChange(index: number, specificationId: number | null): void {

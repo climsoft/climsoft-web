@@ -61,6 +61,7 @@ export class JobQueueService {
     public async markAsProcessing(jobId: number): Promise<void> {
         await this.jobQueueRepo.update(jobId, {
             status: JobQueueStatusEnum.PROCESSING,
+            processedAt: new Date(),
         });
     }
 
@@ -73,7 +74,7 @@ export class JobQueueService {
         if (job) {
             await this.jobQueueRepo.update(jobId, {
                 status: JobQueueStatusEnum.FINISHED,
-                processedAt: new Date(),
+                finishedAt: new Date(),
                 attempts: job.attempts + 1,
             });
         }
@@ -88,7 +89,7 @@ export class JobQueueService {
         if (job) {
             await this.jobQueueRepo.update(jobId, {
                 status: JobQueueStatusEnum.FAILED,
-                processedAt: new Date(),
+                finishedAt: new Date(),
                 attempts: job.attempts + 1,
                 errorMessage,
             });

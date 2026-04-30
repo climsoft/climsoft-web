@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as path from 'node:path';
+import path from 'node:path';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { DataSource } from 'typeorm';
 
@@ -28,7 +28,7 @@ export class SqlScriptsLoaderService {
             this.logger.log('default entry date time triggers added');
         } catch (error) {
             this.logger.error(`Developer error in adding entry date time triggers`);
-            throw new Error(error);
+            throw error;
         }
     }
 
@@ -54,7 +54,7 @@ export class SqlScriptsLoaderService {
             this.logger.log('Logging triggers added');
         } catch (error) {
             this.logger.error(`Developer error in adding logs triggers: ${error}`);
-            throw new Error(error);
+            throw error;
         }
     }
 
@@ -73,7 +73,7 @@ export class SqlScriptsLoaderService {
             this.logger.log('qc tests functions added');
         } catch (error) {
             this.logger.error(`Developer error in adding qc tests functions`);
-            throw new Error(error);
+            throw error;
         }
     }
 
@@ -92,7 +92,7 @@ export class SqlScriptsLoaderService {
             this.logger.log('data availability functions added');
         } catch (error) {
             this.logger.error(`Developer error in adding data availability functions`);
-            throw new Error(error);
+            throw error;
         }
     }
 

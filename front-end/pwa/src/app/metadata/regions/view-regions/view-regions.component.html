@@ -17,8 +17,7 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
-        (cancelClick)="onOptionsDialogClosed()" />
+      <app-import-regions-dialog #dlgImportRegions  />
     </div>
   </div>
 

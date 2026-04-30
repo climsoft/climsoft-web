@@ -13,9 +13,54 @@ export class AppConfig {
     database: process.env.DB_NAME ? process.env.DB_NAME : 'climsoft',
   };
 
-   public static readonly csv2BufrCredentials = {
-    host: AppConfig.devMode ? 'localhost': (process.env.CSV2BUFR_HOST ? process.env.CSV2BUFR_HOST : 'climsoft_csv2bufr'),
-    port:  AppConfig.devMode ? 5001: (process.env.CSV2BUFR_PORT ? +process.env.CSV2BUFR_PORT  : 5001)
+  public static readonly csv2BufrCredentials = {
+    host: AppConfig.devMode ? 'localhost' : (process.env.CSV2BUFR_HOST ? process.env.CSV2BUFR_HOST : 'climsoft_csv2bufr'),
+    port: AppConfig.devMode ? 5001 : (process.env.CSV2BUFR_PORT ? +process.env.CSV2BUFR_PORT : 5001)
+  };
+
+  /**
+   * Configuration for the adapter subsystem. Adapters are user-uploaded
+   * scripts that translate foreign file formats to/from the canonical
+   * format the existing import/export pipelines understand.
+   *
+   * Phase 1 only needs the upload size cap. Runner-related config
+   * (per-language host/port, enabled flags) is added in Phase 2.
+   */
+  public static readonly adapters = {
+    maxUploadSizeBytes: process.env.ADAPTERS_MAX_UPLOAD_BYTES ? +process.env.ADAPTERS_MAX_UPLOAD_BYTES : 10 * 1024 * 1024,
+  };
+
+  /**
+   * Configuration for the adapter runner microservices. Each runner is
+   * opt-in via its `enabled` flag. `timeoutSeconds` is per-runner (not
+   * per-adapter) because it represents a deployment-level policy about
+   * how long scripts in a given language are allowed to run.
+   */
+  public static readonly adapterRunners = {
+    python: {
+      enabled: process.env.PYTHON_RUNNER_ENABLED === 'true',
+      host: AppConfig.devMode ? 'localhost' : (process.env.PYTHON_RUNNER_HOST ?? 'climsoft_python_runner'),
+      port: process.env.PYTHON_RUNNER_PORT ? +process.env.PYTHON_RUNNER_PORT : 5101,
+      timeoutSeconds: process.env.PYTHON_RUNNER_TIMEOUT_SECONDS ? +process.env.PYTHON_RUNNER_TIMEOUT_SECONDS : 300,
+    },
+    r: {
+      enabled: process.env.R_RUNNER_ENABLED === 'true',
+      host: AppConfig.devMode ? 'localhost' : (process.env.R_RUNNER_HOST ?? 'climsoft_r_runner'),
+      port: process.env.R_RUNNER_PORT ? +process.env.R_RUNNER_PORT : 5102,
+      timeoutSeconds: process.env.R_RUNNER_TIMEOUT_SECONDS ? +process.env.R_RUNNER_TIMEOUT_SECONDS : 300,
+    },
+    javascript: {
+      enabled: process.env.JAVASCRIPT_RUNNER_ENABLED === 'true',
+      host: AppConfig.devMode ? 'localhost'  : (process.env.JAVASCRIPT_RUNNER_HOST ?? 'climsoft_javascript_runner'),
+      port: process.env.JAVASCRIPT_RUNNER_PORT ? +process.env.JAVASCRIPT_RUNNER_PORT : 5103,
+      timeoutSeconds: process.env.JAVASCRIPT_RUNNER_TIMEOUT_SECONDS ? +process.env.JAVASCRIPT_RUNNER_TIMEOUT_SECONDS : 300,
+    },
+    sql: {
+      enabled: process.env.DUCKDB_RUNNER_ENABLED === 'true',
+      host: AppConfig.devMode  ? 'localhost'  : (process.env.DUCKDB_RUNNER_HOST ?? 'climsoft_duckdb_runner'),
+      port: process.env.DUCKDB_RUNNER_PORT ? +process.env.DUCKDB_RUNNER_PORT : 5104,
+      timeoutSeconds: process.env.DUCKDB_RUNNER_TIMEOUT_SECONDS ? +process.env.DUCKDB_RUNNER_TIMEOUT_SECONDS : 300,
+    },
   };
 
   // Used to encrypt connector passwords saved in the database

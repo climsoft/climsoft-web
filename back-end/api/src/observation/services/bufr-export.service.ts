@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { BufrExportParametersDto, DAYCLI_BUFR_ELEMENTS } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
-import { FileIOService } from 'src/shared/services/file-io.service';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
 import { AppConfig } from 'src/app.config';
 
 @Injectable()
@@ -19,13 +18,14 @@ export class BufrExportService {
         this.daycliTemplate = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
     }
 
-
-    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFilePathName: string, suffix?: string): Promise<string[]> {
-        // Build the pivot aggregation expressions for each element mapping
-        // For each element we need: hour, minute, second, value, flag
+    /**
+     * BUFR pipeline: DuckDB reads raw CSV from op.inputDir, writes pivot
+     * CSV to op.intermediateDir, then csv2bufr reads from intermediate
+     * and writes .bufr files to op.outputDir.
+     */
+    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, op: OperationContext, rawObservationsFilePath: string): Promise<void> {
         const pivotExpressions: string[] = [];
 
-        // Iterate over all DAYCLI_BUFR_ELEMENTS to ensure all columns are present in the intermediate file
         for (const bufrElement of DAYCLI_BUFR_ELEMENTS) {
             const mapping = exportParams.elementMappings.find(m => m.bufrElement === bufrElement);
             const colName = bufrElement;
@@ -33,25 +33,17 @@ export class BufrExportService {
             pivotExpressions.push(`0 AS ${colName}_day_offset`);
 
             if (mapping) {
-                // Element is mapped - create pivot expressions using the database element ID
                 const elementId = mapping.databaseElementId;
 
-                // Hour column
                 pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(HOUR FROM date_time::TIMESTAMP) END) AS ${colName}_hour`);
-
-                // Minute column
                 pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(MINUTE FROM date_time::TIMESTAMP) END) AS ${colName}_minute`);
-
-                // Second column
                 pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(SECOND FROM date_time::TIMESTAMP) END) AS ${colName}_second`);
 
-                // Value column
                 switch (bufrElement) {
                     case 'maximum_temperature':
                     case 'minimum_temperature':
                     case 'average_temperature':
-                        // TODO. 
-                        // For now. We are assuming that the temperature values in the database are in Celsius and we need to convert them to Kelvin for BUFR. In future we should make this dynamic based on the metadata for the element.
+                        // TODO. We are assuming temperature values are in Celsius and converting to Kelvin for BUFR.
                         pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN (value::DOUBLE + 273.15) END) AS ${colName}`);
                         break;
                     default:
@@ -59,13 +51,9 @@ export class BufrExportService {
                         break;
                 }
 
-
-                // TODO. 
-                // For now we are assuming that the flag values will be bull in the intermediate file but in future we should make this dynamic based on the metadata for the element and the actual flag values in the database.
+                // TODO. Flag values should be dynamic based on metadata.
                 pivotExpressions.push(`NULL AS ${colName}_flag`);
-                //pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
             } else {
-                // Element is not mapped - create NULL columns
                 pivotExpressions.push(`NULL AS ${colName}_hour`);
                 pivotExpressions.push(`NULL AS ${colName}_minute`);
                 pivotExpressions.push(`NULL AS ${colName}_second`);
@@ -74,18 +62,9 @@ export class BufrExportService {
             }
         }
 
-        // TODO. For now we are hardcoding the belwo values  it's required by the csv2bufr template to set the correct BUFR codes, but in future we should make this dynamic based on the metadata for the station, element and instrument. 
-
-
-
-        const intermediateFileName: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
-        const intermediateFilePathName: string = path.posix.join(this.fileIOService.apiExportsDir, intermediateFileName);
-
-        // Build the full SQL query
-        // The query reads the input CSV, groups by station and date, and pivots elements to columns
-
-        // WIGOS ID format: series-issuer-issue_number-local (e.g., 0-20000-0-12345)
-        // WMO ID format: BBBSS (5 digits, first 3 are block number, last 2 are station number)
+        // DuckDB writes the intermediate pivot CSV to op.intermediateDir
+        const intermediateFileName = 'daycli_intermediate.csv';
+        const intermediateFilePath = path.posix.join(op.intermediateDir, intermediateFileName);
 
         const sql = `
             COPY (
@@ -105,16 +84,16 @@ export class BufrExportService {
                     255 AS temperature_siting_classification,
                     255 AS precipitation_siting_classification,
                     -- Placeholder - would need metadata to determine correct value
-                    2 AS averaging_method, 
+                    2 AS averaging_method,
                     -- Placeholder - would need station metadata to determine if it's 1 (screen-level) or 2 (ground-level)
-                    2 AS thermometer_height, 
+                    2 AS thermometer_height,
                     -- Date components (extracted from date_time)
                     EXTRACT(YEAR FROM date_time::TIMESTAMP)::INTEGER AS year,
                     EXTRACT(MONTH FROM date_time::TIMESTAMP)::INTEGER AS month,
                     EXTRACT(DAY FROM date_time::TIMESTAMP)::INTEGER AS day,
                     -- Pivoted element columns
                     ${pivotExpressions.join(',\n')}
-                FROM read_csv('${rawObservationsFilePathName}', header=true, all_varchar=true)
+                FROM read_csv('${rawObservationsFilePath}', header=true, all_varchar=true)
                 GROUP BY
                     station_id,
                     wigos_id,
@@ -129,40 +108,42 @@ export class BufrExportService {
                     year,
                     month,
                     day
-            ) TO '${intermediateFilePathName}' WITH (HEADER, DELIMITER ',');
+            ) TO '${intermediateFilePath}' WITH (HEADER, DELIMITER ',');
         `;
 
         this.logger.debug(`Executing DayCli intermediate file generation SQL`);
 
-        //console.log(sql); // Log the SQL for debugging purposes
-
         await this.fileIOService.duckDbConn.run(sql);
 
-        this.logger.log(`DayCli intermediate file generated: ${intermediateFilePathName}`);
+        this.logger.log(`DayCli intermediate file generated: ${intermediateFilePath}`);
 
         // Convert the intermediate CSV to BUFR using the csv2bufr HTTP service
-        return await this.convertToBufr(intermediateFilePathName, suffix);
+        await this.convertToBufr(op, intermediateFileName);
     }
 
-    private async convertToBufr(intermediateFile: string, suffix?: string): Promise<string[]> {
-        const csv2bufrUrl: string = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
-        const inputFile: string = path.posix.join(`/app/exports/`, path.basename(intermediateFile)); // The csv2bufr service expects the input file to be in a specific directory, so we provide the relative path from that directory
-        const outputDir: string = `/app/exports/`;// this.fileIOService.apiExportsDir;
+    /**
+     * Calls the csv2bufr microservice. The service reads from
+     * /app/operations/<uuid>/intermediate/ and writes .bufr files to
+     * /app/operations/<uuid>/output/.
+     */
+    private async convertToBufr(op: OperationContext, intermediateFileName: string): Promise<void> {
+        const csv2bufrUrl = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
+
+        // csv2bufr container mounts the same operations volume at /app/operations
+        const inputFile = path.posix.join('/app/operations', op.operationId, 'intermediate', intermediateFileName);
+        const outputDir = path.posix.join('/app/operations', op.operationId, 'output');
 
         this.logger.log(`Calling csv2bufr service at ${csv2bufrUrl}`);
-        //this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
 
         try {
             const response = await axios.post(csv2bufrUrl, {
                 input_file: inputFile,
                 mappings: this.daycliTemplate,
                 output_dir: outputDir,
-                suffix: suffix,
             }, {
                 timeout: 60000,
                 headers: { 'Content-Type': 'application/json' },
             });
-
 
             this.logger.log(`BUFR conversion successful. Generated ${response.data.output_files.length} file(s)`);
 
@@ -170,13 +151,7 @@ export class BufrExportService {
                 this.logger.warn(`BUFR conversion had partial errors: ${response.data.errors.join('; ')}`);
             }
 
-            const generatedFiles = response.data.output_files.map((file: string) => path.posix.join(this.fileIOService.apiExportsDir, path.basename(file)));
-            //this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
-
-            return generatedFiles;
-
         } catch (error) {
-            //this.logger.error('Error calling csv2bufr service:', error);
             if (axios.isAxiosError(error)) {
                 const detail = error.response?.data || error.message;
                 throw new Error(`csv2bufr service error: ${detail}`);

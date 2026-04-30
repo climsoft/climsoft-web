@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsString, ValidateIf, ValidateNested } from 'class-validator';
 import { RawExportParametersDto } from './raw-export-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
 import { Type } from 'class-transformer';
@@ -10,13 +10,15 @@ export type ExportParameters = RawExportParametersDto | AggregateExportParameter
 
 export class CreateExportSpecificationDto {
   @IsString()
-  name: string;
+  @IsNotEmpty()
+  name!: string;
 
   @IsString()
-  description: string;
+  @IsNotEmpty()
+  description!: string;
 
   @IsEnum(ExportTypeEnum, { message: 'export type must be a valid value' })
-  exportType: ExportTypeEnum;
+  exportType!: ExportTypeEnum;
 
   @Type((options) => {
     // The 'options.object' gives access to the parent DTO,
@@ -42,12 +44,21 @@ export class CreateExportSpecificationDto {
     }
   })
   @ValidateNested()
-  parameters: ExportParameters;
+  parameters!: ExportParameters;
+
+  /**
+ * Optional FK to a post-export adapter. When set, the adapter is run
+ * on the exported file before delivering it to the user.
+ */
+  @ValidateIf((_o, v) => v !== null)
+  @IsInt()
+  adapterId!: number | null;
 
   @IsBoolean()
-  disabled: boolean;
+  disabled!: boolean;
 
-  @IsOptional()
+  @ValidateIf((_o, v) => v !== null)
   @IsString()
-  comment: string | null;
+  @IsNotEmpty()
+  comment!: string | null;
 }

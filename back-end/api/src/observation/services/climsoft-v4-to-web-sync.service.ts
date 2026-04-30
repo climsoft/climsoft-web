@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../dtos/climsoft-v4-import-parameters.dto';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
 import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';
@@ -16,7 +16,7 @@ import { StationsService } from 'src/metadata/stations/services/stations.service
 export class ClimsoftV4ToWebSyncService {
     private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
     private isImporting: boolean = false;
-    private climsoftSource: ViewSourceSpecificationDto | undefined;
+    private climsoftSource: ViewSourceSpecificationModel | undefined;
     private userId: number = 0;
 
     constructor(

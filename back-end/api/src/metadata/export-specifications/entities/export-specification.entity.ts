@@ -25,7 +25,21 @@ export class ExportSpecificationEntity extends AppBaseEntity {
 
     @Column({ name: "order_number", type: "int", nullable: true })
     @Index()
-    orderNumber!: number | null;
+    orderNumber!: number | null; // TODO. Deprecate this in future. Given that auto exports are scheduled by time. This is not relevant
+
+    /**
+ * Optional FK to a post-export adapter. When set, the adapter is invoked
+ * after the existing export pipeline produces its file — the adapter's
+ * output replaces the file the user downloads. ON DELETE SET NULL so
+ * removing an adapter unwires this reference instead of cascade-deleting
+ * the export specification.
+ */
+    @Column({ name: "adapter_id", type: "int", nullable: true })
+    adapterId!: number | null;
+
+    @ManyToOne(() => AdapterSpecificationEntity, { nullable: true, onDelete: "SET NULL" })
+    @JoinColumn({ name: "adapter_id" })
+    adapter!: AdapterSpecificationEntity | null;
 
     @Column({ type: "boolean", default: false })
     @Index()
@@ -34,19 +48,6 @@ export class ExportSpecificationEntity extends AppBaseEntity {
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment!: string | null;
 
-    /**
-     * Optional FK to a post-export adapter. When set, the adapter is invoked
-     * after the existing export pipeline produces its file — the adapter's
-     * output replaces the file the user downloads. ON DELETE SET NULL so
-     * removing an adapter unwires this reference instead of cascade-deleting
-     * the export specification.
-     */
-    @Column({ name: "export_adapter_id", type: "int", nullable: true })
-    exportAdapterId!: number | null;
-
-    @ManyToOne(() => AdapterSpecificationEntity, { nullable: true, onDelete: "SET NULL" })
-    @JoinColumn({ name: "export_adapter_id" })
-    exportAdapter!: AdapterSpecificationEntity | null;
 
     @Column({ name: 'log', type: 'jsonb', nullable: true })
     log!: BaseLogVo[] | null;

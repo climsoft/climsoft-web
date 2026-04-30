@@ -1,0 +1,158 @@
+<ng-container *ngIf="open && adapter">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Save', color: 'primary', disable: !canSave, closeDialogOnClick: false}"
+        (firstButtonClick)="onSave()"
+        [secondButtonOptions]="adapter.id ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDelete()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
+
+        <div class="d-flex align-items-center gap-4">
+            <div>
+                <div>
+                    <app-text-input [label]="'Name'" [(value)]="adapter.name" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Description'" [(value)]="adapter.description" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-adapter-language-selector-single [label]="'Language'" [selectedId]="adapter.language"
+                        (selectedIdChange)="onLanguageSelected($event)" />
+                    <div class="mt-1 d-flex justify-content-between">
+                        <div class="form-text text-muted">
+                            Language cannot be changed after creation.
+                        </div>
+                        <div *ngIf="adapter.language">
+                            <button type="button" class="btn btn-link small p-0"
+                                (click)="onDownloadSelectedLanguageTemplate()">
+                                <i class="bi bi-download"></i> Download starter template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Adapter Source Upload -->
+                <div>
+                    <app-file-input [id]="'adapter_script_source'" [label]="'Adapter Script Source'"
+                        [buttonLabel]="adapter.scriptDirName? 'Choose File': 'Change File'"
+                        [accept]="'.zip,application/zip'" [fileName]="selectedFileName"
+                        (fileSelected)="onScriptZipFileSelected($event)" />
+                    <div class="form-text text-muted">
+                        <span *ngIf="!adapter.id">
+                            Upload a zip containing the adapter source and a manifest file matching the selected
+                            language.
+                        </span>
+                        <span *ngIf="adapter.id">
+                            Optional. Upload to replace the current version.
+                        </span>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Entry Point -->
+                <div>
+                    <app-text-input [label]="'Entry Point'" [(value)]="adapter.entryPoint" />
+                    <div class="form-text text-muted">
+                        Relative path inside the zip to the entry-point file (e.g. <code>main.py</code>,
+                        <code>main.R</code>,
+                        <code>index.js</code>, <code>transform.sql</code>).
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-check-box-input [label]="'Disabled'" [(value)]="adapter.disabled" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Comment'" [(value)]="adapter.comment" />
+                </div>
+            </div>
+
+            <!-- preview of adapter scripts results -->
+            <div>
+                <app-spinner *ngIf="uploadPreviewLoading" [message]="'Extracting and validating...'" />
+
+                <!-- Script files preview -->
+                <div *ngIf="!uploadPreviewLoading && adapterPreviewResponse">
+                    <div *ngIf="adapterPreviewResponse.fileTree.length > 0" class="mt-2">
+                        <div>
+                            <!-- File tree -->
+                            <div class="fw-bold">Extracted Contents:</div>
+                            <div class="file-tree border rounded p-2">
+                                <div *ngFor="let entry of adapterPreviewResponse.fileTree" class="small file-tree-entry"
+                                    [style.padding-left.px]="(entry.path.split('/').length - 1) * 16"
+                                    [class.text-primary]="fileIsEntryPoint(entry)"
+                                    [class.fw-bold]="fileIsEntryPoint(entry)">
+                                    <i class="bi"
+                                        [ngClass]="entry.isDirectory ? 'bi-folder-fill text-warning' : 'bi-file-earmark'"></i>
+                                    {{ entry.path.split('/').pop() }}
+                                    <span *ngIf="fileIsEntryPoint(entry)" class="badge bg-primary ms-1">entry
+                                        point</span>
+                                </div>
+                            </div>
+
+                            <!-- Manifest status -->
+                            <div class="mt-2">
+                                <span *ngIf="adapterPreviewResponse.manifestFound" class="text-success">
+                                    <i class="bi bi-check-circle-fill"></i> Manifest found
+                                </span>
+                                <span *ngIf="!adapterPreviewResponse.manifestFound" class="text-danger">
+                                    <i class="bi bi-x-circle-fill"></i> {{ adapterPreviewResponse.manifestError }}
+                                </span>
+                            </div>
+
+
+                            <!-- Entry point status -->
+                            <div class="mt-2">
+                                <div *ngIf=" !entryPointValid" class="text-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> Entry point '{{ adapter.entryPoint }}'
+                                    not
+                                    found in the uploaded zip.
+                                </div>
+                                <div *ngIf="entryPointValid" class="text-success mt-2">
+                                    <i class="bi bi-check-circle-fill"></i> Entry point found.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <!-- Test Run pane — available as soon as a script is uploaded and entry point is set, even before saving. -->
+                        <div>
+                            <div class="fw-bold">Test Run:</div>
+                            <app-adapter-test-run-pane [language]="adapter.language"
+                                [scriptDirName]="adapter.scriptDirName" [entryPoint]="adapter.entryPoint" />
+                        </div>
+                    </div>
+                    <div *ngIf="adapterPreviewResponse.fileTree.length === 0">
+                        No files found. Upload a zip file that contains files.
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+    </app-dialog>
+
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Adapter'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the adapter <strong>{{ adapter.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+
+</ng-container>

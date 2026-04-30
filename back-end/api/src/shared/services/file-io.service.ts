@@ -1,142 +1,192 @@
-import { Injectable, Logger, OnModuleDestroy, StreamableFile } from '@nestjs/common';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit, StreamableFile } from '@nestjs/common';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { AppConfig } from 'src/app.config';
 
-// TODO. After removing the deprecated file io methods from various services, we can rename this service
+/**
+ * Every file-processing operation (import, export, adapter test run, preview)
+ * gets its own UUID directory with three subdirectories. Each step in a
+ * pipeline reads from one directory and writes to the next.
+ */
+export interface OperationContext {
+    operationId: crypto.UUID;
+    /** API-perspective root: /app/operations/<uuid> */
+    apiDir: string;
+    /** Database-perspective root: /var/lib/postgresql/operations/<uuid> */
+    dbDir: string;
+    /** API-perspective input directory */
+    inputDir: string;
+    /** API-perspective intermediate directory */
+    intermediateDir: string;
+    /** API-perspective output directory */
+    outputDir: string;
+    /** Database-perspective input directory */
+    dbInputDir: string;
+    /** Database-perspective intermediate directory */
+    dbIntermediateDir: string;
+    /** Database-perspective output directory */
+    dbOutputDir: string;
+}
 
 @Injectable()
-export class FileIOService implements OnModuleDestroy {
+export class FileIOService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(FileIOService.name);
 
-    private _duckDbConn: DuckDBConnection;
-    private _apiImportsDir: string;
-    private _apiExportsDir: string;
-    private _dbImportsDir: string;
-    private _dbExportsDir: string;
+    private _duckDbConn!: DuckDBConnection;
+    private _apiOperationsDir!: string;
+    private _apiAdaptersDir!: string;
+    private _apiSamplesDir!: string;
+    private _dbOperationsDir!: string;
 
-    constructor() {
+    public async onModuleInit() {
         if (AppConfig.devMode) {
-            // Dev mode uses local file system for easier debugging and development. 
-            // Files are stored under a 'temp' directory in the project root which is mounted to any test docker container. 
-            // This allows us to easily inspect files.
-
-            const _tempDir: string = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp');
-            this._apiImportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'imports');
-            this._apiExportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'exports');
-
-            // Delete the temp directory first to ensure a clean state on each server restart. This prevents issues with file locks and permission errors after hot reloads in development.
-            // try {
-            //     fs.rmSync(_tempDir, { recursive: true, force: true });
-            //     this.logger.log(`Deleted existing temp directory: ${_tempDir}`);
-            // } catch (err) {
-            //     this.logger.warn(`Could not delete temp directory (it may not exist): ${_tempDir}`);
-            // }
-
-            fs.mkdirSync(_tempDir, { recursive: true });
-            fs.mkdirSync(this._apiImportsDir, { recursive: true });
-            fs.mkdirSync(this._apiExportsDir, { recursive: true });
+            const tempDir: string = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp');
+            this._apiOperationsDir = path.posix.join(tempDir, 'operations');
+            this._apiAdaptersDir = path.posix.join(tempDir, 'adapters');
+            this._apiSamplesDir = path.posix.join(tempDir, 'samples');
         } else {
-            // In production mode, the API runs in a docker container where /app/imports and /app/exports are mounted volumes. 
-            // The csv2bufr service can also access files in the exports directory via /app/exports.
-            this._apiImportsDir = '/app/imports';
-            this._apiExportsDir = '/app/exports';
-
-            // Ensure the directories exist in the container
-            fs.mkdirSync(this._apiImportsDir, { recursive: true });
-            fs.mkdirSync(this._apiExportsDir, { recursive: true });
+            this._apiOperationsDir = '/app/operations';
+            this._apiAdaptersDir = '/app/adapters';
+            this._apiSamplesDir = '/app/samples';
         }
 
-        // Database container paths
-        // In all modes, the database runs in a separate container where /var/lib/postgresql/imports and /var/lib/postgresql/exports are mounted volumes.
-        // These directories are mapped to the API container's /app/imports and /app/exports respectively.
-        // The database container will automatically have access to files placed in these directories by the API.
-        // It will also automatically create these directories if they do not exist.
-        this._dbImportsDir = '/var/lib/postgresql/imports';
-        this._dbExportsDir = '/var/lib/postgresql/exports';
+        // Database container path — the same operations volume is mounted at a different path in the Postgres container.
+        this._dbOperationsDir = '/var/lib/postgresql/operations';
 
-        this.logger.log(`API Imports and export directory created successfully`);
+        await fs.promises.mkdir(this._apiOperationsDir, { recursive: true });
+        await fs.promises.mkdir(this._apiAdaptersDir, { recursive: true });
+        await fs.promises.mkdir(this._apiSamplesDir, { recursive: true });
 
-        // Initialise DuckDB
-        this.setupDuckDB();
+        await this.setupDuckDB();
+
+        this.logger.log('Operations, adapters and samples directories ready; DuckDB connection initialised');
     }
 
     public async onModuleDestroy() {
         this._duckDbConn.disconnectSync();
     }
 
-    public get apiImportsDir(): string {
-        return this._apiImportsDir;
-    }
+    // ── Operations ──────────────────────────────────────────────────────
 
-    public get apiExportsDir(): string {
-        return this._apiExportsDir;
-    }
-
-    public get dbImportsDir(): string {
-        return this._dbImportsDir;
-    }
-
-    public get dbExportsDir(): string {
-        return this._dbExportsDir
+    public get apiOperationsDir(): string {
+        return this._apiOperationsDir;
     }
 
 
-    // TODO. Push duckdb related functionalities to a separate duckdb service
+    /**
+     * Creates a new operation directory with input/, intermediate/, and output/ subdirectories.
+     *
+     * The directories are made world-writable (mode 0o777, that is, rwxrwxrwxt) so any container
+     * sharing the operations volume can read/write inside them, regardless of
+     * which UID that container runs as. The API creates the dirs (as root in
+     * its container), but other containers also need to write here:
+     *
+     *   - Postgres (`COPY TO`/`COPY FROM`) — definitely runs as a different
+     *     UID (the postgres user, ~999), so this is the load-bearing case.
+     *   - Adapter runners (Python/R/JavaScript/DuckDB) — currently run as
+     *     root, but switching them to non-root users is a good security
+     *     practice we may want to adopt later.
+     *
+     * Without this chmod, the default umask (0o022) masks the write bit for
+     * group/others, leaving non-root containers unable to create files in
+     * directories the API made.
+     */
+    public async createOperation(): Promise<OperationContext> {
+        const operationId: crypto.UUID = crypto.randomUUID();
+        const ctx = this.getOperationContext(operationId);
+        await fs.promises.mkdir(ctx.inputDir, { recursive: true });
+        await fs.promises.mkdir(ctx.intermediateDir, { recursive: true });
+        await fs.promises.mkdir(ctx.outputDir, { recursive: true });
+        await fs.promises.chmod(ctx.apiDir, 0o777);
+        await fs.promises.chmod(ctx.inputDir, 0o777);
+        await fs.promises.chmod(ctx.intermediateDir, 0o777);
+        await fs.promises.chmod(ctx.outputDir, 0o777);
+        return ctx;
+    }
+
+    /**
+     * Reconstructs an OperationContext from an existing operationId without creating directories.
+     */
+    public getOperationContext(operationId: crypto.UUID): OperationContext {
+        const apiDir = path.posix.join(this._apiOperationsDir, operationId);
+        const dbDir = path.posix.join(this._dbOperationsDir, operationId);
+        return {
+            operationId: operationId,
+            apiDir: apiDir,
+            dbDir: dbDir,
+            inputDir: path.posix.join(apiDir, 'input'),
+            intermediateDir: path.posix.join(apiDir, 'intermediate'),
+            outputDir: path.posix.join(apiDir, 'output'),
+            dbInputDir: path.posix.join(dbDir, 'input'),
+            dbIntermediateDir: path.posix.join(dbDir, 'intermediate'),
+            dbOutputDir: path.posix.join(dbDir, 'output'),
+        };
+    }
+
+    /**
+     * Deletes an entire operation directory and all its contents.
+     */
+    public async deleteOperation(operationId: string): Promise<void> {
+        const apiDir = path.posix.join(this._apiOperationsDir, operationId);
+        try {
+            await fs.promises.rm(apiDir, { recursive: true, force: true });
+        } catch (err) {
+            this.logger.warn(`Could not delete operation directory ${apiDir}: ${(err as Error).message}`);
+        }
+    }
+
+    // ── Adapters ────────────────────────────────────────────────────────
+
+    public get apiAdaptersDir(): string {
+        return this._apiAdaptersDir;
+    }
+
+    /**
+     * Returns the full path to the unzipped script tree for a specific adapter.
+     * Flat structure: /app/adapters/<uuid>/
+     */
+    public getAdapterScriptDir(scriptDirName: string): string {
+        return path.posix.join(this._apiAdaptersDir, scriptDirName);
+    }
+
+    // ── Samples ────────────────────────────────────────────────────────
+
+    /** Persistent directory for source specification sample files. */
+    public get apiSamplesDir(): string {
+        return this._apiSamplesDir;
+    }
+
+    // ── DuckDB ──────────────────────────────────────────────────────────
 
     public get duckDbConn(): DuckDBConnection {
         return this._duckDbConn;
     }
 
-    // Move to a duckdb service under a different NodeJS process that manages duckdb. Helps with any duckdb crushes
     private async setupDuckDB() {
-        // Fist delete the duck db path to prevent DuckDB WAL file corruption issues after NestJS hot reloads
+        const duckDbPath = path.posix.join(this._apiOperationsDir, 'duckdb');
+        await fs.promises.rm(duckDbPath, { recursive: true, force: true });
+        await fs.promises.mkdir(duckDbPath, { recursive: true });
 
-        const duckDbPath = path.posix.join(this._apiImportsDir, 'duckdb');
-        if (fs.existsSync(duckDbPath)) {
-            fs.rmSync(duckDbPath, { recursive: true, force: true });
-            this.logger.log(`Deleted existing DuckDB data at: ${duckDbPath}`);
-        }
-        fs.mkdirSync(duckDbPath, { recursive: true });
-
-        // Initialise DuckDB with the specified file path
         const duckDbInstance: DuckDBInstance = await DuckDBInstance.create(path.posix.join(duckDbPath, 'duckdb_io.db'));
         this._duckDbConn = await duckDbInstance.connect();
     }
 
+    // ── Legacy file I/O helpers ─────────────────────────────────────────
 
-    // TODO. Deprecate below file io methods
     public createStreamableFile(filePathName: string) {
         return new StreamableFile(fs.createReadStream(filePathName));
     }
 
+
+    //--------------------------
+    // The 2 functions below can be removed once the sql-scripts-loader.service.ts is refactored to not use tem
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {
         try {
             return await fs.promises.readFile(filePathName, { encoding: encoding })
         } catch (err) {
             throw new Error("Could not read file: " + err);
-        }
-
-    }
-
-    public async saveFile(file: Express.Multer.File, filePathName: string) {
-        try {
-            await fs.promises.writeFile(`${filePathName}`, file.buffer);
-        } catch (err) {
-            console.error('Could not save file:', err);
-            throw new Error("Could not save file: " + err);
-        }
-    }
-
-    public async deleteFile(filePathName: string) {
-        try {
-            // Delete the file.
-            // TODO. Investigate why sometimes the file is not deleted. Node puts a lock on it.
-            await fs.promises.unlink(filePathName);
-        } catch (err) {
-            //throw new Error("Could not delete user file: " + err);
-            console.error("Could not delete file: ", filePathName, err)
         }
     }
 
@@ -149,5 +199,6 @@ export class FileIOService implements OnModuleDestroy {
             throw new Error("Error reading directory: " + err);
         }
     }
+    //--------------------------
 
 }

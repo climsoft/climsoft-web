@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Subject, switchMap, take, takeUntil } from 'rxjs';
 import { ImportSourceTabularParamsModel } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ImportPreviewHttpService } from 'src/app/metadata/source-specifications/services/import-preview.service';
 import { RawPreviewResponse, TransformedPreviewResponse, PreviewError } from 'src/app/metadata/source-specifications/models/import-preview.model';
@@ -25,7 +25,7 @@ enum ImportStage {
 export class ImportEntryDialogComponent implements OnDestroy {
   protected open: boolean = false;
   protected title: string = '';
-  protected viewSource!: ViewSourceModel;
+  protected viewSource!: ViewSourceSpecificationModel;
 
   // file preview from the saved specification (sample file)
   protected sampleFileRawPreviewResponse!: RawPreviewResponse;
@@ -35,8 +35,8 @@ export class ImportEntryDialogComponent implements OnDestroy {
   protected uploadedFileRawPreviewResponse!: RawPreviewResponse;
   protected uploadedFileTransformedPreviewResponse!: TransformedPreviewResponse;
   protected uploadError: PreviewError | null = null;
-  protected uploadedFileLoading: boolean = false;
-  protected transformedUploadedFileLoading: boolean = false;
+  protected uploadingFile: boolean = false;
+  protected processingFile: boolean = false;
 
   // Import state
   protected importStage: ImportStage = ImportStage.IDLE;
@@ -46,16 +46,15 @@ export class ImportEntryDialogComponent implements OnDestroy {
 
   protected showStationSelection: boolean = false;
   protected selectedStationId!: string | null;
-  protected disableUpload: boolean = false;
   protected onlyIncludeStationIds: string[] = [];
 
-  protected uploadedFileName: string = '';
+  protected selectedFileName: string = '';
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private appAuthService: AppAuthService,
-    private importPreviewHttpService: ImportPreviewHttpService,
+    private importPreviewService: ImportPreviewHttpService,
     private pagesDataService: PagesDataService,
   ) {
     this.appAuthService.user.pipe(
@@ -83,18 +82,17 @@ export class ImportEntryDialogComponent implements OnDestroy {
     this.resetUploadPreview();
   }
 
-  public openDialog(source: ViewSourceModel): void {
+  public openDialog(source: ViewSourceSpecificationModel): void {
     this.viewSource = source;
     this.title = `Import Data From ${source.name}`;
 
     // Reset all state
-    this.uploadedFileName = '';
+    this.selectedFileName = '';
     this.resetSamplePreview();
     this.resetUploadPreview();
     this.importStage = ImportStage.IDLE;
     this.importMessage = '';
     this.enableConfirmImport = false;
-    this.disableUpload = false;
     this.selectedStationId = null;
 
     const importSource: ImportSourceModel = this.viewSource.parameters as ImportSourceModel;
@@ -125,10 +123,13 @@ export class ImportEntryDialogComponent implements OnDestroy {
 
     this.sampleFileLoading = true;
 
-    this.importPreviewHttpService.initFromFile(
+    this.importPreviewService.initFromFile(
       this.viewSource.sampleFileName,
-      tabularParams.rowsToSkip,
-      tabularParams.delimiter,
+      {
+        importAdapterId: this.viewSource.adapterId,
+        rowsToSkip: tabularParams.rowsToSkip,
+        delimiter: tabularParams.delimiter ?? null,
+      }
     ).pipe(
       take(1),
     ).subscribe({
@@ -139,7 +140,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
         // Note this cleans the session for the sample file not the uploaded file
         // Note, don't reset the `response.sessionId = ''` because the template uses it for the preview table to determine if it has a file
         if (response.sessionId) {
-          this.importPreviewHttpService.deleteSession(response.sessionId).pipe(
+          this.importPreviewService.deleteSession(response.sessionId).pipe(
             take(1),
           ).subscribe();
         }
@@ -150,6 +151,9 @@ export class ImportEntryDialogComponent implements OnDestroy {
     });
   }
 
+  protected get canUploadFile(): boolean {  
+    return !(this. uploadingFile || this.processingFile || (this.showStationSelection && !this.selectedStationId));
+  }
 
   protected onFileSelected(file: File): void {
     if (this.showStationSelection && !this.selectedStationId) {
@@ -158,7 +162,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
       return;
     }
 
-    this.uploadedFileName = file.name;
+    this.selectedFileName = file.name;
 
     const importSource: ImportSourceModel = this.viewSource.parameters as ImportSourceModel;
     const tabularParams: ImportSourceTabularParamsModel = importSource.dataStructureParameters as ImportSourceTabularParamsModel;
@@ -169,21 +173,26 @@ export class ImportEntryDialogComponent implements OnDestroy {
 
     this.importStage = ImportStage.UPLOADING;
     this.importMessage = 'Uploading file...';
-    this.disableUpload = true;
-    this.uploadedFileLoading = true;
-    this.transformedUploadedFileLoading = true;
+    this.uploadingFile = true;
+    this.processingFile = true;
 
     // Step 1: Upload file to create a preview session
-    this.importPreviewHttpService.upload(file, tabularParams.rowsToSkip, tabularParams.delimiter).pipe(
+    this.importPreviewService.upload(file,
+      {
+        importAdapterId: this.viewSource.adapterId,
+        rowsToSkip: tabularParams.rowsToSkip,
+        delimiter: tabularParams.delimiter ?? null,
+      }
+    ).pipe(
       take(1),
       // Step 2: Store raw preview data, then run the transformation preview
       switchMap((rawResponse: RawPreviewResponse) => {
-        this.uploadedFileLoading = false;
+        this.uploadingFile = false;
 
         this.uploadedFileRawPreviewResponse = rawResponse;
         this.importStage = ImportStage.PREVIEWING;
         this.importMessage = 'Processing preview...';
-        return this.importPreviewHttpService.previewForImport(
+        return this.importPreviewService.previewForImport(
           rawResponse.sessionId,
           this.viewSource.id,
           this.selectedStationId || undefined,
@@ -192,8 +201,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
     ).subscribe({
       next: (transformedResponse: TransformedPreviewResponse) => {
         this.uploadError = transformedResponse.error || null;
-        this.transformedUploadedFileLoading = false;
-        this.disableUpload = false;
+        this.processingFile = false;
 
         this.uploadedFileTransformedPreviewResponse = transformedResponse;
 
@@ -209,9 +217,9 @@ export class ImportEntryDialogComponent implements OnDestroy {
         }
       },
       error: (err) => {
-        this.uploadedFileLoading = false;
-        this.transformedUploadedFileLoading = false;
-        this.disableUpload = false;
+        console.error(err)
+        this.uploadingFile = false;
+        this.processingFile = false;
         this.importStage = ImportStage.ERROR;
         this.importMessage = err.error?.message || 'Failed to process file. Please try again.';
         this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
@@ -242,8 +250,8 @@ export class ImportEntryDialogComponent implements OnDestroy {
     };
 
     this.uploadError = null;
-    this.uploadedFileLoading = false;
-    this.transformedUploadedFileLoading = false;
+    this.uploadingFile = false;
+    this.processingFile = false;
   }
 
   protected onConfirmImport(): void {
@@ -253,16 +261,14 @@ export class ImportEntryDialogComponent implements OnDestroy {
 
     this.importStage = ImportStage.IMPORTING;
     this.importMessage = 'Importing data into database...';
-    this.disableUpload = true;
     this.enableConfirmImport = false;
 
-    this.importPreviewHttpService.confirmImport(this.uploadedFileRawPreviewResponse.sessionId, this.viewSource.id, this.selectedStationId || undefined).pipe(
+    this.importPreviewService.confirmImport(this.uploadedFileRawPreviewResponse.sessionId, this.viewSource.id, this.selectedStationId || undefined).pipe(
       take(1),
     ).subscribe({
       next: () => {
         this.importStage = ImportStage.SUCCESS;
         this.importMessage = 'File successfully imported!';
-        this.disableUpload = false;
 
         // Delete the session. A new file upload should always start from anew session
         this.cleanupSession();
@@ -272,7 +278,6 @@ export class ImportEntryDialogComponent implements OnDestroy {
       error: (err) => {
         this.importStage = ImportStage.ERROR;
         this.importMessage = err.error?.message || 'Import failed. Please try again.';
-        this.disableUpload = false;
         this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
       }
     });
@@ -288,7 +293,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
    */
   private cleanupSession(): void {
     if (this.uploadedFileRawPreviewResponse.sessionId) {
-      this.importPreviewHttpService.deleteSession(this.uploadedFileRawPreviewResponse.sessionId).pipe(
+      this.importPreviewService.deleteSession(this.uploadedFileRawPreviewResponse.sessionId).pipe(
         take(1),
       ).subscribe();
       this.uploadedFileRawPreviewResponse.sessionId = '';

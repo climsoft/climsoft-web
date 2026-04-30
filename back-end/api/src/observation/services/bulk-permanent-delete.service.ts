@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, StreamableFile } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { FileIOService } from 'src/shared/services/file-io.service';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import crypto from 'node:crypto';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
+import { DuckDBUtils, getTableNameFromUUID } from 'src/shared/utils/duckdb.utils';
 import {
     BulkPermanentDeleteCheckDto,
     BulkPermanentDeleteCheckResponse,
@@ -20,8 +20,8 @@ import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-
 
 interface BulkPermanentDeleteSession {
     sessionId: string;
+    operationId: crypto.UUID;
     filter: BulkObservationFilterDto;
-    previewCsvFile?: string;
     duckDbTableName?: string;
     totalMatchingRows: number;
     createdAt: number;
@@ -59,7 +59,10 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
     }
 
     public async checkForDeletion(dto: BulkPermanentDeleteCheckDto): Promise<BulkPermanentDeleteCheckResponse> {
-        const sessionId = crypto.randomUUID();
+
+        // Create an operation for file I/O
+        const op: OperationContext = await this.fileIOService.createOperation();
+        const sessionId: string = op.operationId;
 
         // Count all matching rows (deleted observations only)
         const countSql = this.buildCountQuery(dto.filter);
@@ -68,7 +71,7 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
 
         if (totalMatchingRows === 0) {
             const session: BulkPermanentDeleteSession = {
-                sessionId, filter: dto.filter,
+                sessionId, operationId: op.operationId, filter: dto.filter,
                 totalMatchingRows: 0,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -78,38 +81,35 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
 
         // Build enriched preview and export to CSV via temp table
         const previewQuery = this.buildPreviewSelectQuery(dto.filter);
-        const csvFileName = `bulk_perm_delete_${sessionId}.csv`;
-        const dbCsvPath = path.posix.join(this.fileIOService.dbExportsDir, csvFileName);
-        const apiCsvPath = path.posix.join(this.fileIOService.apiExportsDir, csvFileName);
-        const tmpTable = `bulk_perm_delete_tmp_${sessionId.replaceAll('-', '_')}`;
+        const csvFileName = `${op.operationId}.csv`;
+        const dbCsvPath = path.posix.join(op.dbOutputDir, csvFileName);
+        const apiCsvPath = path.posix.join(op.outputDir, csvFileName);
+        const tableName = getTableNameFromUUID(op.operationId);
 
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         try {
             await queryRunner.query(
-                `CREATE TEMP TABLE ${tmpTable} AS ${previewQuery.sql}`,
+                `CREATE TEMP TABLE ${tableName} AS ${previewQuery.sql}`,
                 previewQuery.params,
             );
-            await queryRunner.query(`COPY ${tmpTable} TO '${dbCsvPath}' WITH CSV HEADER`);
+            await queryRunner.query(`COPY ${tableName} TO '${dbCsvPath}' WITH CSV HEADER`);
         } finally {
-            await queryRunner.query(`DROP TABLE IF EXISTS ${tmpTable}`);
+            await queryRunner.query(`DROP TABLE IF EXISTS ${tableName}`);
             await queryRunner.release();
         }
 
-        // Load into DuckDB for preview
-        const duckDbTableName = `bulk_perm_delete_${sessionId.replaceAll('-', '_')}`;
-        await DuckDBUtils.createTableFromFile(
-            this.fileIOService.duckDbConn, apiCsvPath, duckDbTableName, true, 0, 0
-        );
+        // Load into DuckDB for preview 
+        await DuckDBUtils.createTableFromFile(  this.fileIOService.duckDbConn, apiCsvPath, tableName, true, 0, 0  );
 
-        const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, duckDbTableName);
-        const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, duckDbTableName, this.MAX_PREVIEW_ROWS);
+        const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
+        const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS);
 
         const previewData: BulkPermanentDeleteCheckResponse['previewData'] = { columns, rows, totalRowCount: totalMatchingRows };
 
         const session: BulkPermanentDeleteSession = {
-            sessionId, filter: dto.filter,
-            previewCsvFile: apiCsvPath, duckDbTableName,
+            sessionId, operationId: op.operationId, filter: dto.filter,
+            duckDbTableName: tableName,
             totalMatchingRows,
             createdAt: Date.now(), lastAccessedAt: Date.now(),
         };
@@ -145,13 +145,16 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
 
     public async downloadPreviewCsv(sessionId: string): Promise<StreamableFile> {
         const session = this.getSession(sessionId);
+        const op = this.fileIOService.getOperationContext(session.operationId);
 
-        if (!session.previewCsvFile) {
+        const csvFiles = await fs.promises.readdir(op.outputDir);
+        if (csvFiles.length === 0) {
             throw new BadRequestException('No preview file available for this session');
         }
 
-        const fileName = path.basename(session.previewCsvFile);
-        return new StreamableFile(fs.createReadStream(session.previewCsvFile), {
+        const csvPath = path.posix.join(op.outputDir, csvFiles[0]);
+        const fileName = path.basename(csvPath);
+        return new StreamableFile(fs.createReadStream(csvPath), {
             type: 'text/csv',
             disposition: `attachment; filename="${fileName}"`,
         });
@@ -170,14 +173,8 @@ export class BulkPermanentDeleteService implements OnModuleDestroy {
             }
         }
 
-        // Delete preview CSV
-        if (session.previewCsvFile && fs.existsSync(session.previewCsvFile)) {
-            try {
-                await fs.promises.unlink(session.previewCsvFile);
-            } catch (err) {
-                this.logger.warn(`Failed to delete preview CSV ${session.previewCsvFile}: ${err}`);
-            }
-        }
+        // Delete operation directory
+        await this.fileIOService.deleteOperation(session.operationId);
 
         this.sessions.delete(sessionId);
     }

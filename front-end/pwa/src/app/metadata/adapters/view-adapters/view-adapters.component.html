@@ -1,0 +1,110 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewAdapter()">
+        Add
+      </button>
+      <div>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
+          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+      <div>
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadAdapters()" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body px-0">
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+          <col style="width: 22%;" />
+          <col style="width: 12%;" />
+          <col style="width: 54%;" />
+          <col style="width: 10%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="languageLabel" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Language</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr class="app-cursor-pointer" *ngFor="let adapter of pageItems" [class.text-muted]="adapter.disabled"
+            (click)="onEditAdapter(adapter)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ adapter.name }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-primary': adapter.language === 'sql',
+                'bg-success': adapter.language === 'python',
+                'bg-info': adapter.language === 'r',
+                'bg-secondary': adapter.language === 'javascript'         
+              }">
+                {{ adapter.languageLabel }}
+              </span>
+            </td>
+            <td>
+              <ng-container *ngFor="let seg of adapter.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
+                <ng-template #plainText>{{ seg.content }}</ng-template>
+              </ng-container>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm"
+                  [ngClass]="adapter.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                  [title]="adapter.disabled ? 'Enable source' : 'Disable source'"
+                  (click)="onToggleDisabledClick(adapter, $event)">
+                  <i class="bi" [ngClass]="adapter.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete source"
+                  (click)="onDeleteClick(adapter, $event)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="pageItems.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">
+              No adapters yet. Click "Add" to create one.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <app-adapter-detail-dialog #dlgAdapterInput (saved)="loadAdapters()" />
+
+  <!-- Delete Confirmation Dialog -->
+  <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Adapter Specification'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the adapter specification <strong>{{ selectedAdapter?.name || '' }}</strong>?
+    </p>
+  </app-confirmation-dialog>
+
+
+  <app-confirmation-dialog #dlgDeleteAllConfirm [title]="'Delete All Adapter Specifications'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteAllConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the <strong>all</strong> the adapter specifications?
+    </p>
+  </app-confirmation-dialog>
+
+  <!-- Enable/Disable Confirmation Dialog -->
+  <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedAdapter?.name || ''"
+    [itemType]="'adapter specification'" [isCurrentlyDisabled]="selectedAdapter?.disabled || false"
+    [operationType]="'import and export'" (toggleConfirmed)="onToggleDisabledConfirm()" />
+
+
+</div>

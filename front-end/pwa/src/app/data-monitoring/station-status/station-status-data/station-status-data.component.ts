@@ -3,7 +3,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Intervals.util';
 import { GeneralSettingsCacheService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
@@ -41,7 +41,7 @@ export class StationDataComponent implements OnDestroy {
   protected title: string = '';
   protected observations!: ObservationView[];
   protected elements!: ElementCacheModel[];
-  protected sources!: ViewSourceModel[];
+  protected sources!: ViewSourceSpecificationModel[];
   private utcOffset: number = 0;
   private flags: ViewFlagModel[] = [];
 

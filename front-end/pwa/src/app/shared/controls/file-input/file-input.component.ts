@@ -6,12 +6,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./file-input.component.scss']
 })
 export class FileInputComponent {
-  @Input() label: string = 'File';
-  @Input() buttonLabel: string = 'Upload File';
-  @Input() changeButtonLabel: string = 'Change File';
-  @Input() accept: string = '.csv,.dat,.tsv,.txt';
-  @Input() disabled: boolean = false;
-  @Input() fileName: string = '';
+  @Input() public id: string = '';
+  @Input() public label: string = 'File';
+  @Input() public labelSuperScript: string | undefined = '';
+  @Input() public displaylabelFullColon: boolean = true;
+  @Input() public buttonLabel: string = 'Upload File';
+  @Input() public accept: string | undefined = undefined; // All files
+  @Input() public disabled: boolean = false;
+  @Input() public fileName: string = '';
 
   @Output() fileSelected = new EventEmitter<File>();
 
@@ -20,6 +22,7 @@ export class FileInputComponent {
       return;
     }
     const file = event.target.files[0] as File;
+    this.fileName = file.name;
     this.fileSelected.emit(file);
 
     // Reset file input so re-selecting same file triggers change

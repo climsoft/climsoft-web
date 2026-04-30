@@ -1,0 +1,12 @@
+import { AdapterLanguageEnum } from '../enums/adapter-language.enum';
+
+export class ViewAdapterSpecificationDto {
+    id!: number;
+    name!: string;
+    description!: string;
+    language!: AdapterLanguageEnum;
+    scriptDirName!: string;
+    entryPoint!: string;
+    disabled!: boolean;
+    comment!: string | null;
+}

@@ -22,8 +22,7 @@
                <col style="width: 14%;" />
                <col style="width: 7%;" />
                <col style="width: 12%;" />
-               <col style="width: 10%;" />
-               <col style="width: 5%;" />
+               <col style="width: 15%;" />
                <col style="width: 40%;" />
                <col style="width: 10%;" />
             </colgroup>
@@ -38,8 +37,6 @@
                      (sort)="onSort($event)">Host</th>
                   <th appSortableHeader="cronSchedule" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
                      (sort)="onSort($event)">Schedule</th>
-                  <th appSortableHeader="orderNumber" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
-                     (sort)="onSort($event)">Order</th>
                   <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
                      (sort)="onSort($event)">Description</th>
                   <th>Actions</th>
@@ -59,7 +56,6 @@
                   </td>
                   <td>{{ connector.hostName }}</td>
                   <td>{{ connector.cronSchedule }}</td>
-                  <td>{{ connector.orderNumber }}</td>
                   <td>
                      <ng-container *ngFor="let seg of connector.description | linkify">
                         <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"

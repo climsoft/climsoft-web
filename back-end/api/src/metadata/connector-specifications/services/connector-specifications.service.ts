@@ -3,21 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
 import { CreateConnectorSpecificationDto } from '../dtos/create-connector-specification.dto';
-import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
+import { ViewConnectorSpecificationModel } from '../dtos/view-connector-specification.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
 export class ConnectorSpecificationsService implements OnModuleInit {
-    private readonly cache: MetadataCache<ViewConnectorSpecificationDto>;
+    private readonly cache: MetadataCache<ViewConnectorSpecificationModel>;
 
     constructor(
         @InjectRepository(ConnectorSpecificationEntity)
         private connectorRepo: Repository<ConnectorSpecificationEntity>,
         private eventEmitter: EventEmitter2,
     ) {
-        this.cache = new MetadataCache<ViewConnectorSpecificationDto>(
+        this.cache = new MetadataCache<ViewConnectorSpecificationModel>(
             'ConnectorSpecifications',
             () => this.loadCacheData(),
             (dto) => dto.id,
@@ -28,35 +28,36 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         await this.cache.init();
     }
 
-    private async loadCacheData(): Promise<CacheLoadResult<ViewConnectorSpecificationDto>> {
-        const entities = await this.connectorRepo.find({ order: { id: "ASC" } });
+    private async loadCacheData(): Promise<CacheLoadResult<ViewConnectorSpecificationModel>> {
+        const entities: ConnectorSpecificationEntity[] = await this.connectorRepo.find({ order: { id: "ASC" } });
         // Cache stores records with encrypted (not masked) passwords
-        const records = entities.map(entity => this.createViewDtoFromEntity(entity));
+        const records: ViewConnectorSpecificationModel[] = entities.map(entity => this.createViewDtoFromEntity(entity));
         const lastModifiedDate = entities.length > 0
             ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
             : null;
         return { records, lastModifiedDate };
     }
 
-    public find(id: number, maskPassword: boolean = false): ViewConnectorSpecificationDto {
-        const dto = this.cache.getById(id);
+    public find(id: number, maskPassword: boolean = false): ViewConnectorSpecificationModel {
+        const dto: ViewConnectorSpecificationModel | undefined = this.cache.getById(id);
         if (!dto) {
             throw new NotFoundException(`Connector specification #${id} not found`);
         }
+
         return maskPassword ? this.withMaskedPassword(dto) : dto;
     }
 
-    public findAll(maskPassword: boolean = false): ViewConnectorSpecificationDto[] {
+    public findAll(maskPassword: boolean = false): ViewConnectorSpecificationModel[] {
         const all = this.cache.getAll();
         return maskPassword ? all.map(dto => this.withMaskedPassword(dto)) : all;
     }
 
-    public findActiveConnectors(maskPassword: boolean = false): ViewConnectorSpecificationDto[] {
-        const active = this.cache.getAll().filter(dto => !dto.disabled);
+    public findActiveConnectors(maskPassword: boolean = false): ViewConnectorSpecificationModel[] {
+        const active: ViewConnectorSpecificationModel[] = this.cache.getAll().filter(dto => !dto.disabled);
         return maskPassword ? active.map(dto => this.withMaskedPassword(dto)) : active;
     }
 
-    public async create(dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationDto> {
+    public async create(dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationModel> {
         // Connector specifications are required to have unique names
         let entity = await this.connectorRepo.findOneBy({
             name: dto.name,
@@ -74,22 +75,12 @@ export class ConnectorSpecificationsService implements OnModuleInit {
             name: dto.name,
         });
 
-        entity.description = dto.description || null;
-        entity.connectorType = dto.connectorType;
-        entity.endPointType = dto.endPointType;
-        entity.hostName = dto.hostName;
-        entity.timeout = dto.timeout;
-        entity.maxAttempts = dto.maxAttempts;
-        entity.cronSchedule = dto.cronSchedule;
+
 
         // Encrypt password before storing
         dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
 
-        entity.parameters = dto.parameters;
-        entity.orderNumber = dto.orderNumber || null;
-        entity.disabled = dto.disabled ? true : false;
-        entity.comment = dto.comment || null;
-        entity.entryUserId = userId;
+        this.updateEntityFromDto(entity, dto, userId);
 
         await this.connectorRepo.save(entity);
         await this.cache.invalidate();
@@ -101,8 +92,8 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         return viewDto;
     }
 
-    public async update(id: number, dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationDto> {
-        const entity = await this.findEntity(id);
+    public async update(id: number, dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationModel> {
+        const entity: ConnectorSpecificationEntity = await this.findEntity(id);
 
         // Only encrypt if password has changed or not already encrypted or not masked
         if (dto.parameters.password === '***ENCRYPTED***' || EncryptionUtils.isEncrypted(dto.parameters.password)) {
@@ -111,8 +102,22 @@ export class ConnectorSpecificationsService implements OnModuleInit {
             dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
         }
 
+        this.updateEntityFromDto(entity, dto, userId);
+
+        await this.connectorRepo.save(entity);
+
+        await this.cache.invalidate();
+
+        const viewDto: ViewConnectorSpecificationModel = this.createViewDtoFromEntity(entity);
+
+        this.eventEmitter.emit('connector.updated', { id, viewDto });
+
+        return viewDto;
+    }
+
+    private updateEntityFromDto(entity: ConnectorSpecificationEntity, dto: CreateConnectorSpecificationDto, userId: number): void {
         entity.name = dto.name;
-        entity.description = dto.description || null;
+        entity.description = dto.description;
         entity.connectorType = dto.connectorType;
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
@@ -120,19 +125,9 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         entity.maxAttempts = dto.maxAttempts;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
-        entity.orderNumber = dto.orderNumber ? dto.orderNumber : null;
-        entity.disabled = dto.disabled ? true : false;
-        entity.comment = dto.comment || null;
+        entity.disabled = dto.disabled;
+        entity.comment = dto.comment;
         entity.entryUserId = userId;
-
-        await this.connectorRepo.save(entity);
-        await this.cache.invalidate();
-
-        const viewDto = this.createViewDtoFromEntity(entity);
-
-        this.eventEmitter.emit('connector.updated', { id, viewDto });
-
-        return viewDto;
     }
 
     public async delete(id: number): Promise<number> {
@@ -161,28 +156,27 @@ export class ConnectorSpecificationsService implements OnModuleInit {
     }
 
     /** Creates a view DTO from entity. Stores encrypted (not masked) password. */
-    private createViewDtoFromEntity(entity: ConnectorSpecificationEntity): ViewConnectorSpecificationDto {
+    private createViewDtoFromEntity(entity: ConnectorSpecificationEntity): ViewConnectorSpecificationModel {
         return {
             id: entity.id,
             name: entity.name,
-            description: entity.description ? entity.description : '',
+            description: entity.description,
             connectorType: entity.connectorType,
             endPointType: entity.endPointType,
             hostName: entity.hostName,
             timeout: entity.timeout,
             maxAttempts: entity.maxAttempts,
             cronSchedule: entity.cronSchedule,
-            orderNumber: entity.orderNumber ? entity.orderNumber : undefined,
             parameters: entity.parameters,
             disabled: entity.disabled,
-            comment: entity.comment ? entity.comment : '',
+            comment: entity.comment,
             entryUserId: entity.entryUserId,
             log: entity.log,
         };
     }
 
     /** Returns a copy of the DTO with the password masked. Does not mutate the original. */
-    private withMaskedPassword(dto: ViewConnectorSpecificationDto): ViewConnectorSpecificationDto {
+    private withMaskedPassword(dto: ViewConnectorSpecificationModel): ViewConnectorSpecificationModel {
         return {
             ...dto,
             parameters: { ...dto.parameters, password: '***ENCRYPTED***' },
