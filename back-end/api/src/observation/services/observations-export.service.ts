@@ -17,9 +17,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import AdmZip from 'adm-zip';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
-import { BufrExportParametersDto, BufrTypeEnum } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
-import { BufrExportService } from './bufr-export.service';
-import { getTableNameFromUUID, getUniqueTableName } from 'src/shared/utils/duckdb.utils';
+import { DisseminationServiceEnum } from 'src/metadata/export-specifications/enums/dissemination-service.enum';
+import { DisseminationExportParametersDto } from 'src/metadata/export-specifications/dtos/dissemination-export-parameters.dto';
+import { Wis2BoxExportParametersDto, ReportTypeEnum } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
+import { Wis2BoxExportService } from './wis2box-export.service';
 
 @Injectable()
 export class ObservationsExportService {
@@ -32,7 +33,7 @@ export class ObservationsExportService {
         private dataSource: DataSource,
         private fileIOService: FileIOService,
         private generalSettingsService: GeneralSettingsService,
-        private bufrExportService: BufrExportService,
+        private wis2BoxExportService: Wis2BoxExportService,
     ) {
     }
 
@@ -193,7 +194,7 @@ export class ObservationsExportService {
      * Flow depends on export type and whether a post-export adapter is configured:
      * - Raw (no adapter): Postgres COPY TO -> op.outputDir
      * - Raw (with adapter): Postgres COPY TO -> op.inputDir, runner reads -> op.outputDir
-     * - BUFR: Postgres COPY TO -> op.inputDir, DuckDB -> op.intermediateDir, csv2bufr -> op.outputDir
+     * - Dissemination: Postgres COPY TO -> op.inputDir, service-specific transformer -> op.outputDir
      */
     public async generateExport(exportSpecificationId: number, op: OperationContext, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
         const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
@@ -216,13 +217,27 @@ export class ObservationsExportService {
                 }
                 break;
             case ExportTypeEnum.AGGREGATE:
-                break;
-            case ExportTypeEnum.BUFR:
-                // Postgres -> inputDir, then BUFR pipeline handles intermediate -> output
-                await this.generateBufrExports(viewExportDto.parameters as BufrExportParametersDto, exportPermissions, op);
+                throw new BadRequestException('Aggregate export not yet supported');
+            case ExportTypeEnum.DISSEMINATION:
+                await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportPermissions, op);
                 break;
             default:
                 throw new Error('Export type not supported');
+        }
+    }
+
+    /**
+     * Dispatches by dissemination service. Each service shapes the CSV
+     * to the requirements of the downstream system; format conversion
+     * (e.g. BUFR) is the downstream system's responsibility.
+     */
+    private async generateDisseminationExport(params: DisseminationExportParametersDto, exportPermissions: ExportPermissionsDto, op: OperationContext): Promise<void> {
+        switch (params.service) {
+            case DisseminationServiceEnum.WIS2BOX:
+                await this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportPermissions, op);
+                break;
+            default:
+                throw new BadRequestException('Dissemination service not supported');
         }
     }
 
@@ -354,7 +369,7 @@ export class ObservationsExportService {
                 columnSelections.push('EXTRACT(YEAR FROM ob.date_time) AS year');
                 columnSelections.push('EXTRACT(MONTH FROM ob.date_time ) AS month');
                 columnSelections.push('EXTRACT(DAY FROM ob.date_time) AS day');
-                columnSelections.push('EXTRACT(HOUR FROM ob.date_time ) AS hour');
+                columnSelections.push('EXTRACT(HOUR FROM ob.date_time) AS hour');
                 columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
             } else {
                 columnSelections.push('ob.date_time::timestamp AS date_time');
@@ -395,7 +410,7 @@ export class ObservationsExportService {
 
         }
 
-        const uuid: crypto.UUID = crypto.randomUUID(); 
+        const uuid: crypto.UUID = crypto.randomUUID();
         const dbFilePathName = path.posix.join(dbOutputDir, `${uuid}.csv`);
         const sql: string = `
             COPY (
@@ -415,7 +430,7 @@ export class ObservationsExportService {
     }
 
     // TODO. Refactor to not use `ExportPermissionsDto` as it's not really related to permissions in this context.
-    public async generateBufrExports(exportParams: BufrExportParametersDto, exportPermissions: ExportPermissionsDto, op: OperationContext): Promise<void> {
+    public async generateWis2BoxExport(wis2BoxExportParams: Wis2BoxExportParametersDto, exportPermissions: ExportPermissionsDto, op: OperationContext): Promise<void> {
 
         let sqlCondition: string = 'ob.deleted = false';
 
@@ -423,7 +438,7 @@ export class ObservationsExportService {
             sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        sqlCondition = `${sqlCondition} AND ob.element_id IN (${exportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
+        sqlCondition = `${sqlCondition} AND ob.element_id IN (${wis2BoxExportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
 
         if (exportPermissions.observationPeriod) {
             if (exportPermissions.observationPeriod.last) {
@@ -431,14 +446,16 @@ export class ObservationsExportService {
             }
         }
 
-        switch (exportParams.bufrType) {
-            case BufrTypeEnum.SYNOP:
+        switch (wis2BoxExportParams.reportType) {
+            case ReportTypeEnum.SYNOP:
+                // Pick hourly values only
                 sqlCondition = `${sqlCondition} AND ob.interval = 60`;
                 break;
-            case BufrTypeEnum.DAYCLI:
+            case ReportTypeEnum.DAYCLI:
+                 // Pick daily values only
                 sqlCondition = `${sqlCondition} AND ob.interval = 1440`;
                 break;
-            case BufrTypeEnum.CLIMAT:
+            case ReportTypeEnum.CLIMAT:
                 break;
             default:
                 break;
@@ -455,6 +472,8 @@ export class ObservationsExportService {
         columnSelections.push('st.elevation AS station_elevation');
         columnSelections.push('st.wmo_id AS wmo_id');
         columnSelections.push('st.wigos_id AS wigos_id');
+        // Carried so SYNOP can derive station_type from it (automatic/manual/hybrid -> 0/1/3).
+        columnSelections.push('st.observation_processing_method AS station_obs_processing_method');
         columnSelections.push('ob.element_id AS element_id');
         columnSelections.push('el.units AS element_units');
         columnSelections.push('ob.level AS level');
@@ -462,38 +481,40 @@ export class ObservationsExportService {
         columnSelections.push('ob.date_time AS date_time');
         columnSelections.push('ob.value AS value');
 
-        // Postgres COPY TO -> op.inputDir (step 1 of BUFR pipeline)
-        const uniqueFileName = `bufr_raw_export.csv`;
-        const dbFilePathName = path.posix.join(op.dbInputDir, uniqueFileName);
+        // Postgres COPY TO -> op.inputDir; the WIS2BOX transformer reads from there.
+        const uuid: crypto.UUID = crypto.randomUUID();
+        const rawFileName = `${uuid}.csv`;
+        const apiFilePathName = path.posix.join(op.inputDir, rawFileName);
+        const dbFilePathName = path.posix.join(op.dbInputDir, rawFileName);
+
         const sql: string = `
             COPY (
                 SELECT
-                ${columnSelections.join(',')}
+                    ${columnSelections.join(',\n                        ')}
                 FROM observations ob
                 INNER JOIN stations st on ob.station_id = st.id
                 INNER JOIN elements el on ob.element_id = el.id
                 WHERE ${sqlCondition}
-                ORDER BY ob.date_time ASC
+                ORDER BY 
+                    ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
         await this.dataSource.manager.query(sql);
 
-        // The raw observations file is now in op.inputDir
-        const rawObservationsFile = path.posix.join(op.inputDir, uniqueFileName);
-
-        switch (exportParams.bufrType) {
-            case BufrTypeEnum.SYNOP:
-                throw new Error('SYNOP BUFR export not implemented yet');
-            case BufrTypeEnum.DAYCLI:
-                await this.bufrExportService.generateDayCliBufrFiles(exportParams, op, rawObservationsFile);
+        switch (wis2BoxExportParams.reportType) {
+            case ReportTypeEnum.SYNOP:
+                await this.wis2BoxExportService.generateSynopFiles(wis2BoxExportParams, op.outputDir, apiFilePathName);
                 return;
-            case BufrTypeEnum.CLIMAT:
-                throw new Error('Climat BUFR export not implemented yet');
-            case BufrTypeEnum.TEMP:
-                throw new Error('Temp BUFR export not implemented yet');
+            case ReportTypeEnum.DAYCLI:
+                await this.wis2BoxExportService.generateDayCliFiles(wis2BoxExportParams, op.outputDir, apiFilePathName);
+                return;
+            case ReportTypeEnum.CLIMAT:
+                throw new Error('Climat WIS2BOX export not implemented yet');
+            case ReportTypeEnum.TEMP:
+                throw new Error('Temp WIS2BOX export not implemented yet');
             default:
-                throw new Error('Invalid BUFR export type');
+                throw new Error('Invalid WIS2BOX export type');
         }
 
     }

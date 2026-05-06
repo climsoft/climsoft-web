@@ -12,16 +12,6 @@ services:
       - climsoft_dev_data:/var/lib/postgresql/data
       - ./back-end/api/temp/operations:/var/lib/postgresql/operations
 
-  climsoft_csv2bufr:
-    build:
-      context: ./back-end/csv2bufr
-      dockerfile: Dockerfile
-    container_name: climsoft-csv2bufr
-    ports:
-      - "5001:5001"
-    volumes:
-      - ./back-end/api/temp/operations:/app/operations
-
   climsoft_python_runner:
     build:
       context: ./back-end/runners/python

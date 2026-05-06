@@ -4,8 +4,8 @@ import { ExportTypeEnum } from "../enums/export-type.enum";
 import { ExportParameters } from "../dtos/create-export-specification.dto";
 import { AdapterSpecificationEntity } from "src/metadata/adapters/entities/adapter-specification.entity";
 
-@Entity('export_specifications') // TODO. Rename to export_specifications
-@Check("CHK_export_specifications_name_not_empty", `"name" <> ''`) // TODO Rename this too
+@Entity('export_specifications')
+@Check("CHK_export_specifications_name_not_empty", `"name" <> ''`)
 export class ExportSpecificationEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id!: number;
@@ -22,10 +22,6 @@ export class ExportSpecificationEntity extends AppBaseEntity {
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters!: ExportParameters;
-
-    @Column({ name: "order_number", type: "int", nullable: true })
-    @Index()
-    orderNumber!: number | null; // TODO. Deprecate this in future. Given that auto exports are scheduled by time. This is not relevant
 
     /**
  * Optional FK to a post-export adapter. When set, the adapter is invoked

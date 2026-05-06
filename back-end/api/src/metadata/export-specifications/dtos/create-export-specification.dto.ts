@@ -2,11 +2,11 @@ import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsString, ValidateIf, ValidateNes
 import { RawExportParametersDto } from './raw-export-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
 import { Type } from 'class-transformer';
-import { BufrExportParametersDto } from './bufr-export-parameters.dto';
+import { DisseminationExportParametersDto } from './dissemination-export-parameters.dto';
 import { BadRequestException } from '@nestjs/common';
 import { AggregateExportParametersDto } from './aggregate-export-parameters.dto';
 
-export type ExportParameters = RawExportParametersDto | AggregateExportParametersDto | BufrExportParametersDto;
+export type ExportParameters = RawExportParametersDto | AggregateExportParametersDto | DisseminationExportParametersDto;
 
 export class CreateExportSpecificationDto {
   @IsString()
@@ -37,8 +37,8 @@ export class CreateExportSpecificationDto {
         return RawExportParametersDto;
       case ExportTypeEnum.AGGREGATE:
         return AggregateExportParametersDto;
-      case ExportTypeEnum.BUFR:
-        return BufrExportParametersDto;
+      case ExportTypeEnum.DISSEMINATION:
+        return DisseminationExportParametersDto;
       default:
         throw new BadRequestException('export type is not recognised');
     }

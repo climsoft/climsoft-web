@@ -51,7 +51,7 @@ import { StationSelectorMultipleComponent } from './stations/station-selector/st
 import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ExportSpecificationInputDialogComponent } from './export-specifications/export-specification-input-dialog/export-specification-input-dialog.component';
 import { RawExportParamsComponent } from './export-specifications/export-specification-input-dialog/raw-export-params/raw-export-params.component';
-import { BufrExportParamsComponent } from './export-specifications/export-specification-input-dialog/bufr-export-params/bufr-export-params.component';
+import { Wis2BoxExportParamsComponent } from './export-specifications/export-specification-input-dialog/wis2box-export-params/wis2box-export-params.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ExportSpecificationSelectorSingleComponent } from './export-specifications/export-specification-selector/export-specification-selector-single/export-specification-selector-single.component';
 import { ExportSpecificationSelectorMultipleComponent } from './export-specifications/export-specification-selector/export-specification-selector-multiple/export-specification-selector-multiple.component';
@@ -197,7 +197,7 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
     ViewExportSpecificationsComponent,
     ExportSpecificationInputDialogComponent,
     RawExportParamsComponent,
-    BufrExportParamsComponent,
+    Wis2BoxExportParamsComponent,
     ExportSpecificationSelectorSingleComponent,
     ExportSpecificationSelectorMultipleComponent,
 

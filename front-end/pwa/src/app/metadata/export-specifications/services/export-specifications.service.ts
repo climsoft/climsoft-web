@@ -1,9 +1,10 @@
-import { catchError, Observable, throwError } from "rxjs";
+import { Observable } from "rxjs";
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewExportSpecificationModel } from "../models/view-export-specification.model";
 import { CreateExportSpecificationModel } from "../models/create-export-specification.model";
+import { ReportTypeEnum } from "../models/wis2box-export-parameters.model";
 
 @Injectable({
     providedIn: 'root'
@@ -24,20 +25,8 @@ export class ExportSpecificationsService {
         return this.http.get<ViewExportSpecificationModel>(`${this.endPointUrl}/${id}`);
     }
 
-    public findSynopBufrElements(): Observable<string[]> {
-        return this.http.get<string[]>(`${this.endPointUrl}/synop-bufr-elements`);
-    }
-
-    public findDayCliBufrElements(): Observable<string[]> {
-        return this.http.get<string[]>(`${this.endPointUrl}/daycli-bufr-elements`);
-    }
-
-    public findClimatBufrElements(): Observable<string[]> {
-        return this.http.get<string[]>(`${this.endPointUrl}/climat-bufr-elements`);
-    }
-
-    public findTempBufrElements(): Observable<string[]> {
-        return this.http.get<string[]>(`${this.endPointUrl}/temp-bufr-elements`);
+    public findWis2BoxElements(reportType: ReportTypeEnum): Observable<string[]> {
+        return this.http.get<string[]>(`${this.endPointUrl}/wis2box-elements/${reportType}`);
     }
 
     public add(createDto: CreateExportSpecificationModel): Observable<ViewExportSpecificationModel> {

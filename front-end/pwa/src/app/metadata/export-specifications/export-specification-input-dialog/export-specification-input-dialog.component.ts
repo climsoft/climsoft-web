@@ -6,7 +6,9 @@ import { ExportSpecificationsService } from '../services/export-specifications.s
 import { CreateExportSpecificationModel } from '../models/create-export-specification.model';
 import { ExportTypeEnum } from '../models/export-type.enum';
 import { RawExportParametersModel } from '../models/raw-export-parameters.model';
-import { BufrExportParametersModel, BufrTypeEnum } from '../models/bufr-export-parameters.model';
+import { Wis2BoxExportParametersModel, ReportTypeEnum } from '../models/wis2box-export-parameters.model';
+import { DisseminationExportParametersModel } from '../models/dissemination-export-parameters.model';
+import { DisseminationServiceEnum } from '../models/dissemination-service.enum';
 import { AggregateExportParametersModel } from '../models/aggregate-export-parameters.model';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -63,8 +65,8 @@ export class ExportSpecificationInputDialogComponent {
     return this.viewExportSpecification.parameters as RawExportParametersModel;
   }
 
-  protected get bufrParams(): BufrExportParametersModel {
-    return this.viewExportSpecification.parameters as BufrExportParametersModel;
+  protected get wis2BoxParams(): Wis2BoxExportParametersModel {
+    return (this.viewExportSpecification.parameters as DisseminationExportParametersModel).parameters as Wis2BoxExportParametersModel;
   }
 
   protected onExportTypeChange(exportType: ExportTypeEnum): void {
@@ -74,11 +76,14 @@ export class ExportSpecificationInputDialogComponent {
       case ExportTypeEnum.RAW:
         this.viewExportSpecification.parameters = {} as RawExportParametersModel;
         break;
-      case ExportTypeEnum.BUFR:
+      case ExportTypeEnum.DISSEMINATION:
         this.viewExportSpecification.parameters = {
-          bufrType: BufrTypeEnum.SYNOP,
-          elementMappings: []
-        } as BufrExportParametersModel;
+          service: DisseminationServiceEnum.WIS2BOX,
+          parameters: {
+            reportType: ReportTypeEnum.SYNOP,
+            elementMappings: []
+          } as Wis2BoxExportParametersModel,
+        } as DisseminationExportParametersModel;
         break;
       case ExportTypeEnum.AGGREGATE:
         this.viewExportSpecification.parameters = {} as AggregateExportParametersModel;

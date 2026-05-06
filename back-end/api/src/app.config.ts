@@ -13,11 +13,6 @@ export class AppConfig {
     database: process.env.DB_NAME ? process.env.DB_NAME : 'climsoft',
   };
 
-  public static readonly csv2BufrCredentials = {
-    host: AppConfig.devMode ? 'localhost' : (process.env.CSV2BUFR_HOST ? process.env.CSV2BUFR_HOST : 'climsoft_csv2bufr'),
-    port: AppConfig.devMode ? 5001 : (process.env.CSV2BUFR_PORT ? +process.env.CSV2BUFR_PORT : 5001)
-  };
-
   /**
    * Configuration for the adapter subsystem. Adapters are user-uploaded
    * scripts that translate foreign file formats to/from the canonical

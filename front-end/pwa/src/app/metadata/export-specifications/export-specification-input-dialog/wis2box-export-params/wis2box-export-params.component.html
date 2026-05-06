@@ -1,10 +1,10 @@
-<div *ngIf="bufrExportParameters" class="card">
-    <div class="card-header">BUFR Configuration</div>
+<div *ngIf="wis2BoxExportParameters" class="card">
+    <div class="card-header">WIS2BOX Configuration</div>
     <div class="card-body">
         <div>
-            <app-selector-single-input [id]="'bufr_type_selector'" [label]="'BUFR Type'" [options]="bufrTypes"
-                [optionDisplayFn]="bufrTypeDisplayFunction" [selectedOption]="bufrExportParameters.bufrType"
-                (selectedOptionChange)="onBufrTypeChange($event)" />
+            <app-selector-single-input [id]="'report_type_selector'" [label]="'Report Type'" [options]="reportTypes"
+                [optionDisplayFn]="reportTypeDisplayFunction" [selectedOption]="wis2BoxExportParameters.reportType"
+                (selectedOptionChange)="onReportTypeChange($event)" />
         </div>
         <hr />
 
@@ -18,33 +18,32 @@
                 </div>
             </div>
             <div class="card-body">
-                <div *ngIf="!bufrExportParameters.elementMappings || bufrExportParameters.elementMappings.length === 0"
-                    class="text-muted text-center py-3">
+                <div *ngIf="wis2BoxExportParameters.elementMappings.length === 0" class="text-muted text-center py-3">
                     No element mappings configured. Click "Add Mapping" to create one.
                 </div>
 
                 <table
-                    *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0"
+                    *ngIf="wis2BoxElements.length > 0 && wis2BoxExportParameters.elementMappings.length > 0"
                     class="table table-sm">
                     <thead>
                         <tr>
                             <th>Database Element</th>
-                            <th>BUFR Element</th>
+                            <th>WIS2BOX Element</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody class="table-group-divider">
-                        <tr *ngFor="let mapping of bufrExportParameters.elementMappings; let i = index">
+                        <tr *ngFor="let mapping of wis2BoxExportParameters.elementMappings; let i = index">
                             <td>
                                 <app-element-selector-single [id]="'db_element_' + i"
                                     [selectedId]="mapping.databaseElementId"
                                     (selectedIdChange)="onDBElementSelected(i, $event)" />
                             </td>
                             <td>
-                                <app-selector-single-input [id]="'bufr_element_' + i" [options]="bufrElements"
-                                    [optionDisplayFn]="bufrElementDisplayFunction"
-                                    [selectedOption]="mapping.bufrElement"
-                                    (selectedOptionChange)="onBufrElementSelected(i, $event)" />
+                                <app-selector-single-input [id]="'wis2box_element_' + i" [options]="wis2BoxElements"
+                                    [optionDisplayFn]="wis2BoxElementDisplayFunction"
+                                    [selectedOption]="mapping.wis2BoxElement"
+                                    (selectedOptionChange)="onWis2BoxElementSelected(i, $event)" />
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-outline-danger"

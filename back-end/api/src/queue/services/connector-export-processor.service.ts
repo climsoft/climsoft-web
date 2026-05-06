@@ -242,12 +242,12 @@ export class ConnectorExportProcessorService {
 
                 const op = this.fileIOService.getOperationContext(exportExecutionActivity.operationId as crypto.UUID);
                 for (const file of exportExecutionActivity.processedFiles) {
-                    const localFilePath = path.posix.join(op.outputDir, file.fileName);
+                    const localFilePathName = path.posix.join(op.outputDir, file.fileName);
                     const remoteFileName = file.fileName;
-                    const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFileName);
+                    const remoteFilePathName = path.posix.join(connectorParams.remotePath, remoteFileName);
                     try {
                         this.logger.log(`Uploading file ${remoteFileName} to remote server`);
-                        await client.put(localFilePath, remoteFilePath);
+                        await client.put(localFilePathName, remoteFilePathName);
                         this.logger.log(`Successfully uploaded file ${remoteFileName}`);
                     } catch (error) {
                         let errorMessage = error instanceof Error ? error.message : String(error);

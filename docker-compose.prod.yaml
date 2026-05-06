@@ -46,8 +46,6 @@ services:
       V4_DB_USERNAME: "${V4_DB_USERNAME}"
       V4_DB_PASSWORD: "${V4_DB_PASSWORD}"
       V4_DB_UTCOFFSET: "${V4_DB_UTCOFFSET}"
-      CSV2BUFR_HOST: climsoft_csv2bufr
-      CSV2BUFR_PORT: 5001
       PYTHON_RUNNER_ENABLED: "${PYTHON_RUNNER_ENABLED:-false}"
       PYTHON_RUNNER_HOST: climsoft_python_runner
       PYTHON_RUNNER_PORT: 5101
@@ -68,17 +66,6 @@ services:
     volumes:
       - climsoft_operations:/app/operations
       - climsoft_adapters:/app/adapters
-    networks:
-      - climsoft_network
-
-  climsoft_csv2bufr:
-    image: climsoftdevelopers/climsoft-csv2bufr:preview-3.0.0
-    container_name: climsoft-csv2bufr
-    restart: always
-    expose:
-      - 5001 # Expose to internal network only.
-    volumes:
-      - climsoft_operations:/app/operations
     networks:
       - climsoft_network
 

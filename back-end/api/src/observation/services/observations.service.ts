@@ -4,7 +4,7 @@ import { And, Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOpe
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
-import { ViewObservationDto } from '../dtos/view-observation.dto';
+import { ViewObservationModel } from '../dtos/view-observation.model';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
@@ -19,7 +19,7 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { ViewUserDto } from 'src/user/dtos/view-user.dto';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
 import { DataAvailaibilityDetailsDto } from '../dtos/data-availability-details.dto';
 
@@ -38,7 +38,7 @@ export class ObservationsService {
 
 
 
-    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationDto[]> {
+    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationModel[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
@@ -52,7 +52,7 @@ export class ObservationsService {
         return this.createViewObsDtos(entities);
     }
 
-    public async findProcessed(queryDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
+    public async findProcessed(queryDto: ViewObservationQueryDTO): Promise<ViewObservationModel[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level. 
         if (!(queryDto.page && queryDto.pageSize && queryDto.pageSize <= 1000)) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
@@ -154,10 +154,10 @@ export class ObservationsService {
 
     }
 
-    private async createViewObsDtos(obsEntities: ObservationEntity[]): Promise<ViewObservationDto[]> {
-        const obsView: ViewObservationDto[] = [];
+    private async createViewObsDtos(obsEntities: ObservationEntity[]): Promise<ViewObservationModel[]> {
+        const obsView: ViewObservationModel[] = [];
         for (const obsEntity of obsEntities) {
-            const viewObs: ViewObservationDto = {
+            const viewObs: ViewObservationModel = {
                 stationId: obsEntity.stationId,
                 elementId: obsEntity.elementId,
                 sourceId: obsEntity.sourceId,
@@ -547,7 +547,7 @@ export class ObservationsService {
         }));
     }
 
-    public async findDataFlow(filter: DataFlowQueryDto): Promise<ViewObservationDto[]> {
+    public async findDataFlow(filter: DataFlowQueryDto): Promise<ViewObservationModel[]> {
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 11)) {
@@ -564,9 +564,9 @@ export class ObservationsService {
             deleted: false,
         });
 
-        const obsView: ViewObservationDto[] = [];
+        const obsView: ViewObservationModel[] = [];
         for (const obsEntity of obsEntities) {
-            const viewObs: ViewObservationDto = {
+            const viewObs: ViewObservationModel = {
                 stationId: obsEntity.stationId,
                 elementId: obsEntity.elementId,
                 sourceId: obsEntity.sourceId,

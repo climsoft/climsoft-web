@@ -11,8 +11,8 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Column({ name: 'name', type: 'varchar', unique: true })
   name!: string;
 
-  @Column({ name: 'description', type: 'varchar', nullable: true })
-  description!: string | null;
+  @Column({ name: 'description', type: 'varchar' })
+  description!: string;
 
   @Column({ name: 'connector_type', type: 'enum', enum: ConnectorTypeEnum })
   @Index()

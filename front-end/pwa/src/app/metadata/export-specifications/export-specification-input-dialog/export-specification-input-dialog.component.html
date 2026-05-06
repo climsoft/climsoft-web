@@ -30,8 +30,8 @@
             <app-raw-export-params [rawExportParameters]="rawParams" />
         </ng-container>
 
-        <ng-container *ngIf="viewExportSpecification.exportType === 'bufr'">
-            <app-bufr-export-params [bufrExportParameters]="bufrParams" />
+        <ng-container *ngIf="viewExportSpecification.exportType === 'dissemination'">
+            <app-wis2box-export-params [wis2BoxExportParameters]="wis2BoxParams" />
         </ng-container>
 
         <ng-container *ngIf="viewExportSpecification.exportType === 'aggregate'">

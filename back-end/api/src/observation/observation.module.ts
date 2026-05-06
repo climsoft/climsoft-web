@@ -16,7 +16,7 @@ import { ObservationsExportService } from './services/observations-export.servic
 import { ClimsoftV4WebSyncSetUpService } from './services/climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ToWebSyncService } from './services/climsoft-v4-to-web-sync.service';
 import { DataEntryAndCorrectionCheckService } from './services/data-entry-corection-check.service';
-import { BufrExportService } from './services/bufr-export.service';
+import { Wis2BoxExportService } from './services/wis2box-export.service';
 import { ImportPreviewService } from './services/import-preview.service';
 import { ImportPreviewController } from './controllers/import-preview.controller';
 import { BulkPkUpdateService } from './services/bulk-pk-update.service';
@@ -55,7 +55,7 @@ import { SourceCheckController } from './controllers/source-check.controller';
     DataEntryAndCorrectionCheckService,
     QCTestAssessmentsService, 
     ObservationsExportService,
-    BufrExportService,
+    Wis2BoxExportService,
     ClimsoftV4WebSyncSetUpService,
     ClimsoftWebToV4SyncService,
     ClimsoftV4ToWebSyncService,
