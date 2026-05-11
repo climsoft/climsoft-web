@@ -302,8 +302,8 @@ export class Wis2BoxExportService implements OnModuleInit {
             `past_weather1`,
             `past_weather2`,
             `sunshine_total_1hr`,
-            // sunshine_total_24hr — strict 24-row trailing sum (NULL if any hour missing)
-            `${strictWindowSum('sunshine_total_1hr', 24, 'w_24')} AS sunshine_total_24hr`,// TODO convert the `sunshine_total_1hr` which are in minutes to hour
+            // sunshine_total_24hr — strict 24-row trailing sum (NULL if any hour missing). Convert minutes to hours.
+            `${this.minsToHours(strictWindowSum('sunshine_total_1hr', 24, 'w_24'))} AS sunshine_total_24hr`,
             // ── Precipitation ─────────────────────────────────────────────
             // TODO: rain_sensor_height — to come from station instrument metadata.
             `NULL AS rain_sensor_height`,
