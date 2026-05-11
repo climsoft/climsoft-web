@@ -3,7 +3,6 @@ import path from 'node:path';
 import { Wis2BoxExportParametersDto } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { PRESSURE_TENDENCY_FM12_MACRO_SQL, WMO_STATION_TYPE_MACRO_SQL } from './wis2box-export-macros';
-import crypto from 'node:crypto';
 
 @Injectable()
 export class Wis2BoxExportService implements OnModuleInit {
@@ -16,7 +15,11 @@ export class Wis2BoxExportService implements OnModuleInit {
      * trailing-digit noise. Shared between SYNOP and DAYCLI generators.
      */
     private readonly hPaToPa = (v: string) => `ROUND(${v} * 100, 1)`;  // Pa to 0.1 precision
-    private readonly cToK = (v: string) => `ROUND(${v} + 273.15, 2)`;  // K to 0.01 precision
+    private readonly celciusToK = (v: string) => `ROUND(${v} + 273.15, 2)`;  // K to 0.01 precision
+    private readonly knotsToMs = (v: string) => `ROUND(${v} * 0.51444, 2)`;  // ms to 0.01 precision
+    private readonly feetToMeters = (v: string) => `ROUND(${v} * 0.3048, 2)`;  // meters to 0.01 precision 
+    private readonly oktasToPerc = (v: string) => `ROUND( (${v} * 100) / 8 , 0)`;  // % with no d.p. Important for 9 oktas to be 113% 
+    private readonly minsToHours = (v: string) => `ROUND(${v} / 60, 2)`;  // ms to 0.01 precision 
 
     constructor(
         private fileIOService: FileIOService,
@@ -113,66 +116,67 @@ export class Wis2BoxExportService implements OnModuleInit {
             // Pressure (hPa -> Pa)
             pivot('station_pressure', this.hPaToPa),
             pivot('msl_pressure', this.hPaToPa),
-            pivot('pressure_standard_level', this.hPaToPa),
+            // comes from observation for now but later it can be derived
+            pivot('geopotential_height'),
             // Air temperature (C -> K)
-            pivot('air_temperature', this.cToK),
-            pivot('dewpoint_temperature', this.cToK),
+            pivot('air_temperature', this.celciusToK),
+            pivot('dewpoint_temperature', this.celciusToK),
             pivot('relative_humidity'),
             pivot('horizontal_visibility'),
             // Cloud
-            pivot('cloud_total_cover'),
+            pivot('cloud_total_cover', this.oktasToPerc),
             pivot('cloud_total_vertical_sig'),
             pivot('cloud_amount_low_level'),
-            pivot('cloud_base_height'),
+            pivot('cloud_base_height', this.feetToMeters),
             pivot('cloud_type_low_level'),
             pivot('cloud_type_mid_level'),
             pivot('cloud_type_high_level'),
             pivot('cloud_layer1_vertical_sig'),
             pivot('cloud_layer1_amount'),
             pivot('cloud_layer1_type'),
-            pivot('cloud_layer1_base_height'),
+            pivot('cloud_layer1_base_height', this.feetToMeters),
             pivot('cloud_layer2_vertical_sig'),
             pivot('cloud_layer2_amount'),
             pivot('cloud_layer2_type'),
-            pivot('cloud_layer2_base_height'),
+            pivot('cloud_layer2_base_height', this.feetToMeters),
             pivot('cloud_layer3_vertical_sig'),
             pivot('cloud_layer3_amount'),
             pivot('cloud_layer3_type'),
-            pivot('cloud_layer3_base_height'),
+            pivot('cloud_layer3_base_height', this.feetToMeters),
             pivot('cloud_layer4_vertical_sig'),
             pivot('cloud_layer4_amount'),
             pivot('cloud_layer4_type'),
-            pivot('cloud_layer4_base_height'),
+            pivot('cloud_layer4_base_height', this.feetToMeters),
             // Soil temperatures (C -> K)
-            pivot('soil_level1_temperature', this.cToK),
-            pivot('soil_level2_temperature', this.cToK),
-            pivot('soil_level3_temperature', this.cToK),
-            pivot('soil_level4_temperature', this.cToK),
-            pivot('soil_level5_temperature', this.cToK),
-            pivot('soil_level6_temperature', this.cToK),
-            pivot('soil_level7_temperature', this.cToK),
-            pivot('soil_level8_temperature', this.cToK),
-            pivot('soil_level9_temperature', this.cToK),
-            pivot('soil_level10_temperature', this.cToK),
+            pivot('soil_level1_temperature', this.celciusToK),
+            pivot('soil_level2_temperature', this.celciusToK),
+            pivot('soil_level3_temperature', this.celciusToK),
+            pivot('soil_level4_temperature', this.celciusToK),
+            pivot('soil_level5_temperature', this.celciusToK),
+            pivot('soil_level6_temperature', this.celciusToK),
+            pivot('soil_level7_temperature', this.celciusToK),
+            pivot('soil_level8_temperature', this.celciusToK),
+            pivot('soil_level9_temperature', this.celciusToK),
+            pivot('soil_level10_temperature', this.celciusToK),
             // Ground / snow / weather
             pivot('ground_state'),
             pivot('snow_depth'),
-            pivot('ground_minimum_temperature', this.cToK),
+            pivot('ground_minimum_temperature', this.celciusToK),
             pivot('present_weather'),
             pivot('past_weather1'),
             pivot('past_weather2'),
             pivot('sunshine_total_1hr'),
             pivot('total_precipitation_1_hour'),
             // Extreme temperatures (C -> K)
-            pivot('temp_maximum', this.cToK),
-            pivot('temp_minimum', this.cToK),
+            pivot('temp_maximum', this.celciusToK),
+            pivot('temp_minimum', this.celciusToK),
             // Wind
             pivot('wind_direction'),
-            pivot('wind_speed'),
-            pivot('max_wind_gust_direction_10min'),
-            pivot('maximum_wind_gust_speed_10min'),
-            pivot('max_wind_gust_direction_60min'),
-            pivot('maximum_wind_gust_speed_60min'),
+            pivot('wind_speed', this.knotsToMs),
+            pivot('max_wind_gust_direction_10min', this.knotsToMs),
+            pivot('maximum_wind_gust_speed_10min', this.knotsToMs),
+            pivot('max_wind_gust_direction_60min', this.knotsToMs),
+            pivot('maximum_wind_gust_speed_60min', this.knotsToMs),
             // Evaporation
             pivot('evaporation_total'),
             // Solar radiation (1-hour)
@@ -226,9 +230,9 @@ export class Wis2BoxExportService implements OnModuleInit {
             ) AS pressure_tendency_characteristic`,
             // pressure_change_24hr — current minus 24h prior (NULL if either missing)
             `ROUND(station_pressure - LAG(station_pressure, 24) OVER w, 1) AS pressure_change_24hr`,
-            `pressure_standard_level`,
-            // TODO: geopotential_height — should come from station instrument metadata; placeholder using WMO standard.
-            `1520 AS geopotential_height`,
+            `85000 AS pressure_standard_level`,
+            // TODO: geopotential_height — comes from observation for now but later it can be derived
+            `geopotential_height`,
             // TODO: thermometer_height — should come from station instrument metadata.  Add to upstream SELECT when available.
             `NULL AS thermometer_height`,
             // ── Air temperature ──────────────────────────────────────────
@@ -262,26 +266,26 @@ export class Wis2BoxExportService implements OnModuleInit {
             `cloud_layer4_amount`,
             `cloud_layer4_type`,
             `cloud_layer4_base_height`,
-            // ── Soil (depths hardcoded per WMO; temperatures already converted in CTE) ──
-            `0.1 AS soil_level1_depth`,
+            // ── Soil (depths will come from station element instrument metadata. Temperatures already converted in CTE) ──
+            `NULL AS soil_level1_depth`, // TODO. To come from station instrument metadata.
             `soil_level1_temperature`,
-            `0.2 AS soil_level2_depth`,
+            `NULL AS soil_level2_depth`, // TODO. To come from station instrument metadata.
             `soil_level2_temperature`,
-            `0.3 AS soil_level3_depth`,
+            `NULL AS soil_level3_depth`, // TODO. To come from station instrument metadata.
             `soil_level3_temperature`,
-            `0.4 AS soil_level4_depth`,
+            `NULL AS soil_level4_depth`, // TODO. To come from station instrument metadata.
             `soil_level4_temperature`,
-            `0.5 AS soil_level5_depth`,
+            `NULL AS soil_level5_depth`, // TODO. To come from station instrument metadata.
             `soil_level5_temperature`,
-            `0.6 AS soil_level6_depth`,
+            `NULL AS soil_level6_depth`, // TODO. To come from station instrument metadata.
             `soil_level6_temperature`,
-            `0.7 AS soil_level7_depth`,
+            `NULL AS soil_level7_depth`, // TODO. To come from station instrument metadata.
             `soil_level7_temperature`,
-            `0.8 AS soil_level8_depth`,
+            `NULL AS soil_level8_depth`, // TODO. To come from station instrument metadata.
             `soil_level8_temperature`,
-            `0.9 AS soil_level9_depth`,
+            `NULL AS soil_level9_depth`, // TODO. To come from station instrument metadata.
             `soil_level9_temperature`,
-            `1.0 AS soil_level10_depth`,
+            `NULL AS soil_level10_depth`, // TODO. To come from station instrument metadata.
             `soil_level10_temperature`,
             // ── Ground / snow ─────────────────────────────────────────────
             // TODO: method_of_ground_state_measurement — to come from station instrument metadata.
@@ -299,14 +303,14 @@ export class Wis2BoxExportService implements OnModuleInit {
             `past_weather2`,
             `sunshine_total_1hr`,
             // sunshine_total_24hr — strict 24-row trailing sum (NULL if any hour missing)
-            `${strictWindowSum('sunshine_total_1hr', 24, 'w_24')} AS sunshine_total_24hr`,
+            `${strictWindowSum('sunshine_total_1hr', 24, 'w_24')} AS sunshine_total_24hr`,// TODO convert the `sunshine_total_1hr` which are in minutes to hour
             // ── Precipitation ─────────────────────────────────────────────
             // TODO: rain_sensor_height — to come from station instrument metadata.
             `NULL AS rain_sensor_height`,
             `total_precipitation_1_hour`,
             // total_precipitation_{3,6,12,24}_hour — strict trailing sums
-            `${strictWindowSum('total_precipitation_1_hour', 3,  'w_3')}  AS total_precipitation_3_hour`,
-            `${strictWindowSum('total_precipitation_1_hour', 6,  'w_6')}  AS total_precipitation_6_hour`,
+            `${strictWindowSum('total_precipitation_1_hour', 3, 'w_3')}  AS total_precipitation_3_hour`,
+            `${strictWindowSum('total_precipitation_1_hour', 6, 'w_6')}  AS total_precipitation_6_hour`,
             `${strictWindowSum('total_precipitation_1_hour', 12, 'w_12')} AS total_precipitation_12_hour`,
             `${strictWindowSum('total_precipitation_1_hour', 24, 'w_24')} AS total_precipitation_24_hour`,
             // ── Extreme temperatures ──────────────────────────────────────
@@ -325,10 +329,10 @@ export class Wis2BoxExportService implements OnModuleInit {
             `NULL AS wind_instrument_type`,
             `wind_direction`,
             `wind_speed`,
-            `max_wind_gust_direction_10min`,
-            `maximum_wind_gust_speed_10min`,
-            `max_wind_gust_direction_60min`,
-            `maximum_wind_gust_speed_60min`,
+            `max_wind_gust_direction_10min`, // TODO. Convert the knots to ms
+            `maximum_wind_gust_speed_10min`,// TODO. Convert the knots to ms
+            `max_wind_gust_direction_60min`,// TODO. Convert the knots to ms
+            `maximum_wind_gust_speed_60min`,// TODO. Convert the knots to ms
             // ── Evaporation ───────────────────────────────────────────────
             // TODO: evaporation_sensor_height — to come from station instrument metadata.
             `NULL AS evaporation_sensor_height`,
@@ -350,16 +354,18 @@ export class Wis2BoxExportService implements OnModuleInit {
             // solar_radiation24_time_period — 24-hour data is -24.
             `-24 AS solar_radiation24_time_period`,
             // 24-hour rolling sums of the 1-hour radiation channels (strict)
-            `${strictWindowSum('solar_radiation1_long_wave',  24, 'w_24')} AS solar_radiation24_long_wave`,
+            `${strictWindowSum('solar_radiation1_long_wave', 24, 'w_24')} AS solar_radiation24_long_wave`,
             `${strictWindowSum('solar_radiation1_short_wave', 24, 'w_24')} AS solar_radiation24_short_wave`,
-            `${strictWindowSum('solar_radiation1_net',        24, 'w_24')} AS solar_radiation24_net`,
-            `${strictWindowSum('solar_radiation1_global',     24, 'w_24')} AS solar_radiation24_global`,
-            `${strictWindowSum('solar_radiation1_diffuse',    24, 'w_24')} AS solar_radiation24_diffuse`,
-            `${strictWindowSum('solar_radiation1_direct',     24, 'w_24')} AS solar_radiation24_direct`,
+            `${strictWindowSum('solar_radiation1_net', 24, 'w_24')} AS solar_radiation24_net`,
+            `${strictWindowSum('solar_radiation1_global', 24, 'w_24')} AS solar_radiation24_global`,
+            `${strictWindowSum('solar_radiation1_diffuse', 24, 'w_24')} AS solar_radiation24_diffuse`,
+            `${strictWindowSum('solar_radiation1_direct', 24, 'w_24')} AS solar_radiation24_direct`,
         ];
 
-        const uuid: crypto.UUID = crypto.randomUUID();
-        const outputFilePathName = path.posix.join(outputDir, `climsoft_${uuid.substring(0, 8)}_synop.csv`);
+        // YYYYMMDDTHHMMSS — drop dashes/colons from ISO 8601 and trim the
+        // fractional-second + trailing Z suffix.
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const outputFilePathName = path.posix.join(outputDir, `climsoft_synop_${timestamp}.csv`);
 
         const sql = `
             COPY (
@@ -528,9 +534,9 @@ export class Wis2BoxExportService implements OnModuleInit {
             ...pivotDayCliPrefix('fresh_snow_depth'),
             ...pivotDayCliPrefix('total_snow_depth'),
             // Temperatures (C -> K)
-            ...pivotDayCliPrefix('maximum_temperature', this.cToK),
-            ...pivotDayCliPrefix('minimum_temperature', this.cToK),
-            ...pivotDayCliPrefix('average_temperature', this.cToK),
+            ...pivotDayCliPrefix('maximum_temperature', this.celciusToK),
+            ...pivotDayCliPrefix('minimum_temperature', this.celciusToK),
+            ...pivotDayCliPrefix('average_temperature', this.celciusToK),
         ];
 
         // ── Outer SELECT: spec column order ──────────────────────────────
@@ -571,8 +577,10 @@ export class Wis2BoxExportService implements OnModuleInit {
             ...layoutPrefix('average_temperature'),
         ];
 
-        const uuid: crypto.UUID = crypto.randomUUID();
-        const outputFilePathName = path.posix.join(outputDir, `climsoft_${uuid.substring(0, 8)}_daycli.csv`);
+        // YYYYMMDDTHHMMSS — drop dashes/colons from ISO 8601 and trim the
+        // fractional-second + trailing Z suffix.
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const outputFilePathName = path.posix.join(outputDir, `climsoft_daycli_${timestamp}.csv`);
 
         const sql = `
             COPY (

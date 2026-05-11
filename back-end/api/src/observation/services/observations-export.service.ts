@@ -21,6 +21,7 @@ import { DisseminationServiceEnum } from 'src/metadata/export-specifications/enu
 import { DisseminationExportParametersDto } from 'src/metadata/export-specifications/dtos/dissemination-export-parameters.dto';
 import { Wis2BoxExportParametersDto, ReportTypeEnum } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
 import { Wis2BoxExportService } from './wis2box-export.service';
+import { ExportQueryModel } from 'src/metadata/export-specifications/dtos/export-query.model';
 
 @Injectable()
 export class ObservationsExportService {
@@ -53,10 +54,10 @@ export class ObservationsExportService {
             }
         }
 
-        const exportPermissions: ExportPermissionsDto = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
+        const exportQuery: ExportQueryModel = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
 
         const op: OperationContext = await this.fileIOService.createOperation();
-        await this.generateExport(exportSpecificationId, op, exportPermissions);
+        await this.generateExport(exportSpecificationId, op, exportQuery);
 
         return op.operationId;
     }
@@ -112,7 +113,9 @@ export class ObservationsExportService {
         }
     }
 
-    private validateAndRedefineExportFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
+    private validateAndRedefineExportFiltersBasedOnUserQueryRequest(
+        user: LoggedInUserDto,
+        queryDto: ViewObservationQueryDTO): ExportQueryModel {
         let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {
@@ -185,7 +188,18 @@ export class ObservationsExportService {
 
         exportPermissions.observationPeriod = observationPeriod;
 
-        return exportPermissions;
+        const exportQuery: ExportQueryModel = {
+            stationIds: exportPermissions.stationIds,
+            elementIds: exportPermissions.elementIds,
+            intervals: exportPermissions.intervals,
+            qcStatuses: exportPermissions.qcStatuses,
+            useEntryDate: exportPermissions.observationPeriod?.useEntryDate,
+            within: exportPermissions.observationPeriod?.within,
+            fromDate: exportPermissions.observationPeriod?.fromDate,
+            last: exportPermissions.observationPeriod?.last // In minutes
+        }
+
+        return exportQuery;
     }
 
     /**
@@ -196,7 +210,10 @@ export class ObservationsExportService {
      * - Raw (with adapter): Postgres COPY TO -> op.inputDir, runner reads -> op.outputDir
      * - Dissemination: Postgres COPY TO -> op.inputDir, service-specific transformer -> op.outputDir
      */
-    public async generateExport(exportSpecificationId: number, op: OperationContext, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
+    public async generateExport(
+        exportSpecificationId: number,
+        op: OperationContext,
+        exportQuery: ExportQueryModel): Promise<void> {
         const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
 
         if (viewExportDto.disabled) {
@@ -209,17 +226,17 @@ export class ObservationsExportService {
             case ExportTypeEnum.RAW:
                 if (hasAdapter) {
                     // Postgres -> inputDir, then adapter -> outputDir
-                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportPermissions, op.dbInputDir);
+                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
                     await this.runExportAdapter(viewExportDto, op);
                 } else {
                     // Postgres -> outputDir directly
-                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportPermissions, op.dbOutputDir);
+                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir);
                 }
                 break;
             case ExportTypeEnum.AGGREGATE:
                 throw new BadRequestException('Aggregate export not yet supported');
             case ExportTypeEnum.DISSEMINATION:
-                await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportPermissions, op);
+                await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
                 break;
             default:
                 throw new Error('Export type not supported');
@@ -231,10 +248,13 @@ export class ObservationsExportService {
      * to the requirements of the downstream system; format conversion
      * (e.g. BUFR) is the downstream system's responsibility.
      */
-    private async generateDisseminationExport(params: DisseminationExportParametersDto, exportPermissions: ExportPermissionsDto, op: OperationContext): Promise<void> {
+    private async generateDisseminationExport(
+        params: DisseminationExportParametersDto,
+        exportQuery: ExportQueryModel,
+        op: OperationContext): Promise<void> {
         switch (params.service) {
             case DisseminationServiceEnum.WIS2BOX:
-                await this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportPermissions, op);
+                await this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportQuery, op);
                 break;
             default:
                 throw new BadRequestException('Dissemination service not supported');
@@ -281,37 +301,35 @@ export class ObservationsExportService {
 
     public async generateRawExports(
         exportParams: RawExportParametersDto,
-        exportPermissions: ExportPermissionsDto,
+        exportQuery: ExportQueryModel,
         dbOutputDir: string,
     ): Promise<void> {
 
         let sqlCondition: string = 'ob.deleted = false';
 
-        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+        if (exportQuery.stationIds && exportQuery.stationIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        if (exportPermissions.elementIds && exportPermissions.elementIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportPermissions.elementIds.join(',')})`;
+        if (exportQuery.elementIds && exportQuery.elementIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportQuery.elementIds.join(',')})`;
         }
 
-        if (exportPermissions.intervals && exportPermissions.intervals.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportPermissions.intervals.join(',')})`;
+        if (exportQuery.intervals && exportQuery.intervals.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportQuery.intervals.join(',')})`;
         }
 
-        if (exportPermissions.observationPeriod) {
-            if (exportPermissions.observationPeriod.within) {
-                const within = exportPermissions.observationPeriod.within;
-                sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
-            } else if (exportPermissions.observationPeriod.fromDate) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationPeriod.fromDate}'`;
-            } else if (exportPermissions.observationPeriod.last) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
-            }
+        if (exportQuery.within) {
+            const within = exportQuery.within;
+            sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
+        } else if (exportQuery.fromDate) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportQuery.fromDate}'`;
+        } else if (exportQuery.last) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportQuery.last} minutes'`;
         }
 
-        if (exportPermissions.qcStatuses) {
-            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportPermissions.qcStatuses}'`;
+        if (exportQuery.qcStatuses) {
+            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportQuery.qcStatuses}'`;
         }
 
         const columnSelections: string[] = [];
@@ -410,8 +428,8 @@ export class ObservationsExportService {
 
         }
 
-        const uuid: crypto.UUID = crypto.randomUUID();
-        const dbFilePathName = path.posix.join(dbOutputDir, `${uuid}.csv`);
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const dbFilePathName = path.posix.join(dbOutputDir, `${timestamp}.csv`);
         const sql: string = `
             COPY (
                 SELECT
@@ -429,21 +447,26 @@ export class ObservationsExportService {
         await this.dataSource.manager.query(sql);
     }
 
-    // TODO. Refactor to not use `ExportPermissionsDto` as it's not really related to permissions in this context.
-    public async generateWis2BoxExport(wis2BoxExportParams: Wis2BoxExportParametersDto, exportPermissions: ExportPermissionsDto, op: OperationContext): Promise<void> {
+    public async generateWis2BoxExport(
+        wis2BoxExportParams: Wis2BoxExportParametersDto,
+        exportQuery: ExportQueryModel,
+        op: OperationContext): Promise<void> {
 
         let sqlCondition: string = 'ob.deleted = false';
 
-        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
-            sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+        if (exportQuery.stationIds && exportQuery.stationIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
         sqlCondition = `${sqlCondition} AND ob.element_id IN (${wis2BoxExportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
 
-        if (exportPermissions.observationPeriod) {
-            if (exportPermissions.observationPeriod.last) {
-                sqlCondition = `${sqlCondition} AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
-            }
+        if (exportQuery.within) {
+            const within = exportQuery.within;
+            sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
+        } else if (exportQuery.fromDate) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportQuery.fromDate}'`;
+        } else if (exportQuery.last) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportQuery.last} minutes'`;
         }
 
         switch (wis2BoxExportParams.reportType) {
@@ -452,7 +475,7 @@ export class ObservationsExportService {
                 sqlCondition = `${sqlCondition} AND ob.interval = 60`;
                 break;
             case ReportTypeEnum.DAYCLI:
-                 // Pick daily values only
+                // Pick daily values only
                 sqlCondition = `${sqlCondition} AND ob.interval = 1440`;
                 break;
             case ReportTypeEnum.CLIMAT:
@@ -482,8 +505,8 @@ export class ObservationsExportService {
         columnSelections.push('ob.value AS value');
 
         // Postgres COPY TO -> op.inputDir; the WIS2BOX transformer reads from there.
-        const uuid: crypto.UUID = crypto.randomUUID();
-        const rawFileName = `${uuid}.csv`;
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const rawFileName = `${timestamp}.csv`;
         const apiFilePathName = path.posix.join(op.inputDir, rawFileName);
         const dbFilePathName = path.posix.join(op.dbInputDir, rawFileName);
 

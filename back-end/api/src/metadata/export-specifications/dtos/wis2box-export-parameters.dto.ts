@@ -38,70 +38,70 @@ export const WIS2BOX_ELEMENTS_BY_REPORT_TYPE: Record<ReportTypeEnum, string[]> =
         'station_pressure',
         'msl_pressure',
         //'pressure_change_3hr', // Calculate it from the 1 hour station_pressure. It is a minus calculation between the value for the latest hour and the last 3 hour. If any misses then it should be missing as well.
-        'pressure_tendency_characteristic',
+        // 'pressure_tendency_characteristic', // 2 if it is increasing (pressure3hr is positive), 4 if it is the same (pressure3hr is 0), 7 if it has decreased for the last 3 hours(if pressure3hr is negative). If any pressure3hr is missing it should be missing
         // 'pressure_change_24hr', // Calculate it from the 1 hour station_pressure. It is a minus calculation between the value for the latest hour and the last 24 hour. If any misses then it should be missing as well.
-        // 'pressure_standard_level', //  Derived from geopotential_height
-        // 'geopotential_height', //  Should come from station metadata.  
+        // 'pressure_standard_level', // Hard code as 85000
+        'geopotential_height',
         // 'thermometer_height', //  Should come from station element instrument metadata.  
-        'air_temperature',
-        'dewpoint_temperature',
+        'air_temperature', // convert from celcius to kelvin
+        'dewpoint_temperature', // convert from celcius to kelvin
         'relative_humidity',
         // 'visibility_sensor_height', //  Should come from station element instrument metadata. 
         'horizontal_visibility',
-        'cloud_total_cover',
+        'cloud_total_cover',// convert from oktas to % . 0 to 8 - which adds to 100%.  9 or / is 113% . No decimal points that's why 112.5 becomes 113
         'cloud_total_vertical_sig',
         'cloud_amount_low_level',
-        'cloud_base_height',
+        'cloud_base_height',  // convert feet to meters
         'cloud_type_low_level',
         'cloud_type_mid_level',
         'cloud_type_high_level',
         'cloud_layer1_vertical_sig',
         'cloud_layer1_amount',
         'cloud_layer1_type',
-        'cloud_layer1_base_height',
+        'cloud_layer1_base_height', // convert feet to meters
         'cloud_layer2_vertical_sig',
         'cloud_layer2_amount',
         'cloud_layer2_type',
-        'cloud_layer2_base_height',
+        'cloud_layer2_base_height',  // convert feet to meters
         'cloud_layer3_vertical_sig',
         'cloud_layer3_amount',
         'cloud_layer3_type',
-        'cloud_layer3_base_height',
+        'cloud_layer3_base_height',  // convert feet to meters
         'cloud_layer4_vertical_sig',
         'cloud_layer4_amount',
         'cloud_layer4_type',
-        'cloud_layer4_base_height',
-        // 'soil_level1_depth', //  Hard code as 0.1
-        'soil_level1_temperature',
-        // 'soil_level2_depth',  //  Hard code as 0.2
-        'soil_level2_temperature',
-        // 'soil_level3_depth',  // Hard code as 0.3
-        'soil_level3_temperature',
-        // 'soil_level4_depth',  //  Hard code as 0.4
-        'soil_level4_temperature',
-        //  'soil_level5_depth',  // Hard code as 0.5
-        'soil_level5_temperature',
-        //   'soil_level6_depth',  // Hard code as 0.6
-        'soil_level6_temperature',
-        //   'soil_level7_depth',  // Hard code as 0.7
-        'soil_level7_temperature',
-        //   'soil_level8_depth',  // Hard code as 0.8
-        'soil_level8_temperature',
-        //  'soil_level9_depth',  //  Hard code as 0.9
-        'soil_level9_temperature',
-        //   'soil_level10_depth',  // Hard code as 1.0
-        'soil_level10_temperature',
+        'cloud_layer4_base_height',  // convert feet to meters
+        // 'soil_level1_depth', // TODO. Should come from station element instrument metadata.
+        // 'soil_level1_temperature', // TODO. Activate after depth is activated
+        // 'soil_level2_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level2_temperature', // TODO. Activate after depth is activated
+        // 'soil_level3_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level3_temperature', // TODO. Activate after depth is activated
+        // 'soil_level4_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level4_temperature', // TODO. Activate after depth is activated
+        // 'soil_level5_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level5_temperature', // TODO. Activate after depth is activated
+        // 'soil_level6_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level6_temperature', // TODO. Activate after depth is activated
+        // 'soil_level7_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level7_temperature', // TODO. Activate after depth is activated
+        // 'soil_level8_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level8_temperature', // TODO. Activate after depth is activated
+        // 'soil_level9_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level9_temperature', // TODO. Activate after depth is activated
+        // 'soil_level10_depth',  // TODO. Should come from station element instrument metadata.
+        // 'soil_level10_temperature', // TODO. Activate after depth is activated
         // 'method_of_ground_state_measurement', // Should come from station element instrument metadata.
         'ground_state',
-        // 'method_of_snow_depth_measurement',  Should come from station element instrument metadata.
+        // 'method_of_snow_depth_measurement', // Should come from station element instrument metadata.
         'snow_depth',
         'ground_minimum_temperature',
         'present_weather',
         //  'past_weather_period', // Hard code as -1
         'past_weather1',
         'past_weather2',
-        'sunshine_total_1hr',
-        // 'sunshine_total_24hr', //  Calculate it from the 1 hour sunshine total.
+        'sunshine_total_1hr', // measured in minutes
+        // 'sunshine_total_24hr', //  Calculate it from the 1 hour sunshine total and divide by 60 minutes.
         // 'rain_sensor_height', //  Should come from station element instrument metadata.
         'total_precipitation_1_hour',
         // 'total_precipitation_3_hour', //  Calculate it from the 1 hour precipitation
@@ -116,12 +116,12 @@ export const WIS2BOX_ELEMENTS_BY_REPORT_TYPE: Record<ReportTypeEnum, string[]> =
         // 'anemometer_height', //  Should come from station element instrument metadata.
         // 'wind_instrument_type', // Should come from station element instrument metadata.
         'wind_direction',
-        'wind_speed',
-        'max_wind_gust_direction_10min',
-        'maximum_wind_gust_speed_10min',
-        'max_wind_gust_direction_60min',
-        'maximum_wind_gust_speed_60min',
-        // 'evaporation_sensor_height', //  Should come from station element instrument metadata.
+        'wind_speed', // TODO. How to handle knots, km/h data and m/s AWS data
+        'max_wind_gust_direction_10min', // TODO. How to handle knots, km/h data and m/s AWS data.
+        'maximum_wind_gust_speed_10min', // TODO. How to handle knots data and m/s AWS data.
+        'max_wind_gust_direction_60min', // TODO. How to handle knots data and m/s AWS data.
+        'maximum_wind_gust_speed_60min', // TODO. How to handle knots data and m/s AWS data.
+        // 'evaporation_sensor_height', // Should come from station element instrument metadata.
         'evaporation_time_period', // Hard coded as -1
         // 'evaporation_sensor_type', // Should come from station element instrument metadata. 
         'evaporation_total',
@@ -132,13 +132,13 @@ export const WIS2BOX_ELEMENTS_BY_REPORT_TYPE: Record<ReportTypeEnum, string[]> =
         'solar_radiation1_global',
         'solar_radiation1_diffuse',
         'solar_radiation1_direct',
-        //  'solar_radiation24_time_period',  Hard coded as -24
-        // 'solar_radiation24_long_wave', // Calculate it from solar_radiation1
-        //  'solar_radiation24_short_wave',  // Calculate it from solar_radiation1
-        //  'solar_radiation24_net',  // Calculate it from solar_radiation1
-        //  'solar_radiation24_global',  // Calculate it from solar_radiation1
-        //   'solar_radiation24_diffuse',  // Calculate it from solar_radiation1
-        // 'solar_radiation24_direct',  // Calculate it from solar_radiation1
+        // 'solar_radiation24_time_period',  Hard coded as -24
+        // 'solar_radiation24_long_wave', //  Calculate it from the 1 hour solar_radiation1_long_wave
+        // 'solar_radiation24_short_wave', //  Calculate it from the 1 hour solar_radiation1_short_wave
+        // 'solar_radiation24_net', //  Calculate it from the 1 hour solar_radiation24_net
+        // 'solar_radiation24_global', //  Calculate it from the 1 hour solar_radiation24_global
+        // 'solar_radiation24_diffuse', //  Calculate it from the 1 hour solar_radiation24_diffuse
+        // 'solar_radiation24_direct', //  Calculate it from the 1 hour solar_radiation24_direct
     ],
     [ReportTypeEnum.DAYCLI]: [
         'precipitation',

@@ -105,7 +105,7 @@ export class ConnectorExportProcessorService {
 
                 try {
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
-                    await this.observationsExportService.generateExport(spec.specificationId, op, { stationIds: spec.stationId ? [spec.stationId] : undefined, observationPeriod: { last: connectorParams.observationPeriod } });
+                    await this.observationsExportService.generateExport(spec.specificationId, op, { stationIds: spec.stationId ? [spec.stationId] : undefined,  last: connectorParams.observationPeriod  });
 
                     // Scan the operation's output directory for generated files
                     const outputFiles = await fs.promises.readdir(op.outputDir);

@@ -73,7 +73,7 @@ CREATE OR REPLACE MACRO pressure_tendency_fm12(p_now, p_1h_ago, p_2h_ago, p_3h_a
  * by WIS2BOX:
  *   automatic -> 0
  *   manual    -> 1
- *   hybrid    -> 3
+ *   hybrid    -> 2
  *
  * Returns NULL for unrecognised or NULL input.
  *
@@ -85,7 +85,7 @@ CREATE OR REPLACE MACRO wmo_station_type(processing_method) AS (
     CASE processing_method
         WHEN 'automatic' THEN 0
         WHEN 'manual'    THEN 1
-        WHEN 'hybrid'    THEN 3
+        WHEN 'hybrid'    THEN 2
         ELSE NULL
     END
 );
