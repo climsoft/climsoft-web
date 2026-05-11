@@ -8,17 +8,17 @@ import { Column, Entity, PrimaryColumn } from "typeorm";
 @Entity("station_observation_environments")
 export class StationObservationEnvironmentEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
-  id: number;
+  id!: number;
 
   @Column({ type: "varchar", unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: "varchar" })
-  description: string;
+  description!: string;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: 'log', type: 'jsonb', nullable: true })
-  log: BaseLogVo[] | null;
+  log!: BaseLogVo[] | null;
 }

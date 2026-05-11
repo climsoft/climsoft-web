@@ -10,54 +10,54 @@ import { UserPermissionDto } from "../dtos/permissions/user-permission.dto";
   `("is_system_admin" = true AND "permissions" IS NULL) OR ("is_system_admin" = false AND "permissions" IS NOT NULL)`) // SYstem admins must not have permissions because they can access all the features
 export class UserEntity {
   @PrimaryGeneratedColumn({ type: "int" })
-  id: number;
+  id!: number;
 
   @Column({ name: "name", type: 'varchar' })
-  name: string;
+  name!: string;
 
   @Column({ name: "email", type: "varchar", unique: true })
-  email: string;
+  email!: string;
 
   @Column({ type: "varchar", unique: true , nullable: true })
-  phone: string | null;
+  phone!: string | null;
 
   @Column({ name: "hashed_password", type: "varchar" })
   @Index()
-  hashedPassword: string;
+  hashedPassword!: string;
 
   @Column({ type: "boolean", name: 'is_system_admin' })
-  isSystemAdmin: boolean;
+  isSystemAdmin!: boolean;
 
   // User group for permissions assignments
   // -----------------------------------------
   @Column({ name: "group_id", type: "int", nullable: true })
   @Index()
-  groupId: number | null;
+  groupId!: number | null;
 
   @ManyToOne(() => UserGroupEntity, { onDelete: "SET NULL", nullable: true })
   @JoinColumn({ name: "group_id" })
-  group: UserGroupEntity | null;
+  group!: UserGroupEntity | null;
   // -----------------------------------------
 
   @Column({ type: "jsonb", name: "permissions", nullable: true })
-  permissions: UserPermissionDto | null;
+  permissions!: UserPermissionDto | null;
 
   @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
-  extraMetadata: string | null; //TODO. Determine Structure
+  extraMetadata!: string | null; //TODO. Determine Structure
 
   @Column({ type: "boolean", default: false })
   @Index()
-  disabled: boolean;
+  disabled!: boolean;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   // This will be set by a trigger
   @Column({ name: "entry_date_time", type: 'timestamptz' })
-  entryDateTime: Date;
+  entryDateTime!: Date;
 
   @Column({ type: 'jsonb', nullable: true })
-  log: UserLogVo[] | null;
+  log!: UserLogVo[] | null;
 }
 
 

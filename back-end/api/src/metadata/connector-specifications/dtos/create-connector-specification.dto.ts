@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
-import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
-import { StringUtils } from 'src/shared/utils/string.utils';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { DefaultNull } from 'src/shared/decorators/default-null.decorator';
 import { IsCron } from 'src/shared/validators/is-cron.validator';
 
 
@@ -33,39 +33,34 @@ export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServ
 export class CreateConnectorSpecificationDto {
     @IsString()
     @IsNotEmpty()
-    name: string;
-
-    @IsOptional()
-    @IsString()
-    description?: string;
-
-    @IsEnum(ConnectorTypeEnum, { message: 'Connector type must be either import or export' })
-    connectorType: ConnectorTypeEnum;
-
-    @IsEnum(EndPointTypeEnum, { message: 'End point type must be a valid value' })
-    endPointType: EndPointTypeEnum;
+    name!: string;
 
     @IsString()
     @IsNotEmpty()
-    hostName: string;
+    description!: string;
+
+    @IsEnum(ConnectorTypeEnum, { message: 'Connector type must be either import or export' })
+    connectorType!: ConnectorTypeEnum;
+
+    @IsEnum(EndPointTypeEnum, { message: 'End point type must be a valid value' })
+    endPointType!: EndPointTypeEnum;
+
+    @IsString()
+    @IsNotEmpty()
+    hostName!: string;
 
     @IsInt()
     @Min(1)
-    timeout: number; // in seconds
+    timeout!: number; // in seconds
 
     @IsInt()
     @Min(0)
-    maxAttempts: number;
+    maxAttempts!: number;
 
     @IsString()
     @IsNotEmpty()
     @IsCron()
-    cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
-
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    orderNumber?: number; // Auto-generated if not provided
+    cronSchedule!: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
     @Type((options) => {
         // The 'options.object' gives access to the parent DTO,
@@ -89,103 +84,100 @@ export class CreateConnectorSpecificationDto {
         }
     })
     @ValidateNested()
-    parameters: ConnectorParameters;
+    parameters!: ConnectorParameters;
 
-    @IsOptional()
-    @Type(() => String)
-    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+
     @IsBoolean()
-    disabled?: boolean;
+    disabled!: boolean;
 
-    @IsOptional()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
-    comment?: string;
+    @IsNotEmpty()
+    comment!: string | null;
 }
 
 export class FileServerParametersDto {
     @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
-    protocol: FileServerProtocolEnum;
+    protocol!: FileServerProtocolEnum;
 
     @IsInt()
     @Min(1)
     @Max(65535)
-    port: number;
+    port!: number;
 
     @IsString()
     @IsNotEmpty()
-    username: string;
+    username!: string;
 
     @IsString()
     @IsNotEmpty()
-    password: string;
+    password!: string;
 
     @IsString()
     @IsNotEmpty()
-    remotePath: string;
+    remotePath!: string;
 }
 
 export class ImportFileServerParametersDto extends FileServerParametersDto {
-
-    @IsOptional()
-    @Type(() => String)
-    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
     @IsBoolean()
-    recursive?: boolean; // When true, files in subdirectories will be included
+    recursive!: boolean; // When true, files in subdirectories will be included
 
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ImportFileServerSpecificationDto)
-    specifications: ImportFileServerSpecificationDto[];
+    specifications!: ImportFileServerSpecificationDto[];
 }
 
 export class ExportFileServerParametersDto extends FileServerParametersDto {
     @IsInt()
     @Min(1)
-    observationPeriod: number; // In minutes
+    observationPeriod!: number; // In minutes
 
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ExportFileServerSpecificationDto)
-    specifications: ExportFileServerSpecificationDto[];
+    specifications!: ExportFileServerSpecificationDto[];
 }
 
 export class ImportFileServerSpecificationDto {
     @IsString()
-    filePattern: string; // Will be used to check both single files and multiple files
+    filePattern!: string; // Will be used to check both single files and multiple files
 
     @IsInt()
     @Min(1)
-    specificationId: number; // import source specification id
+    specificationId!: number; // import source specification id
 
-    @IsOptional()
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
-    @IsNotEmpty()
-    stationId?: string; // Used by import only
+    stationId!: string | null; // Used by import only
 }
 
 export class ExportFileServerSpecificationDto {
 
-    @IsString() // TODO. Later change to enum
-    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
+    //@IsString() // TODO. This could be needed in future
+    //filePattern!: 'yyyymmddhhmmss'; // used to name the created csv file
 
     @IsInt()
     @Min(1)
-    specificationId: number; // export specification id
+    specificationId!: number; // export specification id
 
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
     @IsNotEmpty()
-    stationId: string;
+    stationId!: string | null;
 }
 
 export class WebServerMetadataDto {
     @IsEnum(WebServerProtocolEnum, { message: 'Web server protocol must be a valid value' })
-    protocol: WebServerProtocolEnum;
+    protocol!: WebServerProtocolEnum;
 
     @IsOptional()
     @IsString()
     token?: string;
 
-    specifications: {
+    specifications!: {
         specificationId: number;
         stationId?: string;
     };

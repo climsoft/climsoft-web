@@ -1,0 +1,13 @@
+{
+  "name": "climsoft-javascript-runner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Climsoft JavaScript adapter runner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

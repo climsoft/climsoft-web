@@ -12,54 +12,54 @@ import { StationObservationFocusEntity } from "./station-observation-focus.entit
 @Check("CHK_stations_operational_no_close_date", `"status" <> 'operational' OR "date_closed" IS NULL`) // operational stations should not have a closed date
 export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
-  id: string;
+  id!: string;
 
   // Note, name should not be unique because it can be retained if a station location change is not significant.
   @Column({ name: "name", type: 'varchar' })
-  name: string;
+  name!: string;
 
   @Column({ name: "description", type: 'varchar', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum, nullable: true })
   @Index()
-  obsProcessingMethod: StationObsProcessingMethodEnum | null;
+  obsProcessingMethod!: StationObsProcessingMethodEnum | null;
 
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.
   // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
   @Column({ name: "location", type: 'geometry', spatialFeatureType: 'Point', nullable: true })
   @Index({ spatial: true })
-  location: Point | null;
+  location!: Point | null;
 
   @Column({ name: "elevation", type: 'float', nullable: true })
   @Index()
-  elevation: number | null;  // Elevation of station above mean sea level.
+  elevation!: number | null;  // Elevation of station above mean sea level.
 
   //---------------
   @Column({ name: "observation_environment_id", type: 'int', nullable: true })
   @Index()
-  obsEnvironmentId: number | null;
+  obsEnvironmentId!: number | null;
 
   @ManyToOne(() => StationObservationEnvironmentEntity, {
     nullable: true,
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "observation_environment_id" })
-  obsEnvironment: StationObservationEnvironmentEntity | null;
+  obsEnvironment!: StationObservationEnvironmentEntity | null;
   //---------------
 
   //---------------
   @Column({ name: "observation_focus_id", type: 'int', nullable: true })
   @Index()
-  obsFocusId: number | null;
+  obsFocusId!: number | null;
 
   @ManyToOne(() => StationObservationFocusEntity, {
     nullable: true,
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "observation_focus_id" })
-  obsFocus: StationObservationFocusEntity | null;
+  obsFocus!: StationObservationFocusEntity | null;
   //---------------
 
   //---------------
@@ -67,56 +67,56 @@ export class StationEntity extends AppBaseEntity {
   //---------------
   @Column({ name: "owner_id", type: "int", nullable: true })
   @Index()
-  ownerId: number | null; // name of 
+  ownerId!: number | null; // name of 
 
   @ManyToOne(() => OrganisationEntity, {
     nullable: true,
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "owner_id" })
-  owner: OrganisationEntity | null;
+  owner!: OrganisationEntity | null;
   //---------------
   //---------------
   //organisation that owns the station.
   //---------------
   @Column({ name: "operator_id", type: "int", nullable: true })
   @Index()
-  operatorId: number | null; // name of 
+  operatorId!: number | null; // name of 
 
   @ManyToOne(() => OrganisationEntity, {
     nullable: true,
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "operator_id" })
-  operator: OrganisationEntity | null;
+  operator!: OrganisationEntity | null;
   //---------------
 
   @Column({ name: "wmo_id", type: 'varchar', nullable: true, unique: true })
-  wmoId: string | null;
+  wmoId!: string | null;
 
   @Column({ name: "wigos_id", type: 'varchar', nullable: true, unique: true })
-  wigosId: string | null;
+  wigosId!: string | null;
 
   @Column({ name: "icao_id", type: 'varchar', nullable: true, unique: true })
-  icaoId: string | null;
+  icaoId!: string | null;
 
   @Column({ name: "status", type: "enum", enum: StationStatusEnum, nullable: true })
   @Index()
-  status: StationStatusEnum | null;
+  status!: StationStatusEnum | null;
 
   @Column({ name: "date_established", type: "timestamptz", nullable: true })
   @Index()
-  dateEstablished: Date | null;
+  dateEstablished!: Date | null;
 
   @Column({ name: "date_closed", type: 'timestamptz', nullable: true })
   @Index()
-  dateClosed: Date | null;
+  dateClosed!: Date | null;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
-  log: StationLogVo[] | null;
+  log!: StationLogVo[] | null;
 }
 
 export interface StationLogVo extends BaseLogVo {

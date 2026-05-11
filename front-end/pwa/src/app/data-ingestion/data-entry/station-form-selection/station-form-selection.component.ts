@@ -6,7 +6,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { ObservationsService } from '../../services/observations.service';
 import { AppDatabase, AppComponentState, UserAppStateEnum } from 'src/app/app-database';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { StationProcessingMethodEnum } from 'src/app/metadata/stations/models/station-processing-method.enum';
@@ -14,7 +14,7 @@ import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/so
 
 interface StationView {
   station: StationCacheModel;
-  forms?: ViewSourceModel[];
+  forms?: ViewSourceSpecificationModel[];
 }
 
 interface StationSelectionState {
@@ -32,7 +32,7 @@ export class StationFormSelectionComponent implements OnDestroy {
   protected allStationViews!: StationView[];
   protected filteredStationViews!: StationView[];
   protected userStationSelectionState: StationSelectionState = {};
-  private formSourcesNotDisabled: ViewSourceModel[] = [];
+  private formSourcesNotDisabled: ViewSourceSpecificationModel[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(

@@ -1,8 +1,6 @@
 <app-dialog [(open)]="open" [title]="'Import Regions'"
-  [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
-  (firstButtonClick)="onOkClick()"
-  [secondButtonOptions]="{label: 'Cancel', closeDialogOnClick: false}"
-  (secondButtonClick)="onCancelClick()">
+  [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}" (firstButtonClick)="onOkClick()"
+  [secondButtonOptions]="{label: 'Cancel', closeDialogOnClick: true}">
 
   <div *ngIf="open" class="card border-0">
     <div class="card-body p-0">

@@ -1,12 +1,12 @@
-import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
 import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { Subject, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { take } from 'rxjs';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { SourcesCacheService } from '../services/source-cache.service';
-import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 // TODO. Try using angular forms?
 
@@ -15,15 +15,15 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
   templateUrl: './form-source-input-dialog.component.html',
   styleUrls: ['./form-source-input-dialog.component.scss']
 })
-export class FormSourceInputDialogComponent implements OnDestroy {
-  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+export class FormSourceInputDialogComponent {
+  @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
 
-  @Output()
-  public ok = new EventEmitter<void>();
+  @Output() public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
   protected title: string = '';
-  protected viewSource!: ViewSourceModel;
+  protected viewSource!: ViewSourceSpecificationModel;
 
   protected possibleSelectors: SelectorFieldControlType[] = [SelectorFieldControlType.ELEMENT, SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR];
   protected possibleFields: SelectorFieldControlType[] = [SelectorFieldControlType.ELEMENT, SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR];
@@ -43,31 +43,22 @@ export class FormSourceInputDialogComponent implements OnDestroy {
   protected allowDoubleDataEntry: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
-  protected elementsErrorMessage: string = '';
   protected hoursErrorMessage: string = '';
   protected intervalErrorMessage: string = '';
-  protected errorMessage: string = '';
-
-  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private sourcesCacheService: SourcesCacheService) {
   }
 
-  public openDialog(sourceId?: number): void {
+  public openDialog(source?: ViewSourceSpecificationModel): void {
     this.open = true;
 
-    if (sourceId) {
+    if (source) {
       this.title = 'Edit Form Specification';
-      this.sourcesCacheService.findOne(sourceId).pipe(
-        takeUntil(this.destroy$),
-      ).subscribe(data => {
-        if (data) {
-          this.viewSource = { ...data, parameters: { ...data.parameters } };
-          this.setControlValues(this.viewSource.parameters as FormSourceModel);
-        }
-      });
+      // TODO. Think about cloning the arrays inside the parameters. Their references are retained here
+      this.viewSource = { ...source, parameters: { ...source.parameters } };
+      this.setControlValues(this.viewSource.parameters as FormSourceModel);
     } else {
       this.title = 'New Form Specification';
       const entryForm: FormSourceModel = {
@@ -91,17 +82,13 @@ export class FormSourceInputDialogComponent implements OnDestroy {
         allowMissingValue: true,
         scaleValues: true, // By default forms usually have scaled values.
         sampleFileName: '',
+        adapterId: 0,
         parameters: entryForm,
         disabled: false,
         comment: '',
       };
       this.setControlValues(this.viewSource.parameters as FormSourceModel);
     }
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private setControlValues(entryForm: FormSourceModel): void {
@@ -195,60 +182,58 @@ export class FormSourceInputDialogComponent implements OnDestroy {
   }
 
   protected onSave(): void {
-    this.errorMessage = '';
-
-    if (!this.viewSource) {
-      this.errorMessage = 'Template not defined';
-      return;
-    }
 
     if (!this.viewSource.name) {
-      this.errorMessage = 'Enter template name';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Enter name', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.viewSource.description) {
-      this.errorMessage = 'Enter template description';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Enter description', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.validSelectors(this.selectedSelectors)) {
-      this.errorMessage = 'Select valid selectors';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select valid selectors', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.validFields(this.selectedSelectors, this.selectedFields)) {
-      this.errorMessage = 'Select valid fields';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select valid fields', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.selectedLayout) {
-      this.errorMessage = 'Select valid layout';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select valid layout', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.selectedElementIds.length === 0) {
-      this.elementsErrorMessage = 'Select elements';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select elements', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.selectedIntervalId) {
-      this.errorMessage = 'Select interval';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select interval', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.selectedHourIds.length === 0) {
-      this.hoursErrorMessage = 'Select hours';
+      this.pagesDataService.showToast({ title: 'Form specification', message: 'Select hours', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
+    this.dlgSaveConfirm.openDialog();
+  }
+
+  protected onSaveConfirm(): void {
     const entryForm: FormSourceModel = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
       layout: this.selectedLayout,
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
-      interval: this.selectedIntervalId,
+      interval: this.selectedIntervalId!,
       requireTotalInput: this.requireTotalInput,
       allowEntryAtStationOnly: this.allowEntryAtStationOnly,
       allowStationSelection: this.allowStationSelection,
@@ -261,39 +246,46 @@ export class FormSourceInputDialogComponent implements OnDestroy {
       sourceType: SourceTypeEnum.FORM,
       utcOffset: this.utcOffset,
       allowMissingValue: this.allowMissingValue,
-      sampleFileName: '',
+      adapterId: null,
+      sampleFileOperationId: null,
       parameters: entryForm,
       scaleValues: true, // By default form values are always scaled.
       disabled: this.viewSource.disabled,
-      comment: this.viewSource.comment,
+      comment: this.viewSource.comment || null,
     }
 
     if (this.viewSource.id === 0) {
       this.sourcesCacheService.add(createUpdateSource).pipe(
         take(1)
-      ).subscribe((data) => {
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Form Template', message: `Form ${this.viewSource.name} template saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-          this.open = false;
-          this.ok.emit();
+      ).subscribe({
+        next: (data) => {
+          if (data) {
+            this.pagesDataService.showToast({ title: 'Form Specification', message: `Form ${this.viewSource.name} created`, type: ToastEventTypeEnum.SUCCESS });
+            this.open = false;
+            this.ok.emit();
+          }
+        },
+        error: (err) => {
+          console.error(err)
+          this.pagesDataService.showToast({ title: 'Form Specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         }
       });
     } else {
       this.sourcesCacheService.update(this.viewSource.id, createUpdateSource).pipe(
         take(1)
-      ).subscribe((data) => {
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Form Template', message: `Form  ${this.viewSource.name} template updated`, type: ToastEventTypeEnum.SUCCESS
-          });
-          this.open = false;
-          this.ok.emit();
+      ).subscribe({
+        next: (data) => {
+          if (data) {
+            this.pagesDataService.showToast({ title: 'Form Specification', message: `Form  ${this.viewSource.name} updated`, type: ToastEventTypeEnum.SUCCESS });
+            this.open = false;
+            this.ok.emit();
+          }
+        }, error: (err) => {
+          console.error(err)
+          this.pagesDataService.showToast({ title: 'Form Specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         }
       });
     }
-
   }
 
   protected onDelete(): void {
@@ -303,10 +295,15 @@ export class FormSourceInputDialogComponent implements OnDestroy {
   protected onDeleteConfirm(): void {
     this.sourcesCacheService.delete(this.viewSource.id).pipe(
       take(1)
-    ).subscribe(() => {
-      this.pagesDataService.showToast({ title: 'Form Specification', message: 'Form specification deleted', type: ToastEventTypeEnum.SUCCESS });
-      this.open = false;
-      this.ok.emit();
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Form Specification', message: 'Form specification deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();
+      }, error: (err) => {
+        console.error(err)
+        this.pagesDataService.showToast({ title: 'Form Specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 

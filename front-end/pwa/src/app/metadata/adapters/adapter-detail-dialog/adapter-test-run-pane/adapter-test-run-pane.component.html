@@ -1,0 +1,81 @@
+<div class="test-run-pane">
+    <div>
+          <app-file-input [id]="'test_run_sample_file'" [label]="'Sample Input File'" [buttonLabel]="'Choose File'" [disabled]="running" 
+                        (fileSelected)="onSampleFileSelected($event)"  />
+
+        <div class="form-text text-muted">
+            The file your adapter will receive at <code>CLIMSOFT_INPUT_FILE</code>.
+        </div>
+    </div>
+
+    <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-primary" [disabled]="!canRun()" (click)="onRunClick()">
+            <app-spinner  *ngIf="running" />
+            <span *ngIf="running" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            <i *ngIf="!running" class="bi bi-play-fill"></i>
+            {{ running ? 'Running…' : 'Run' }}
+        </button>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger py-2 small mt-2">
+        {{ errorMessage }}
+    </div>
+
+    <!-- Result summary -->
+    <div *ngIf="result" class="result-summary border rounded p-2 mt-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge" [ngClass]="statusBadgeClass">{{ statusLabel }}</span>
+                <span class="text-muted ms-2 small">{{ result.durationMs }} ms</span>
+            </div>
+            <div *ngIf="result.outputFileName" class="text-success small">
+                <i class="bi bi-file-earmark-check"></i>
+                Output: <code>{{ result.outputFileName }}</code>
+            </div>
+        </div>
+
+        <!-- Errors -->
+        <div *ngIf="result.errors.length > 0" class="mt-2">
+            <div class="fw-bold small text-danger">Errors</div>
+            <ul class="small mb-0">
+                <li *ngFor="let err of result.errors">
+                    <span class="badge bg-danger me-1">{{ err.type }}</span>
+                    {{ err.message }}
+                </li>
+            </ul>
+        </div>
+
+        <!-- Warnings -->
+        <div *ngIf="result.warnings.length > 0" class="mt-2">
+            <div class="fw-bold small text-warning">Warnings ({{ result.warnings.length }})</div>
+            <ul class="small mb-0">
+                <li *ngFor="let w of result.warnings">{{ w.message }}</li>
+            </ul>
+        </div>
+
+        <!-- Log sections -->
+        <div *ngIf="result.stdout" class="mt-2">
+            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="stdoutOpen = !stdoutOpen">
+                <i class="bi" [ngClass]="stdoutOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                stdout
+            </button>
+            <pre *ngIf="stdoutOpen" class="log-block">{{ result.stdout }}</pre>
+        </div>
+
+        <div *ngIf="result.stderr" class="mt-2">
+            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="stderrOpen = !stderrOpen">
+                <i class="bi" [ngClass]="stderrOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                stderr
+            </button>
+            <pre *ngIf="stderrOpen" class="log-block">{{ result.stderr }}</pre>
+        </div>
+
+        <div *ngIf="result.installLog" class="mt-2">
+            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="installOpen = !installOpen">
+                <i class="bi" [ngClass]="installOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                install.log
+            </button>
+            <pre *ngIf="installOpen" class="log-block">{{ result.installLog }}</pre>
+        </div>
+    </div>
+</div>

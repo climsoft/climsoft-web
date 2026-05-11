@@ -2,7 +2,7 @@ import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Para
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ImportPreviewService } from '../services/import-preview.service';
-import { UpdateBaseParamsDto, ProcessPreviewDto, InitFromFileDto, PreviewForImportDto } from '../dtos/import-preview.dto';
+import { BaseParamsDto, ProcessPreviewDto as PreviewForStepDto, PreviewForImportDto } from '../dtos/import-preview.dto';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 
@@ -20,39 +20,38 @@ export class ImportPreviewController {
         @UploadedFile(new ParseFilePipe({
             validators: [
                 // 1GB to accomodate preview of large files. Note, should always be same us that used in `observationsController` for upload endpoint to ensure smooth preview of files uploaded for import.
+                // In future, this should come from environment.
                 new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
                 new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
             ]
         })) file: Express.Multer.File,
-        @Body('rowsToSkip', ParseIntPipe) rowsToSkip: number,
-        @Body('delimiter') delimiter?: string,
+        @Body() dto: BaseParamsDto,
     ) {
-        const skip: number = rowsToSkip > 0 ? rowsToSkip : 0;
-        const delim: string | undefined = delimiter || undefined;
-        return this.importPreviewService.initAndPreviewRawData(file, skip, delim);
+        return this.importPreviewService.initAndPreviewRawData(file, dto);
     }
 
-    @Post('init-from-file')
+    @Post('init-from-file/:fileName')
     public async initFromFile(
-        @Body() dto: InitFromFileDto,
+        @Param('fileName') fileName: string,
+        @Body() dto: BaseParamsDto,
     ) {
-        return this.importPreviewService.initAndPreviewRawData(dto.fileName, dto.rowsToSkip, dto.delimiter);
+        return this.importPreviewService.initAndPreviewRawData(fileName, dto);
     }
 
     @Post('base-params/:sessionId')
     public async updateBaseParams(
         @Param('sessionId') sessionId: string,
-        @Body() dto: UpdateBaseParamsDto,
+        @Body() dto: BaseParamsDto,
     ) {
-        return this.importPreviewService.updateBaseParamsAndPreviewRawData(sessionId, dto.rowsToSkip, dto.delimiter);
+        return this.importPreviewService.updateBaseParamsAndPreviewRawData(sessionId, dto);
     }
 
     @Post('process-for-sample-import/:sessionId')
-    public async processPreview(
+    public async previewStep(
         @Param('sessionId') sessionId: string,
-        @Body() dto: ProcessPreviewDto,
+        @Body() dto: PreviewForStepDto,
     ) {
-        return this.importPreviewService.previewTransformedData(sessionId, dto.sourceDefinition, dto.stationId);
+        return this.importPreviewService.previewTransformedData(sessionId, { ...dto.sourceDefinition, id: 0, sampleFileName: '' }, dto.stationId ?? null);
     }
 
     @Post('process-for-import/:sessionId')
@@ -60,7 +59,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: PreviewForImportDto, // TODO. Validate that the user has import rights for the source and station
     ) {
-        return this.importPreviewService.previewTransformedData(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId);
+        return this.importPreviewService.previewTransformedData(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId ?? null);
     }
 
     @Post('confirm-import/:sessionId')

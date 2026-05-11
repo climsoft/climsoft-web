@@ -7,39 +7,39 @@ export type ExecutionActivity = ImportFileServerExecutionActivityVo | ExportFile
 @Entity("connector_execution_log")
 export class ConnectorExecutionLogEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
-    id: number;
+    id!: number;
 
     //---------------------------
     @Column({ name: 'connector_id', type: 'int' })
     @Index()
-    connectorId: number;
+    connectorId!: number;
     // ManyToOne relationship with ElementTypeEntity
     @ManyToOne(() => ConnectorSpecificationEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: 'connector_id' })
-    connectorSpecification: ConnectorSpecificationEntity;
+    connectorSpecification!: ConnectorSpecificationEntity;
     //---------------------------
 
     @Column({ name: 'execution_start_date_time', type: 'timestamptz' })
     @Index()
-    executionStartDatetime: Date;
+    executionStartDatetime!: Date;
 
     @Column({ name: 'execution_end_date_time', type: 'timestamptz' })
     @Index()
-    executionEndDatetime: Date;
+    executionEndDatetime!: Date;
 
     @Column({ name: 'execution_activities', type: 'jsonb', nullable: true })
-    executionActivities: ExecutionActivity[];
+    executionActivities!: ExecutionActivity[];
 
     @Column({ name: "total_errors", type: 'int' })
     @Index()
-    totalErrors: number;
+    totalErrors!: number;
 }
 
 // Used by File Servers
 export interface ImportFileServerExecutionActivityVo {
     filePattern: string;
     specificationId: number; // import source specification id
-    stationId?: string;
+    stationId: string | null;
 
     // Tracks each file through the complete processing lifecycle: download → process → import
     processedFiles: ImportFileProcessingResultVo[];
@@ -48,6 +48,7 @@ export interface ImportFileServerExecutionActivityVo {
 // Represents the complete processing result for a single file from a remote server
 export interface ImportFileProcessingResultVo {
     remoteFileMetadata: FileMetadataVo;
+    operationId?: string; // UUID of the operation directory for this file
     downloadedFileName?: string; // When missing, it means there was an error during download
     processedFileMetadata?: FileMetadataVo; // When missing, it means there was an error during processing
     errorMessage?: string;
@@ -55,8 +56,11 @@ export interface ImportFileProcessingResultVo {
 }
 
 export interface ExportFileServerExecutionActivityVo {
-    filePattern?: string;
+    //filePattern?: string;
     specificationId: number; // export specification id
+    stationId: string | null;
+    operationId?: string; // UUID of the operation directory
+    // TODO. we may need to also store what was produced by the database? important for when adapters are used
     processedFiles: FileMetadataVo[]; // When missing, it means there was an error during processing
     errorMessage?: string;
 }

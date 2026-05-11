@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
@@ -47,12 +47,14 @@ export class ConnectorSpecificationsController {
 
     @Admin()
     @Delete()
+    @HttpCode(204)
     public deleteAll() {
         return this.connectorSpecificationsService.deleteAll();
     }
 
     @Admin()
     @Delete(':id')
+    @HttpCode(204)
     public delete(@Param('id', ParseIntPipe) id: number) {
         return this.connectorSpecificationsService.delete(id);
     }

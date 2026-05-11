@@ -1,7 +1,7 @@
 <ng-container *ngIf="viewExportSpecification && open">
     <app-dialog [(open)]="open" [title]="title"
         [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
-        (firstButtonClick)="onSubmitClick()"
+        (firstButtonClick)="onSave()"
         [secondButtonOptions]="viewExportSpecification.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
         (secondButtonClick)="onDeleteButtonClick()"
         [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
@@ -30,8 +30,8 @@
             <app-raw-export-params [rawExportParameters]="rawParams" />
         </ng-container>
 
-        <ng-container *ngIf="viewExportSpecification.exportType === 'bufr'">
-            <app-bufr-export-params [bufrExportParameters]="bufrParams" />
+        <ng-container *ngIf="viewExportSpecification.exportType === 'dissemination'">
+            <app-wis2box-export-params [wis2BoxExportParameters]="wis2BoxParams" />
         </ng-container>
 
         <ng-container *ngIf="viewExportSpecification.exportType === 'aggregate'">
@@ -46,6 +46,17 @@
         <hr />
 
         <div>
+            <app-adapter-specification-selector-single [label]="'Post-Export Adapter (optional)'"
+                [placeholder]="'No adapter'" [(selectedId)]="viewExportSpecification.adapterId"
+                [displayCancelOption]="true" />
+            <div class="form-text text-muted">
+                If set, the adapter script will process the exported file before delivering it to the user.
+            </div>
+        </div>
+
+        <hr />
+
+        <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewExportSpecification.disabled" />
         </div>
 
@@ -55,15 +66,20 @@
             <app-text-input [label]="'Comment'" [(value)]="viewExportSpecification.comment" />
         </div>
 
-        <div *ngIf="errorMessage">
-            <hr />
-            <div class="text-danger">
-                {{ errorMessage }}
-            </div>
-        </div>
-
     </app-dialog>
 
-    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewExportSpecification.name"
-        [itemType]="'export specification'" (deleteConfirmed)="onDeleteConfirm()" />
+    <app-confirmation-dialog #dlgSaveConfirm [title]="'Save Export Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
+        <p>
+            Are you sure you want to save the export specification <strong>{{ viewExportSpecification.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Export Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the export specification <strong>{{ viewExportSpecification.name
+                }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

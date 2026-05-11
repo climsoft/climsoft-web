@@ -23,6 +23,7 @@ DECLARE
         'source_templates', 
         'export_specifications',
         'connector_specifications',
+        'adapter_specifications',
         'job_queues',
         'connector_execution_log',
         'station_forms',

@@ -1,8 +1,8 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { ElementColumnMappingDto } from 'src/metadata/dtos/metadata-import-preview.dto';
-import { PreviewError } from 'src/observation/dtos/import-preview.dto';
+import { ElementColumnMappingDto } from 'src/metadata/metadata-import-preview.dto';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -43,7 +43,7 @@ export class ElementImportTransformer {
         tableName: string,
         mapping: ElementColumnMappingDto,
         userId?: number,
-    ): Promise<PreviewError | void> {
+    ): Promise<FileProcessingError | void> {
 
         const steps: { name: string; buildSql: () => string[] }[] = [
             { name: 'Id', buildSql: () => ElementImportTransformer.buildAlterIdColumnSQL(tableName, mapping) },

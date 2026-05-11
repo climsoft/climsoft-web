@@ -6,7 +6,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { ViewUserDto } from '../dtos/view-user.dto';
 import { LogInCredentialsDto } from '../dtos/login-credentials.dto';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 

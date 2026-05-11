@@ -1,22 +1,27 @@
 import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { DataSource } from "typeorm"
-import { FileIOService } from 'src/shared/services/file-io.service';
+import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
+import { AdapterRunnerService, AdapterRef, AdapterRunMetadata } from 'src/shared/services/adapter-runner.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
+import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportPermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
-import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
+import { ViewSpecificationExportModel } from 'src/metadata/export-specifications/dtos/view-export-specification.model';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
-import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as archiver from 'archiver';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import AdmZip from 'adm-zip';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
-import { BufrExportParametersDto, BufrTypeEnum } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
-import { BufrExportService } from './bufr-export.service';
+import { DisseminationServiceEnum } from 'src/metadata/export-specifications/enums/dissemination-service.enum';
+import { DisseminationExportParametersDto } from 'src/metadata/export-specifications/dtos/dissemination-export-parameters.dto';
+import { Wis2BoxExportParametersDto, ReportTypeEnum } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
+import { Wis2BoxExportService } from './wis2box-export.service';
+import { ExportQueryModel } from 'src/metadata/export-specifications/dtos/export-query.model';
 
 @Injectable()
 export class ObservationsExportService {
@@ -24,13 +29,18 @@ export class ObservationsExportService {
 
     constructor(
         private exportTemplatesService: ExportSpecificationsService,
+        private adaptersService: AdaptersService,
+        private adapterRunnerService: AdapterRunnerService,
         private dataSource: DataSource,
         private fileIOService: FileIOService,
         private generalSettingsService: GeneralSettingsService,
-        private bufrExportService: BufrExportService,
+        private wis2BoxExportService: Wis2BoxExportService,
     ) {
     }
 
+    /**
+     * Generates an export and returns the operationId for later download.
+     */
     public async generateManualExport(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<string> {
         if (!user.isSystemAdmin) {
             if (user.permissions && user.permissions.exportPermissions) {
@@ -44,41 +54,43 @@ export class ObservationsExportService {
             }
         }
 
-        const exportPermissions: ExportPermissionsDto = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
-        
-        const uniqueDownloadSuffix: string = `${crypto.randomUUID()}`;
+        const exportQuery: ExportQueryModel = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
 
-        await this.generateExport(exportSpecificationId, exportPermissions, uniqueDownloadSuffix);
+        const op: OperationContext = await this.fileIOService.createOperation();
+        await this.generateExport(exportSpecificationId, op, exportQuery);
 
-        return uniqueDownloadSuffix;
+        return op.operationId;
     }
 
-    public async manualDownloadExport(uniqueDownloadSuffix: string): Promise<StreamableFile> { 
+    /**
+     * Downloads the export files from a previously generated operation.
+     */
+    public async manualDownloadExport(operationId: string): Promise<StreamableFile> {
+        const op = this.fileIOService.getOperationContext(operationId as crypto.UUID);
 
-        // Find files that contain the manualDownloadSuffix in their name
-        const allFiles = await this.fileIOService.getFileNamesInDirectory(this.fileIOService.apiExportsDir);
-        const matchingFiles = allFiles.filter(file => file.includes(uniqueDownloadSuffix));
-
-        if (matchingFiles.length === 0) {
+        const allFiles = await fs.promises.readdir(op.outputDir);
+        if (allFiles.length === 0) {
             throw new BadRequestException('No export files found. Please generate the export first.');
         }
 
         let filePath: string;
         let fileName: string;
 
-        if (matchingFiles.length === 1) {
-            // Single file - return it directly
-            fileName = matchingFiles[0];
-            filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
+        if (allFiles.length === 1) {
+            fileName = allFiles[0];
+            filePath = path.posix.join(op.outputDir, fileName);
         } else {
-            // Multiple files - zip them and return the zip file
-            fileName = `${uniqueDownloadSuffix}.zip`;
-            filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
-            await this.createZipFile(matchingFiles, filePath);
+            // Multiple files - zip them
+            fileName = `${operationId}.zip`;
+            filePath = path.posix.join(op.outputDir, fileName);
+            const zip = new AdmZip();
+            for (const f of allFiles) {
+                zip.addLocalFile(path.posix.join(op.outputDir, f), '', f);
+            }
+            zip.writeZip(filePath);
         }
 
-        // Determine content type based on file extension
-        const contentType = this.getContentTypeForFile(fileName);
+        const contentType: string = this.getContentTypeForFile(fileName);
 
         return new StreamableFile(fs.createReadStream(filePath), {
             type: contentType,
@@ -101,36 +113,9 @@ export class ObservationsExportService {
         }
     }
 
-    private async createZipFile(fileNames: string[], outputPath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const output = fs.createWriteStream(outputPath);
-            const archive = archiver('zip', {
-                zlib: { level: 9 } // compression level.
-            }
-            );
-
-            output.on('close', () => {
-                this.logger.log(`Zip file created at ${outputPath} (${archive.pointer()} total bytes)`);
-                resolve();
-            });
-
-            archive.on('error', (err: Error) => {
-                this.logger.error(`Error creating zip file: ${err.message}`);
-                reject(err);
-            });
-
-            archive.pipe(output);
-
-            for (const fileName of fileNames) {
-                const filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
-                archive.file(filePath, { name: fileName });
-            }
-
-            archive.finalize();
-        });
-    }
-
-    private validateAndRedefineExportFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
+    private validateAndRedefineExportFiltersBasedOnUserQueryRequest(
+        user: LoggedInUserDto,
+        queryDto: ViewObservationQueryDTO): ExportQueryModel {
         let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {
@@ -166,7 +151,6 @@ export class ObservationsExportService {
         if (observationPeriod) {
             if (observationPeriod.within) {
 
-                // If from date is specified the validate if it's within the allowed permissions
                 if (queryDto.fromDate) {
                     if (new Date(queryDto.fromDate) < new Date(observationPeriod.within.fromDate)) {
                         throw new BadRequestException('from date can not be less than that what is allowed by the permissions');
@@ -174,7 +158,6 @@ export class ObservationsExportService {
                     observationPeriod.within.fromDate = queryDto.fromDate;
                 }
 
-                // If to date is specified the validate if it's within the allowed permissions
                 if (queryDto.toDate) {
                     if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
                         throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
@@ -184,7 +167,6 @@ export class ObservationsExportService {
 
             } else if (observationPeriod.fromDate) {
 
-                // If from date is specified the validate if it's within the allowed permissions
                 if (queryDto.fromDate) {
                     if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
                         throw new BadRequestException('from date can not be less that what is allowed by the permissions');
@@ -192,14 +174,9 @@ export class ObservationsExportService {
                     observationPeriod.fromDate = queryDto.fromDate;
                 }
             } else if (observationPeriod.last) {
-
                 // TODO. validate from and to date based on specified last period
-                // For now. The application will simply ignore them and use what is specified in the permissions
-
             }
         } else {
-
-            // If from date and to date is specified then use within option
             if (queryDto.fromDate && queryDto.toDate) {
                 observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
             } else if (queryDto.fromDate) {
@@ -211,69 +188,151 @@ export class ObservationsExportService {
 
         exportPermissions.observationPeriod = observationPeriod;
 
-        return exportPermissions;
+        const exportQuery: ExportQueryModel = {
+            stationIds: exportPermissions.stationIds,
+            elementIds: exportPermissions.elementIds,
+            intervals: exportPermissions.intervals,
+            qcStatuses: exportPermissions.qcStatuses,
+            useEntryDate: exportPermissions.observationPeriod?.useEntryDate,
+            within: exportPermissions.observationPeriod?.within,
+            fromDate: exportPermissions.observationPeriod?.fromDate,
+            last: exportPermissions.observationPeriod?.last // In minutes
+        }
+
+        return exportQuery;
     }
 
-    public async generateExport(exportSpecificationId: number, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
-        const viewExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
+    /**
+     * Generates export files into the operation's output directory.
+     *
+     * Flow depends on export type and whether a post-export adapter is configured:
+     * - Raw (no adapter): Postgres COPY TO -> op.outputDir
+     * - Raw (with adapter): Postgres COPY TO -> op.inputDir, runner reads -> op.outputDir
+     * - Dissemination: Postgres COPY TO -> op.inputDir, service-specific transformer -> op.outputDir
+     */
+    public async generateExport(
+        exportSpecificationId: number,
+        op: OperationContext,
+        exportQuery: ExportQueryModel): Promise<void> {
+        const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
 
-        // If export is disabled then don't generate it
         if (viewExportDto.disabled) {
             throw new Error('Export is disabled');
         }
 
+        const hasAdapter: boolean = !!viewExportDto.adapterId;
+
         switch (viewExportDto.exportType) {
             case ExportTypeEnum.RAW:
-                return this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportPermissions, suffix);
+                if (hasAdapter) {
+                    // Postgres -> inputDir, then adapter -> outputDir
+                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
+                    await this.runExportAdapter(viewExportDto, op);
+                } else {
+                    // Postgres -> outputDir directly
+                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir);
+                }
+                break;
             case ExportTypeEnum.AGGREGATE:
-                return [];
-            case ExportTypeEnum.BUFR:
-                return this.generateBufrExports(viewExportDto.parameters as BufrExportParametersDto, exportPermissions, suffix);
+                throw new BadRequestException('Aggregate export not yet supported');
+            case ExportTypeEnum.DISSEMINATION:
+                await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
+                break;
             default:
-                throw new Error('Export type no supported');
+                throw new Error('Export type not supported');
         }
     }
 
-    public async generateRawExports(exportParams: RawExportParametersDto, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
+    /**
+     * Dispatches by dissemination service. Each service shapes the CSV
+     * to the requirements of the downstream system; format conversion
+     * (e.g. BUFR) is the downstream system's responsibility.
+     */
+    private async generateDisseminationExport(
+        params: DisseminationExportParametersDto,
+        exportQuery: ExportQueryModel,
+        op: OperationContext): Promise<void> {
+        switch (params.service) {
+            case DisseminationServiceEnum.WIS2BOX:
+                await this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportQuery, op);
+                break;
+            default:
+                throw new BadRequestException('Dissemination service not supported');
+        }
+    }
 
-        // TODO. In future these conditions should create parameters for a SQL function
-        // Manually construct the SQL query
+    /**
+     * Runs the post-export adapter. Reads from op.inputDir, writes to op.outputDir.
+     */
+    private async runExportAdapter(exportSpec: ViewSpecificationExportModel, op: OperationContext): Promise<void> {
+        const adapter = this.adaptersService.find(exportSpec.adapterId!);
+
+        if (adapter.disabled) {
+            throw new Error(`Adapter '${adapter.name}' is disabled`);
+        }
+
+        const adapterRef: AdapterRef = {
+            id: adapter.id,
+            name: adapter.name,
+            language: adapter.language,
+            scriptDirName: adapter.scriptDirName,
+            entryPoint: adapter.entryPoint,
+        };
+
+        const metadata: AdapterRunMetadata = {
+            uploadedByUserId: 0,
+            uploadedAt: new Date().toISOString(),
+            sourceSpecId: exportSpec.id,
+            sourceSpecName: exportSpec.name,
+            stationId: null,
+            utcOffset: null,
+            specParameters: exportSpec.parameters as unknown as Record<string, unknown>,
+            testRun: false,
+        };
+
+        const result = await this.adapterRunnerService.run(adapterRef, op.inputDir, op.outputDir, metadata);
+
+        if (result.status !== 'success') {
+            throw new Error(`Export adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
+        }
+
+        this.logger.log(`Export adapter '${adapter.name}' produced ${result.outputFiles.length} file(s)`);
+    }
+
+    public async generateRawExports(
+        exportParams: RawExportParametersDto,
+        exportQuery: ExportQueryModel,
+        dbOutputDir: string,
+    ): Promise<void> {
+
         let sqlCondition: string = 'ob.deleted = false';
 
-        // DATA FILTER SELECTIONS
-        //------------------------------------------------------------------------------------------------
-        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+        if (exportQuery.stationIds && exportQuery.stationIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        if (exportPermissions.elementIds && exportPermissions.elementIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportPermissions.elementIds.join(',')})`;
+        if (exportQuery.elementIds && exportQuery.elementIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportQuery.elementIds.join(',')})`;
         }
 
-        if (exportPermissions.intervals && exportPermissions.intervals.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportPermissions.intervals.join(',')})`;
+        if (exportQuery.intervals && exportQuery.intervals.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportQuery.intervals.join(',')})`;
         }
 
-        if (exportPermissions.observationPeriod) {
-            if (exportPermissions.observationPeriod.within) {
-                const within = exportPermissions.observationPeriod.within;
-                sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
-            } else if (exportPermissions.observationPeriod.fromDate) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationPeriod.fromDate}'`;
-            } else if (exportPermissions.observationPeriod.last) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
-            }
+        if (exportQuery.within) {
+            const within = exportQuery.within;
+            sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
+        } else if (exportQuery.fromDate) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportQuery.fromDate}'`;
+        } else if (exportQuery.last) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportQuery.last} minutes'`;
         }
 
-        if (exportPermissions.qcStatuses) {
-            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportPermissions.qcStatuses}'`;
+        if (exportQuery.qcStatuses) {
+            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportQuery.qcStatuses}'`;
         }
-        //------------------------------------------------------------------------------------------------
 
         const columnSelections: string[] = [];
-
-        // METADATA SELECTIONS
-        //------------------------------------------------------------------------------------------------
 
         columnSelections.push('ob.station_id AS station_id');
         if (exportParams.includeStationName) {
@@ -309,12 +368,7 @@ export class ObservationsExportService {
         if (exportParams.includeInterval) {
             columnSelections.push('ob.interval AS interval');
         }
-        //------------------------------------------------------------------------------------------------
 
-        // DATA PROCESSING SELECTIONS
-        //------------------------------------------------------------------------------------------------
-
-        // Fetch the utc setting from cache
         const displayUtcOffset: number = (this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneDto).utcOffset;
 
         if (exportParams.convertDatetimeToDisplayTimeZone) {
@@ -333,7 +387,7 @@ export class ObservationsExportService {
                 columnSelections.push('EXTRACT(YEAR FROM ob.date_time) AS year');
                 columnSelections.push('EXTRACT(MONTH FROM ob.date_time ) AS month');
                 columnSelections.push('EXTRACT(DAY FROM ob.date_time) AS day');
-                columnSelections.push('EXTRACT(HOUR FROM ob.date_time ) AS hour');
+                columnSelections.push('EXTRACT(HOUR FROM ob.date_time) AS hour');
                 columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
             } else {
                 columnSelections.push('ob.date_time::timestamp AS date_time');
@@ -373,65 +427,64 @@ export class ObservationsExportService {
             }
 
         }
-        //------------------------------------------------------------------------------------------------ 
-        const uniqueFileName: string = suffix ? `raw_export_${crypto.randomUUID()}_${suffix}.csv` : `raw_export_${crypto.randomUUID()}.csv`;
-        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
+
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const dbFilePathName = path.posix.join(dbOutputDir, `${timestamp}.csv`);
         const sql: string = `
             COPY (
-                SELECT 
-                ${columnSelections.join(',')} 
+                SELECT
+                ${columnSelections.join(',')}
                 FROM observations ob
                 INNER JOIN stations st on ob.station_id = st.id
                 INNER JOIN elements el on ob.element_id = el.id
                 INNER JOIN source_templates so on ob.source_id = so.id
                 INNER JOIN users us on ob.entry_user_id = us.id
-                WHERE ${sqlCondition} 
+                WHERE ${sqlCondition}
                 ORDER BY ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        // Execute raw SQL query (without parameterized placeholders)
         await this.dataSource.manager.query(sql);
-        return [path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName))];
     }
 
-    // TODO. Refactor to not use `ExportPermissionsDto` as it's not really related to permissions in this context. Maybe create a new DTO that is specific for the parameters needed for generating the BUFR export
-    public async generateBufrExports(exportParams: BufrExportParametersDto, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
+    public async generateWis2BoxExport(
+        wis2BoxExportParams: Wis2BoxExportParametersDto,
+        exportQuery: ExportQueryModel,
+        op: OperationContext): Promise<void> {
 
-        // TODO. In future these conditions should create parameters for a SQL function
-        // Manually construct the SQL query
         let sqlCondition: string = 'ob.deleted = false';
 
-        // DATA FILTER SELECTIONS
-        //------------------------------------------------------------------------------------------------
-        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
-            sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+        if (exportQuery.stationIds && exportQuery.stationIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        sqlCondition = `${sqlCondition} AND ob.element_id IN (${exportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
+        sqlCondition = `${sqlCondition} AND ob.element_id IN (${wis2BoxExportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
 
-        if (exportPermissions.observationPeriod) {
-            if (exportPermissions.observationPeriod.last) {
-                sqlCondition = `${sqlCondition} AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
-            }
+        if (exportQuery.within) {
+            const within = exportQuery.within;
+            sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
+        } else if (exportQuery.fromDate) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportQuery.fromDate}'`;
+        } else if (exportQuery.last) {
+            sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportQuery.last} minutes'`;
         }
 
-        switch (exportParams.bufrType) {
-            case BufrTypeEnum.SYNOP:
+        switch (wis2BoxExportParams.reportType) {
+            case ReportTypeEnum.SYNOP:
+                // Pick hourly values only
                 sqlCondition = `${sqlCondition} AND ob.interval = 60`;
                 break;
-            case BufrTypeEnum.DAYCLI:
+            case ReportTypeEnum.DAYCLI:
+                // Pick daily values only
                 sqlCondition = `${sqlCondition} AND ob.interval = 1440`;
                 break;
-            case BufrTypeEnum.CLIMAT:
+            case ReportTypeEnum.CLIMAT:
                 break;
             default:
                 break;
         }
 
         sqlCondition = `${sqlCondition} AND ob.value IS NOT NULL`;
-
-        //------------------------------------------------------------------------------------------------
 
         const columnSelections: string[] = [];
 
@@ -442,6 +495,8 @@ export class ObservationsExportService {
         columnSelections.push('st.elevation AS station_elevation');
         columnSelections.push('st.wmo_id AS wmo_id');
         columnSelections.push('st.wigos_id AS wigos_id');
+        // Carried so SYNOP can derive station_type from it (automatic/manual/hybrid -> 0/1/3).
+        columnSelections.push('st.observation_processing_method AS station_obs_processing_method');
         columnSelections.push('ob.element_id AS element_id');
         columnSelections.push('el.units AS element_units');
         columnSelections.push('ob.level AS level');
@@ -449,39 +504,40 @@ export class ObservationsExportService {
         columnSelections.push('ob.date_time AS date_time');
         columnSelections.push('ob.value AS value');
 
-        //------------------------------------------------------------------------------------------------ 
-        const uniqueFileName: string = suffix ? `bufr_raw_export_${crypto.randomUUID()}_${suffix}.csv` : `bufr_raw_export_${crypto.randomUUID()}.csv`;
-        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
+        // Postgres COPY TO -> op.inputDir; the WIS2BOX transformer reads from there.
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+        const rawFileName = `${timestamp}.csv`;
+        const apiFilePathName = path.posix.join(op.inputDir, rawFileName);
+        const dbFilePathName = path.posix.join(op.dbInputDir, rawFileName);
+
         const sql: string = `
             COPY (
-                SELECT 
-                ${columnSelections.join(',')} 
+                SELECT
+                    ${columnSelections.join(',\n                        ')}
                 FROM observations ob
                 INNER JOIN stations st on ob.station_id = st.id
                 INNER JOIN elements el on ob.element_id = el.id
-                WHERE ${sqlCondition} 
-                ORDER BY ob.date_time ASC
+                WHERE ${sqlCondition}
+                ORDER BY 
+                    ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        // Execute raw SQL query (without parameterized placeholders)
         await this.dataSource.manager.query(sql);
 
-        // Now generate BUFR file using the exported csv file
-        // Note db file paths are different from api file paths due to how docker volumes are mapped
-        const rawObservationsFile: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
-
-        switch (exportParams.bufrType) {
-            case BufrTypeEnum.SYNOP:
-                throw new Error('SYNOP BUFR export not implemented yet');
-            case BufrTypeEnum.DAYCLI:
-                return this.bufrExportService.generateDayCliBufrFiles(exportParams, rawObservationsFile, suffix);
-            case BufrTypeEnum.CLIMAT:
-                throw new Error('Climat BUFR export not implemented yet');
-            case BufrTypeEnum.TEMP:
-                throw new Error('Temp BUFR export not implemented yet');
+        switch (wis2BoxExportParams.reportType) {
+            case ReportTypeEnum.SYNOP:
+                await this.wis2BoxExportService.generateSynopFiles(wis2BoxExportParams, op.outputDir, apiFilePathName);
+                return;
+            case ReportTypeEnum.DAYCLI:
+                await this.wis2BoxExportService.generateDayCliFiles(wis2BoxExportParams, op.outputDir, apiFilePathName);
+                return;
+            case ReportTypeEnum.CLIMAT:
+                throw new Error('Climat WIS2BOX export not implemented yet');
+            case ReportTypeEnum.TEMP:
+                throw new Error('Temp WIS2BOX export not implemented yet');
             default:
-                throw new Error('Invalid BUFR export type');
+                throw new Error('Invalid WIS2BOX export type');
         }
 
     }

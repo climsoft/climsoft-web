@@ -4,10 +4,10 @@ import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
-import { PreviewError } from '../dtos/import-preview.dto';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBConnection } from '@duckdb/node-api';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -48,12 +48,12 @@ export class TabularImportTransformer {
         conn: DuckDBConnection,
         tableName: string,
         sourceId: number,
-        sourceDef: CreateSourceSpecificationDto,
+        sourceDef: ViewSourceSpecificationModel,
         elements: CreateViewElementDto[],
         flags: ViewFlagDto[],
-        stationId?: string,
-        userId?: number,
-    ): Promise<PreviewError | void> {
+        stationId: string | null,
+        userId: number | null,
+    ): Promise<FileProcessingError | void> {
 
         const importDef = sourceDef.parameters as ImportSourceDto;
         const tabularDef = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
@@ -105,7 +105,6 @@ export class TabularImportTransformer {
             } catch (error) {
                 // Stop processing — later steps may depend on this one.
                 return ImportErrorUtils.classifyDuckDbError(error, step.name);
-
             }
         }
     }
@@ -125,7 +124,7 @@ export class TabularImportTransformer {
     }
 
 
-    private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId?: string): string[] {
+    private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId: string | null): string[] {
         const sql: string[] = [];
         if (source.stationDefinition) {
             const stationDefinition = source.stationDefinition;
@@ -222,7 +221,7 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildAlterDateTimeColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string[] {
+    private static buildAlterDateTimeColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceTabularParamsDto, tableName: string): string[] {
         const sql: string[] = [];
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
@@ -293,7 +292,7 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
+    private static buildAlterValueColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
         const sql: string[] = [];
 
         if (tabularDef.valueDefinition !== undefined) {

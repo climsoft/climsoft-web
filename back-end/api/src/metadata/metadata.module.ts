@@ -51,11 +51,14 @@ import { StationNetworkAffiliationsService } from './stations/services/station-n
 import { SettingsModule } from 'src/settings/settings.module';
 import { QCSpecificationEntity } from './qc-specifications/entities/qc-specification.entity';
 import { QCSpecificationsController } from './qc-specifications/controllers/qc-specifications.controller';
-import { MetadataImportPreviewController } from './controllers/metadata-import-preview.controller';
-import { MetadataImportPreviewService } from './services/metadata-import-preview.service';
+import { MetadataImportPreviewController } from './metadata-import-preview.controller';
+import { MetadataImportPreviewService } from './metadata-import-preview.service';
 import { FlagEntity } from './flags/entities/flag.entity';
 import { FlagsService } from './flags/services/flags.service';
 import { FlagsController } from './flags/controllers/flags.controller';
+import { AdapterSpecificationEntity } from './adapters/entities/adapter-specification.entity';
+import { AdaptersService } from './adapters/services/adapters.service';
+import { AdaptersController } from './adapters/controllers/adapters.controller';
 
 @Module({
     imports: [
@@ -84,6 +87,8 @@ import { FlagsController } from './flags/controllers/flags.controller';
             ConnectorSpecificationEntity,
 
             FlagEntity,
+
+            AdapterSpecificationEntity,
         ]),
         SharedModule,
         UserModule,
@@ -112,6 +117,8 @@ import { FlagsController } from './flags/controllers/flags.controller';
         ConnectorSpecificationsController,
 
         FlagsController,
+
+        AdaptersController,
 
         MetadataUpdatesController,
 
@@ -144,6 +151,8 @@ import { FlagsController } from './flags/controllers/flags.controller';
         ConnectorSpecificationsService,
 
         FlagsService,
+
+        AdaptersService,
     ],
 
     exports: [
@@ -161,6 +170,7 @@ import { FlagsController } from './flags/controllers/flags.controller';
         ExportSpecificationsService,
         ConnectorSpecificationsService,
         FlagsService,
+        AdaptersService,
     ]
 })
 export class MetadataModule { }

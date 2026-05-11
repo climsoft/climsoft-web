@@ -1,7 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindManyOptions, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import * as path from 'node:path';
 import { ConnectorExecutionLogEntity, ExecutionActivity, ExportFileServerExecutionActivityVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
 
 export interface CreateConnectorExecutionLogDto {
@@ -268,12 +267,13 @@ export class ConnectorExecutionLogService {
     }
 
     /**
-     * Get all file names referenced by execution logs.
-     * Used by the file cleanup scheduler to determine which files are still in use.
+     * Get all operation IDs referenced by execution logs.
+     * Used by the cleanup scheduler to avoid deleting operation directories
+     * that may still be needed (e.g., for future file download features).
      */
-    public async findAllReferencedFileNames(): Promise<Set<string>> {
+    public async findAllReferencedOperationIds(): Promise<Set<string>> {
         const logs = await this.executionLogRepo.find();
-        const files = new Set<string>();
+        const operationIds = new Set<string>();
 
         for (const log of logs) {
             if (!log.executionActivities) {
@@ -283,25 +283,22 @@ export class ConnectorExecutionLogService {
             for (const activity of log.executionActivities) {
                 if (this.isImportActivity(activity)) {
                     for (const file of activity.processedFiles) {
-                        if (file.downloadedFileName) {
-                            files.add(file.downloadedFileName);
-                        }
-                        if (file.processedFileMetadata) {
-                            files.add(path.basename(file.processedFileMetadata.fileName));
+                        if (file.operationId) {
+                            operationIds.add(file.operationId);
                         }
                     }
                 } else {
-                    for (const file of activity.processedFiles) {
-                        files.add(file.fileName);
+                    if (activity.operationId) {
+                        operationIds.add(activity.operationId);
                     }
                 }
             }
         }
 
-        return files;
+        return operationIds;
     }
 
     private isImportActivity(activity: ExecutionActivity): activity is ImportFileServerExecutionActivityVo {
-        return 'stationId' in activity || (activity.processedFiles.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
+        return 'stationId' in activity && (activity.processedFiles.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
     }
 }

@@ -7,8 +7,10 @@ WORKDIR /app
 # Copy package.json and package-lock.json to install dependencies
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies from the lockfile.
+# `npm ci` requires package-lock.json to be in sync with package.json,
+# never modifies the lockfile, and starts from a clean node_modules.
+RUN npm ci
 
 # Copy the rest of the application code
 COPY . .

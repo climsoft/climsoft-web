@@ -1,7 +1,15 @@
+import { Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, Min } from "class-validator";
 import { QCStatusEnum } from "src/observation/enums/qc-status.enum";
+import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ObservationPeriodPermissionsDto {
+    // See issue https://github.com/typestack/class-transformer/issues/550 to know why the manual transformation is needed.
+    @IsOptional()
+    @Type(() => String) // Required to stop transformer from converting the value type to boolean
+    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+    useEntryDate?: boolean;
+
     @IsOptional()
     within?: {
         fromDate: string;

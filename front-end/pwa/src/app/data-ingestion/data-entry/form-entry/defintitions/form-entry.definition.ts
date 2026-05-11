@@ -1,7 +1,7 @@
 import { FormSourceModel, SelectorFieldControlType } from "src/app/metadata/source-specifications/models/form-source.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ViewSourceModel } from "src/app/metadata/source-specifications/models/view-source.model";
+import { ViewSourceSpecificationModel } from "src/app/metadata/source-specifications/models/view-source-specification.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../../models/entry-form-observation-query.model";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
@@ -22,7 +22,7 @@ export interface FieldEntryDefinition {
  */
 export class FormEntryDefinition {
     public station: StationCacheModel;
-    private source: ViewSourceModel;
+    private source: ViewSourceSpecificationModel;
     public formMetadata: FormSourceModel;
 
     /** value of the element selector */
@@ -50,7 +50,7 @@ export class FormEntryDefinition {
 
     constructor(
         station: StationCacheModel,
-        source: ViewSourceModel,
+        source: ViewSourceSpecificationModel,
         newCachedMetadataSearchService: CachedMetadataService) {
 
         this.station = station;

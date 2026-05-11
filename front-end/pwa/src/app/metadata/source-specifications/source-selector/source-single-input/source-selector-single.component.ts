@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from '../../models/source-type.enum';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -18,8 +18,8 @@ export class SourceSelectorSingleComponent implements OnChanges, OnDestroy {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ViewSourceModel[];
-  protected selectedOption!: ViewSourceModel | null;
+  protected options!: ViewSourceSpecificationModel[];
+  protected selectedOption!: ViewSourceSpecificationModel | null;
   private destroy$ = new Subject<void>();
 
   constructor(private cachedMetadataService: CachedMetadataService) {
@@ -68,11 +68,11 @@ export class SourceSelectorSingleComponent implements OnChanges, OnDestroy {
     }
   }
 
-  protected optionDisplayFunction(option: ViewSourceModel): string {
-    return `${option.id} - ${option.name}`;
+  protected optionDisplayFunction(option: ViewSourceSpecificationModel): string {
+    return `${option.name}`;
   }
 
-  protected onSelectedOptionChange(selectedOption: ViewSourceModel | null) {
+  protected onSelectedOptionChange(selectedOption: ViewSourceSpecificationModel | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

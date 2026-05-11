@@ -6,21 +6,21 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 @Check("CHK_element_subdomain_name_not_empty", `"name" <> ''`)
 export class ElementSubdomainEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ type: "int" })
-    id: number;
+    id!: number;
 
     @Column({ name: "name", type: "varchar", unique: true })
-    name: string;
+    name!: string;
 
     @Column({ type: "varchar", nullable: true })
-    description: string | null;
+    description!: string | null;
 
     @Column({ name: "domain", type: "enum", enum: ElementDomainEnum })
     @Index()
-    domain: ElementDomainEnum;
+    domain!: ElementDomainEnum;
 
     @Column({ name: "comment", type: 'varchar', nullable: true })
-    comment: string | null;
+    comment!: string | null;
 
     @Column({ name: 'log', type: 'jsonb', nullable: true })
-    log: BaseLogVo[] | null;
+    log!: BaseLogVo[] | null;
 }

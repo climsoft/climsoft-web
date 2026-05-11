@@ -1,14 +1,14 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../dtos/climsoft-v4-import-parameters.dto';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
 import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { FlagsService } from 'src/metadata/flags/services/flags.service';
 import { DateUtils } from 'src/shared/utils/date.utils';
-import * as mariadb from 'mariadb';
+import mariadb from 'mariadb';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
 
@@ -16,8 +16,8 @@ import { StationsService } from 'src/metadata/stations/services/stations.service
 export class ClimsoftV4ToWebSyncService {
     private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
     private isImporting: boolean = false;
-    private climsoftSource: ViewSourceSpecificationDto | undefined;
-    private userId: number;
+    private climsoftSource: ViewSourceSpecificationModel | undefined;
+    private userId: number = 0;
 
     constructor(
         private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,

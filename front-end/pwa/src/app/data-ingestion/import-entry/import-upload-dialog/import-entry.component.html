@@ -18,8 +18,8 @@
             <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
               [(selectedId)]="selectedStationId" />
           </div>
-          <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="disableUpload"
-            [fileName]="uploadedFileName" (fileSelected)="onFileSelected($event)" />
+          <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="!canUploadFile"
+            [fileName]="selectedFileName" (fileSelected)="onFileSelected($event)" />
         </div>
       </div>
 
@@ -83,7 +83,7 @@
                 [totalRowCount]="uploadedFileRawPreviewResponse.skippedData.totalRowCount"
                 [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
                 [noFileMessage]="'Upload a file to see the skipped rows of the raw data'" [maxHeight]="'15vh'"
-                [loading]="uploadedFileLoading" />
+                [loading]="uploadingFile" />
             </div>
 
             <div class="mt-2">
@@ -93,7 +93,7 @@
                 [totalRowCount]="uploadedFileRawPreviewResponse.previewData.totalRowCount"
                 [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
                 [noFileMessage]="'Upload a file to see the raw data'" [maxHeight]="'15vh'"
-                [loading]="uploadedFileLoading" />
+                [loading]="uploadingFile" />
             </div>
 
             <div class="mt-2">
@@ -103,7 +103,7 @@
                 [totalRowCount]="uploadedFileTransformedPreviewResponse.previewData.totalRowCount" [error]="uploadError"
                 [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
                 [noFileMessage]="'Upload a file to see a preview of the transformed data before importing'"
-                [maxHeight]="'15vh'" [loading]="transformedUploadedFileLoading" />
+                [maxHeight]="'15vh'" [loading]="processingFile" />
             </div>
 
           </div>

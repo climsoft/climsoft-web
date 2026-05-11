@@ -1,4 +1,10 @@
 
+export interface BaseParamsDto {
+    importAdapterId: number | null;
+    rowsToSkip: number;
+    delimiter: string | null;
+}
+
 export interface PreviewError {
     type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
     message: string;

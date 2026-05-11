@@ -6,7 +6,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { map, Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { AssignSameInputComponent, SameInputStruct } from './assign-same-input/assign-same-input.component';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
@@ -58,7 +58,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected station!: StationCacheModel;
 
   /** Source (form) details */
-  protected source!: ViewSourceModel;
+  protected source!: ViewSourceSpecificationModel;
 
   protected stationsIdsAssignedToForm!: string[];
 

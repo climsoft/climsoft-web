@@ -1,46 +1,41 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-end px-1">
-    <div class="d-flex align-items-end">
+    <div class="d-flex align-items-end gap-2">
       <div>
         <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm" (click)="onAddClick()">
           Add
         </button>
       </div>
       <div>
-        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
           (click)="dlgImportStations.showDialog()">
           Import
         </button>
         <app-stations-import-dialog #dlgImportStations />
       </div>
       <div>
-        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
           (click)="onBulkEditClick()">
           Bulk Edit
         </button>
         <app-bulk-edit-stations-dialog #dlgBulkEditStations />
       </div>
-      <div class="ms-2">
+      <div>
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
-      <div class="ms-2">
+      <div>
         <app-drop-down-button [buttonText]="'Visualise'" [dropDownItems]="visualiseItems"
           (dropDownOptionClick)="onVisualiseClick($event)" />
       </div>
-      <div class="ms-2">
+      <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
-          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
-          [offSetRight]="true" />
-
-        <!-- TODO. find a way of doing this through the drop down in future -->
-        <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
-
+          (dropDownOptionClick)="onOptionsClick($event)" [offSetRight]="true" />
       </div>
-      <div class="ms-2">
-        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      <div>
+        <app-page-input [pageInputDefinition]="pageInputDefinition" />
       </div>
     </div>
   </div>
@@ -95,9 +90,9 @@
             <td class="text-nowrap">{{ station.id }}</td>
             <td>{{ station.name }}</td>
             <td>
-               <ng-container *ngFor="let seg of station.description | linkify">
-                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
-                  rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ seg.content }}</a>
+              <ng-container *ngFor="let seg of station.description | linkify">
+                <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank" rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()">{{ seg.content }}</a>
                 <ng-template #plainText>{{ seg.content }}</ng-template>
               </ng-container>
             </td>

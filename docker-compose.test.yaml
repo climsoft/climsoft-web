@@ -52,30 +52,88 @@ services:
       V4_DB_USERNAME: "${V4_DB_USERNAME}"
       V4_DB_PASSWORD: "${V4_DB_PASSWORD}"
       V4_DB_UTCOFFSET: "${V4_DB_UTCOFFSET}"
-      CSV2BUFR_HOST: climsoft_csv2bufr
-      CSV2BUFR_PORT: 5001
+      PYTHON_RUNNER_ENABLED: "true"
+      PYTHON_RUNNER_HOST: climsoft_python_runner
+      PYTHON_RUNNER_PORT: 5101
+      R_RUNNER_ENABLED: "true"
+      R_RUNNER_HOST: climsoft_r_runner
+      R_RUNNER_PORT: 5102
+      JAVASCRIPT_RUNNER_ENABLED: "true"
+      JAVASCRIPT_RUNNER_HOST: climsoft_javascript_runner
+      JAVASCRIPT_RUNNER_PORT: 5103
+      DUCKDB_RUNNER_ENABLED: "true"
+      DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
+      DUCKDB_RUNNER_PORT: 5104
     expose:
-      - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
+      - 3000
     depends_on:
       climsoft_db:
-        condition: service_healthy # Wait until climsoft_db is healthy as indicate by healthcheck
+        condition: service_healthy
     volumes:
-      - climsoft_test_imports:/app/imports
-      - climsoft_test_exports:/app/exports
+      - climsoft_test_operations:/app/operations
+      - climsoft_test_adapters:/app/adapters
     networks:
       - climsoft_network
 
-  climsoft_csv2bufr:
+  climsoft_python_runner:
     build:
-      context: ./back-end/csv2bufr
+      context: ./back-end/runners/python
       dockerfile: Dockerfile
-    container_name: climsoft-csv2bufr
+    container_name: climsoft-python-runner
     expose:
-      - 5001 # Expose to internal network only.
+      - 5101
     volumes:
-      - climsoft_test_exports:/app/exports
+      - climsoft_test_adapters:/app/adapters
+      - climsoft_test_operations:/app/operations
     networks:
       - climsoft_network
+    mem_limit: 256m
+    cpus: 0.5
+
+  climsoft_r_runner:
+    build:
+      context: ./back-end/runners/r
+      dockerfile: Dockerfile
+    container_name: climsoft-r-runner
+    expose:
+      - 5102
+    volumes:
+      - climsoft_test_adapters:/app/adapters
+      - climsoft_test_operations:/app/operations
+    networks:
+      - climsoft_network
+    mem_limit: 256m
+    cpus: 0.5
+
+  climsoft_javascript_runner:
+    build:
+      context: ./back-end/runners/javascript
+      dockerfile: Dockerfile
+    container_name: climsoft-javascript-runner
+    expose:
+      - 5103
+    volumes:
+      - climsoft_test_adapters:/app/adapters
+      - climsoft_test_operations:/app/operations
+    networks:
+      - climsoft_network
+    mem_limit: 256m
+    cpus: 0.5
+
+  climsoft_duckdb_runner:
+    build:
+      context: ./back-end/runners/duckdb
+      dockerfile: Dockerfile
+    container_name: climsoft-duckdb-runner
+    expose:
+      - 5104
+    volumes:
+      - climsoft_test_adapters:/app/adapters
+      - climsoft_test_operations:/app/operations
+    networks:
+      - climsoft_network
+    mem_limit: 256m
+    cpus: 0.5
 
   climsoft_db:
     image: postgis/postgis:17-3.5
@@ -88,15 +146,9 @@ services:
       - "5432:5432" # Expose to both external and internal network.
     volumes:
       - climsoft_test_database:/var/lib/postgresql/data
-      - climsoft_test_imports:/var/lib/postgresql/imports
-      - climsoft_test_exports:/var/lib/postgresql/exports
+      - climsoft_test_operations:/var/lib/postgresql/operations
     networks:
       - climsoft_network
-    # Recursively change the ownership of the /var/lib/postgresql/exports directory and all its contents to user postgres and group postgres.
-    # Then execute the default PostGIS/PostgreSQL startup entrypoint, passing postgres as the command to run the Postgres server.
-    command: >
-      sh -c "chown -R postgres:postgres /var/lib/postgresql/exports 
-      && docker-entrypoint.sh postgres"
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
@@ -105,8 +157,8 @@ services:
 
 volumes:
   climsoft_test_database:
-  climsoft_test_imports:
-  climsoft_test_exports:
+  climsoft_test_operations:
+  climsoft_test_adapters:
 
 networks:
   climsoft_network:

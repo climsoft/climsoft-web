@@ -7,39 +7,39 @@ import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 export class InstrumentEntity extends AppBaseEntity {
 
     @PrimaryGeneratedColumn({ type: "int" })
-    id: number;
+    id!: number;
 
     @Column({ type: "varchar", name: "serial_number" })
-    serialNumber: string;
+    serialNumber!: string;
 
     @Column({ type: "int", name: "instrument_type_id" })
     @Index()
-    instrumentTypeId: number;
+    instrumentTypeId!: number;
 
     // ManyToOne relationship with InstrumentTypeEntity
     @ManyToOne(() => InstrumentTypeEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: "instrument_type_id" })
-    instrumentType: InstrumentTypeEntity;
+    instrumentType!: InstrumentTypeEntity;
 
     @Column({ type: "varchar" })
-    stationId: string;
+    stationId!: string;
 
     @Column({ type: "int"})
-    elementId: number;
+    elementId!: number;
 
     @Column({ type: "varchar", nullable: true })
-    status: string;
+    status!: string;
 
     @Column({ type: "timestamptz", name: "status_change_date", nullable: true })
-    statusChangeDate: string | null;
+    statusChangeDate!: string | null;
 
     @Column({ type: "varchar", name: "last_maintenance_date", nullable: true })
-    lastMaintenanceDate: string;
+    lastMaintenanceDate!: string;
 
     @Column({ type: "varchar", nullable: true })
-    comment: string | null;
+    comment!: string | null;
 
     @Column({ type: "jsonb", nullable: true })
-    log: string | null;
+    log!: string | null;
 
 }

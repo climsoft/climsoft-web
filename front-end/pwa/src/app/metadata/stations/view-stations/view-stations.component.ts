@@ -94,7 +94,7 @@ export class ViewStationsComponent implements OnDestroy {
 
   private updatePaging(): void {
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setPageSize(365);
     this.pageInputDefinition.setTotalRowCount(this.sortedStations.length);
   }
 
@@ -147,6 +147,9 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
+      case OptionEnum.DOWNLOAD:
+        window.open(this.stationsCacheService.getDownloadUrl(), '_blank');
+        break;
       case OptionEnum.DELETE_ALL:
         this.dlgDeleteAllConfirm.openDialog();
         break;
@@ -195,10 +198,6 @@ export class ViewStationsComponent implements OnDestroy {
     } else if (option === 'Tree Map') {
       this.showTreeMapDialog = true;
     }
-  }
-
-  protected get downloadLink(): string {
-    return this.stationsCacheService.downloadLink;
   }
 
 }

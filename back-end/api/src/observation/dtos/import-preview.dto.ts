@@ -1,59 +1,50 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { FileProcessingError } from 'src/metadata/file-processing-error.model';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
+import { DefaultNull } from 'src/shared/decorators/default-null.decorator';
 
-export class UpdateBaseParamsDto {
+export class BaseParamsDto {
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsInt()
-    @Min(0)
-    rowsToSkip: number;
-
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    delimiter?: string;
-}
-
-export class InitFromFileDto {
-    @IsString()
-    @IsNotEmpty()
-    fileName: string;
+    @Min(1)
+    importAdapterId!: number | null;
 
     @IsInt()
     @Min(0)
-    rowsToSkip: number;
+    rowsToSkip!: number;
 
-    @IsOptional()
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
     @IsNotEmpty()
-    delimiter?: string;
+    delimiter!: string | null;
 }
 
 export class ProcessPreviewDto {
     @ValidateNested()
     @Type(() => CreateSourceSpecificationDto)
-    sourceDefinition: CreateSourceSpecificationDto;
+    sourceDefinition!: CreateSourceSpecificationDto;
 
-    @IsOptional()
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
-    stationId?: string;
+    @IsNotEmpty()
+    stationId!: string;
 }
 
 
 export class PreviewForImportDto {
     @IsInt()
     @Min(1)
-    sourceId: number;
+    sourceId!: number;
 
-    @IsOptional()
+    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
     @IsNotEmpty()
-    stationId?: string;
-}
-
-export interface PreviewError {
-    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
-    message: string;
-    detail?: string;
+    stationId!: string | null;
 }
 
 export interface PreviewTableData {
@@ -71,5 +62,5 @@ export interface RawPreviewResponse {
 
 export interface TransformedPreviewResponse {
     previewData: PreviewTableData;
-    error?: PreviewError;
+    error?: FileProcessingError;
 }

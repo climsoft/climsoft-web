@@ -2,7 +2,7 @@ import { BehaviorSubject, catchError, map, Observable, tap, throwError } from "r
 import { Injectable } from "@angular/core";
 import { ElementCacheModel, ElementsCacheService } from "../elements/services/elements-cache.service";
 import { SourcesCacheService } from "../source-specifications/services/source-cache.service";
-import { ViewSourceModel } from "../source-specifications/models/view-source.model";
+import { ViewSourceSpecificationModel } from "../source-specifications/models/view-source-specification.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
 import { QCTestCacheModel, QCSpecificationsCacheService } from "../qc-tests/services/qc-specifications-cache.service";
 import { GeneralSettingsCacheService } from "src/app/admin/general-settings/services/general-settings.service";
@@ -19,7 +19,7 @@ import { ViewFlagModel } from "../flags/models/view-flag.model";
 export class CachedMetadataService {
     private _stationsMetadata!: StationCacheModel[];
     private _elementsMetadata!: ElementCacheModel[];
-    private _sourcesMetadata!: ViewSourceModel[];
+    private _sourcesMetadata!: ViewSourceSpecificationModel[];
     private _qcTestsMetadata!: QCTestCacheModel[];
     private _generalSettingsMetadata!: ViewGeneralSettingModel[];
     private _flagsMetadata!: ViewFlagModel[];
@@ -107,7 +107,7 @@ export class CachedMetadataService {
         return this._elementsMetadata;
     }
 
-    public get sourcesMetadata(): ViewSourceModel[] {
+    public get sourcesMetadata(): ViewSourceSpecificationModel[] {
         if (!this._allMetadataLoaded.value) throw new Error('Developer error. Sources metadata not yet loaded.');
         return this._sourcesMetadata;
     }
@@ -149,7 +149,7 @@ export class CachedMetadataService {
         return metadata;
     }
 
-    public getSource(sourceId: number): ViewSourceModel {
+    public getSource(sourceId: number): ViewSourceSpecificationModel {
         if (!this._allMetadataLoaded.value) {
             throw new Error(`Developer error: Metadata not full loaded. Sources not usable.`);
         }

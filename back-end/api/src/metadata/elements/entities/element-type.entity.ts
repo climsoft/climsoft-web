@@ -6,26 +6,26 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 @Check("CHK_element_type_name_not_empty", `"name" <> ''`)
 export class ElementTypeEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ type: "int" })
-    id: number;
+    id!: number;
 
     @Column({ type: "varchar" })
-    name: string;
+    name!: string;
 
     @Column({ type: "varchar", nullable: true })
-    description: string | null;
+    description!: string | null;
 
     @Column({ type: "int", name: "subdomain_id" })
     @Index()
-    subdomainId: number;
+    subdomainId!: number;
 
     // ManyToOne relationship with ElementSubdomainEntity
     @ManyToOne(() => ElementSubdomainEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: "subdomain_id" })
-    elementSubdomain: ElementSubdomainEntity;
+    elementSubdomain!: ElementSubdomainEntity;
 
     @Column({ name: "comment", type: 'varchar', nullable: true })
-    comment: string | null;
+    comment!: string | null;
 
     @Column({ name: 'log', type: 'jsonb', nullable: true })
-    log: BaseLogVo[] | null;
+    log!: BaseLogVo[] | null;
 }

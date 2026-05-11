@@ -5,29 +5,29 @@ import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 @Check("CHK_network_affiliation_name_not_empty", `"name" <> ''`)
 export class NetworkAffiliationEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
-  id: number;
+  id!: number;
 
   @Column({ name: "name", type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ name: "description", type: 'varchar', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: "color", type: "varchar", nullable: true })
-  color: string | null;
+  color!: string | null;
 
   @Column({ name: "order_number", type: "int", nullable: true })
   @Index()
-  orderNumber: number | null;
+  orderNumber!: number | null;
 
   @Column({ name: "extra_metadata", type: 'jsonb', nullable: true })
-  extraMetadata: Record<string, any> | null;
+  extraMetadata!: Record<string, any> | null;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
-  log: NetworkAffiliationLogVo[] | null;
+  log!: NetworkAffiliationLogVo[] | null;
 }
 
 export interface NetworkAffiliationLogVo extends BaseLogVo {

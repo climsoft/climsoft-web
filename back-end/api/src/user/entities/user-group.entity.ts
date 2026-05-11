@@ -6,20 +6,20 @@ import { UserPermissionDto } from "../dtos/permissions/user-permission.dto";
 @Check("CHK_user_groups_name_not_empty", `"name" <> ''`)
 export class UserGroupEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar' })
-  description: string;
+  description!: string;
 
   @Column({ type: 'jsonb', name: 'permissions'})
-  permissions: UserPermissionDto;
+  permissions!: UserPermissionDto;
 
   @Column({ name: 'comment', type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  log: BaseLogVo[] | null;   // TODO. Define structure.
+  log!: BaseLogVo[] | null;   // TODO. Define structure.
 }

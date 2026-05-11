@@ -8,20 +8,20 @@ export class StationNetworkAffiliationEntity extends AppBaseEntity {
 
     @PrimaryColumn({ type: "varchar", name: "station_id" })
     @Index()
-    stationId: string;
+    stationId!: string;
 
     // ManyToOne relationship with StationEntity
     @ManyToOne(() => StationEntity, { onDelete: "CASCADE" })
     @JoinColumn({ name: "station_id" })
-    station: StationEntity;
+    station!: StationEntity;
 
     @PrimaryColumn({ type: "int", name: "network_affiliation_id" })
     @Index()
-    networkAffiliationId: number;
+    networkAffiliationId!: number;
 
     // ManyToOne relationship with NetworkAffiliationEntity
     @ManyToOne(() => NetworkAffiliationEntity, { onDelete: "CASCADE" })
     @JoinColumn({ name: "network_affiliation_id" })
-    networkAffiliation: NetworkAffiliationEntity;
+    networkAffiliation!: NetworkAffiliationEntity;
 
 }

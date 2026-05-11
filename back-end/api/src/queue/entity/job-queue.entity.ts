@@ -1,5 +1,5 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm"; 
+import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 export enum JobQueueStatusEnum {
     PENDING = 'pending',
@@ -22,45 +22,49 @@ export enum JobTriggerEnum {
 
 @Entity('job_queues')
 export class JobQueueEntity extends AppBaseEntity {
-  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
-  id: number;
+    @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
+    id!: number;
 
-  @Column({ name: 'name', type: 'varchar' })
-  @Index()
-  name: string;
+    @Column({ name: 'name', type: 'varchar' })
+    @Index()
+    name!: string;
 
-  @Column({ name: 'job_type', type: 'enum', enum: JobTypeEnum })
-  @Index()
-  jobType: JobTypeEnum;
+    @Column({ name: 'job_type', type: 'enum', enum: JobTypeEnum })
+    @Index()
+    jobType!: JobTypeEnum;
 
-  @Column({ name: 'triggered_by', type: 'enum', enum: JobTriggerEnum })
-  @Index()
-  triggeredBy: JobTriggerEnum;
+    @Column({ name: 'triggered_by', type: 'enum', enum: JobTriggerEnum })
+    @Index()
+    triggeredBy!: JobTriggerEnum;
 
-  @Column({ name: 'payload', type: 'jsonb' })
-  payload: Record<string, any>;
+    @Column({ name: 'payload', type: 'jsonb' })
+    payload!: Record<string, any>;
 
-  @Column({ name: 'scheduled_at', type: 'timestamptz' })
-  @Index()
-  scheduledAt: Date;
+    @Column({ name: 'scheduled_at', type: 'timestamptz' })
+    @Index()
+    scheduledAt!: Date;
 
-  @Column({ name: 'processed_at', type: 'timestamptz', nullable: true })
-  @Index()
-  processedAt: Date | null;
+    @Column({ name: 'processed_at', type: 'timestamptz', nullable: true })
+    @Index()
+    processedAt!: Date | null;
 
-  @Column({ name: 'status', type: 'enum', enum: JobQueueStatusEnum, default: JobQueueStatusEnum.PENDING })
-  @Index()
-  status: JobQueueStatusEnum;
+    @Column({ name: 'finished_at', type: 'timestamptz', nullable: true })
+    @Index()
+    finishedAt!: Date | null;
 
-  @Column({ name: 'attempts', type: 'int', default: 0 })
-  @Index()
-  attempts: number;
+    @Column({ name: 'status', type: 'enum', enum: JobQueueStatusEnum, default: JobQueueStatusEnum.PENDING })
+    @Index()
+    status!: JobQueueStatusEnum;
 
-  @Column({ name: 'max_attempts', type: 'int', default: 3 })
-  maxAttempts: number;
+    @Column({ name: 'attempts', type: 'int', default: 0 })
+    @Index()
+    attempts!: number;
 
-  @Column({ name: 'error_message', type: 'varchar', nullable: true })
-  errorMessage: string | null;
+    @Column({ name: 'max_attempts', type: 'int', default: 3 })
+    maxAttempts!: number;
+
+    @Column({ name: 'error_message', type: 'varchar', nullable: true })
+    errorMessage!: string | null;
 }
 
 // Connector-specific payload interface

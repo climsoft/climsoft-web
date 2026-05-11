@@ -3,7 +3,7 @@ import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient } from "@angular/common/http";
-import { ViewSourceModel } from "../models/view-source.model";
+import { ViewSourceSpecificationModel } from "../models/view-source-specification.model";
 import { CreateSourceSpecificationModel } from "../models/create-source-specification.model";
 import { AppConfigService } from "src/app/app-config.service";
 
@@ -12,7 +12,7 @@ import { AppConfigService } from "src/app/app-config.service";
 })
 export class SourcesCacheService {
     private endPointUrl: string;
-    private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
+    private readonly _cachedSources: BehaviorSubject<ViewSourceSpecificationModel[]> = new BehaviorSubject<ViewSourceSpecificationModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
@@ -49,12 +49,12 @@ export class SourcesCacheService {
         });
     }
 
-    public get cachedSources(): Observable<ViewSourceModel[]> {
+    public get cachedSources(): Observable<ViewSourceSpecificationModel[]> {
         this.checkForUpdates();
         return this._cachedSources.asObservable();
     }
 
-    public findOne(id: number): Observable<ViewSourceModel | undefined> {
+    public findOne(id: number): Observable<ViewSourceSpecificationModel | undefined> {
         return this.cachedSources.pipe(
             map(response => {
                 return response.find(item => item.id === id);
@@ -62,8 +62,8 @@ export class SourcesCacheService {
         );
     }
 
-    public add(createDto: CreateSourceSpecificationModel): Observable<ViewSourceModel> {
-        return this.http.post<ViewSourceModel>(`${this.endPointUrl}`, createDto)
+    public add(createDto: CreateSourceSpecificationModel): Observable<ViewSourceSpecificationModel> {
+        return this.http.post<ViewSourceSpecificationModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();
@@ -71,8 +71,8 @@ export class SourcesCacheService {
             );
     }
 
-    public update(id: number, updateDto: CreateSourceSpecificationModel): Observable<ViewSourceModel> {
-        return this.http.patch<ViewSourceModel>(`${this.endPointUrl}/${id}`, updateDto)
+    public update(id: number, updateDto: CreateSourceSpecificationModel): Observable<ViewSourceSpecificationModel> {
+        return this.http.patch<ViewSourceSpecificationModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();

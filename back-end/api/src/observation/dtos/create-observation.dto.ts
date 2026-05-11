@@ -3,37 +3,37 @@ import { IsDateString, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateIf } 
 export class CreateObservationDto {
     @IsString()
     @IsNotEmpty()
-    stationId: string;
+    stationId!: string;
 
     @IsInt()
     @Min(1)
-    elementId: number;
+    elementId!: number;
 
     @IsInt()
     @Min(1)
-    sourceId: number;
+    sourceId!: number;
 
     @IsInt()
     @Min(0)
-    level: number;
+    level!: number;
 
     @IsDateString()
-    datetime: string;
+    datetime!: string;
 
     @IsInt()
     @Min(1)
-    interval: number;
+    interval!: number;
 
     @ValidateIf(o => o.value !== null)
     @IsNumber() // covers both integers and floats
-    value: number | null;
+    value!: number | null;
 
     @ValidateIf(o => o.flagId !== null)
     @IsInt()
     @Min(1)
-    flagId: number | null;
+    flagId!: number | null;
 
     @ValidateIf(o => o.comment !== null)
     @IsString()
-    comment: string | null;
+    comment!: string | null;
 }

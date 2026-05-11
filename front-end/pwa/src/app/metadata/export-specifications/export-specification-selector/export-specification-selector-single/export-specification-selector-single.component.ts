@@ -16,14 +16,13 @@ export class ExportSpecificationSelectorSingleComponent implements OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number>();
 
+  protected allSpecifications: ViewExportSpecificationModel[] = [];
+  protected specifications!: ViewExportSpecificationModel[];
+  protected selectedSpecification!: ViewExportSpecificationModel | null;
 
-  protected allTemplates: ViewExportSpecificationModel[] = [];
-  protected templates!: ViewExportSpecificationModel[];
-  protected selectedTemplate!: ViewExportSpecificationModel | null;
-
-  constructor(private exportTemplatesService: ExportSpecificationsService) {
-    this.exportTemplatesService.findAll().pipe(take(1)).subscribe(data => {
-      this.allTemplates = data;
+  constructor(private exportSpecificationService: ExportSpecificationsService) {
+    this.exportSpecificationService.findAll().pipe(take(1)).subscribe(data => {
+      this.allSpecifications = data;
       this.filterBasedOnSelectedIds();
     });
   }
@@ -33,13 +32,13 @@ export class ExportSpecificationSelectorSingleComponent implements OnChanges {
   }
 
   private filterBasedOnSelectedIds(): void {
-    this.templates = this.allTemplates;
+    this.specifications = this.allSpecifications;
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.templates = this.templates.filter(item => this.includeOnlyIds.includes(item.id));
+      this.specifications = this.specifications.filter(item => this.includeOnlyIds.includes(item.id));
     }
 
-    const foundElement = this.templates.find(data => data.id === this.selectedId);
-    this.selectedTemplate = foundElement ? foundElement : null;
+    const foundSpec = this.specifications.find(data => data.id === this.selectedId);
+    this.selectedSpecification = foundSpec ? foundSpec : null;
   }
 
   protected optionDisplayFunction(option: ViewExportSpecificationModel): string {

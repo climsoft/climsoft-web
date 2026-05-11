@@ -1,0 +1,4 @@
+<app-selector-single-input [id]="id" [label]="label" [placeholder]="placeholder" [errorMessage]="errorMessage"
+    [displayCancelOption]="displayCancelOption" [options]="specifications" [optionDisplayFn]="optionDisplayFunction"
+    [(selectedOption)]="selectedSpecification"
+    (selectedOptionChange)="onSelectedOptionChange($event)"></app-selector-single-input>

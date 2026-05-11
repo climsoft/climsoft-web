@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
@@ -18,10 +19,11 @@ export class ViewConnectorSpecificationsComponent {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
-  protected connectors!: ViewConnectorSpecificationModel[];
-
-  // Selected connector for actions
+  protected connectors: ViewConnectorSpecificationModel[] = [];
   protected selectedConnector: ViewConnectorSpecificationModel | null = null;
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -30,11 +32,13 @@ export class ViewConnectorSpecificationsComponent {
     this.loadConnectorSpecifications();
   }
 
-  private loadConnectorSpecifications(): void {
+  protected loadConnectorSpecifications(): void {
     this.connectorSpecificationsService.findAll().pipe(
       take(1),
     ).subscribe(data => {
       this.connectors = data;
+      this.applySort();
+      this.updatePaging();
     });
   }
 
@@ -106,6 +110,42 @@ export class ViewConnectorSpecificationsComponent {
     event.stopPropagation();
     this.selectedConnector = connector;
     this.dlgToggleDisabled.showDialog();
+  }
+
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): ViewConnectorSpecificationModel[] {
+    return this.connectors.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.connectors.sort((a, b) => {
+      const aVal = (a as any)[this.sortColumn];
+      const bVal = (b as any)[this.sortColumn];
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal ?? '').localeCompare(String(bVal ?? '')) * dir;
+    });
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(365);
+    this.pageInputDefinition.setTotalRowCount(this.connectors.length);
   }
 
   protected onToggleDisabledConfirm(): void {

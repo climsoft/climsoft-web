@@ -17,49 +17,49 @@ export type QCTestParameters = RangeThresholdQCTestParamsDto | FlatLineQCTestPar
 @Check("CHK_qc_tests_name_not_empty", `"name" <> ''`)// TODO. rename this also 
 export class QCSpecificationEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
-  id: number;
+  id!: number;
 
   @Column({ name: "name", type: "varchar", unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: "varchar", nullable: true })
-  description: string | null;
+  description!: string | null;
 
   //-----------------------
   @Column({ type: "int", name: "element_id" })
   @Index()
-  elementId: number;
+  elementId!: number;
 
   // ManyToOne relationship with ElementTypeEntity
   @ManyToOne(() => ElementEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "element_id" })
-  element: ElementEntity;
+  element!: ElementEntity;
   //-----------------------
 
   @Column({ name: "observation_level", type: "int"})
   @Index()
-  observationLevel: number;
+  observationLevel!: number;
 
   @Column({ name: "observation_interval", type: "int" })
   @Index()
-  observationInterval: number;
+  observationInterval!: number;
 
   @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum })
   @Index()
-  qcTestType: QCTestTypeEnum;
+  qcTestType!: QCTestTypeEnum;
 
   @Column({ name: "parameters", type: "jsonb" })
-  parameters: QCTestParameters;
+  parameters!: QCTestParameters;
 
   @Column({ name: "disabled", type: "boolean", default: false })
   @Index()
-  disabled: boolean;
+  disabled!: boolean;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "log", type: "jsonb", nullable: true })
-  log: QualityControlLogVo[] | null;
+  log!: QualityControlLogVo[] | null;
 }
 
 export interface QualityControlLogVo extends BaseLogVo {

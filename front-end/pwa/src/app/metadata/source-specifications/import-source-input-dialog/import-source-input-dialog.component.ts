@@ -2,16 +2,16 @@ import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/
 import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { Observable, Subject, switchMap, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { Observable, switchMap, take } from 'rxjs';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { CreateSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/create-source-specification.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { SourcesCacheService } from '../services/source-cache.service';
-import { HttpErrorResponse } from '@angular/common/http';
-import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ImportPreviewHttpService } from '../services/import-preview.service';
 import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { ViewAdapterSpecificationModel } from 'src/app/metadata/adapters/models/view-adapter-specification.model';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'interval' | 'value' | 'review';
 
@@ -21,15 +21,16 @@ type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'int
     styleUrls: ['./import-source-input-dialog.component.scss']
 })
 export class ImportSourceInputDialogComponent implements OnDestroy {
-    @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: DeleteConfirmationDialogComponent;
-    @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+    @ViewChild('dlgSaveConfirm') dlgSaveConfirm!: ConfirmationDialogComponent;
+    @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
 
     @Output()
     public ok = new EventEmitter<void>();
 
     protected open: boolean = false;
     protected title: string = '';
-    protected importSource!: ViewSourceModel;
+    protected viewSource!: ViewSourceSpecificationModel;
+    protected selectedFileName: string = '';
 
     // Wizard state
     protected activeStep: WizardStep = 'upload';
@@ -51,10 +52,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     protected transformedPreviewResponse!: TransformedPreviewResponse;
     protected rawPreviewLoading: boolean = false;
     protected transformedPreviewLoading: boolean = false;
-    protected uploadedFileName: string = '';
     protected saving: boolean = false;
-
-    private destroy$ = new Subject<void>();
+    protected selectedAdapter: ViewAdapterSpecificationModel | null = null;
 
     constructor(
         private pagesDataService: PagesDataService,
@@ -63,33 +62,25 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     ) {
         // Reset all state
         this.resetSamplePreview();
-
     }
 
-    public openDialog(sourceId?: number): void {
+    public openDialog(source?: ViewSourceSpecificationModel): void {
         // Reset all state
         this.cleanupSession();
         this.resetSamplePreview();
         this.activeStep = 'upload';
-        this.uploadedFileName = '';
         this.visitedSteps = new Set(['upload']);
+        this.selectedAdapter = null;
 
         this.open = true;
 
-        if (sourceId) {
+        if (source) {
             this.title = 'Edit Import Specification';
+            // TODO. Think about cloning the arrays inside the parameters. Their references are retained here
+            this.viewSource = { ...source, parameters: { ...source.parameters } };
+            this.initPreviewFromSavedFile();
             // Mark all steps as visited for existing specifications
             this.wizardSteps.forEach(s => this.visitedSteps.add(s));
-
-            this.sourcesCacheService.findOne(sourceId).pipe(
-                takeUntil(this.destroy$),
-            ).subscribe((data) => {
-                if (data) {
-                    this.importSource = data;
-                    this.initPreviewFromSavedFile();
-                }
-            });
-
         } else {
             this.title = 'New Import Specification';
 
@@ -127,12 +118,13 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 dataStructureParameters: defaultTabularDefs,
             };
 
-            this.importSource = {
+            this.viewSource = {
                 id: 0,
                 name: '',
                 description: '',
                 sourceType: SourceTypeEnum.IMPORT,
                 allowMissingValue: false,
+                adapterId: null,
                 sampleFileName: '',
                 utcOffset: 0,
                 parameters: defaultImportSourceDefs,
@@ -145,14 +137,12 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     ngOnDestroy(): void {
         this.cleanupSession();
-        this.destroy$.next();
-        this.destroy$.complete();
     }
 
     // ─── Accessors ───
 
     protected get importSourceParams(): ImportSourceModel {
-        return this.importSource.parameters as ImportSourceModel;
+        return this.viewSource.parameters as ImportSourceModel;
     }
 
     protected get tabularImportParams(): ImportSourceTabularParamsModel {
@@ -190,7 +180,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     protected isStepDisabled(step: WizardStep): boolean {
         if (step === 'upload') return false;
         // Allow navigation when editing an existing spec or when a session exists
-        return !this.rawPreviewResponse.sessionId && !(this.importSource?.id > 0);
+        return !this.rawPreviewResponse.sessionId && !(this.viewSource?.id > 0);
     }
 
     protected getStepNumber(step: WizardStep): number {
@@ -198,14 +188,14 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     protected getStepValidationErrors(step: WizardStep): string[] {
-        if (!this.importSource) return [];
+        if (!this.viewSource) return [];
         const errors: string[] = [];
         const params = this.tabularImportParams;
 
         switch (step) {
             case 'upload':
-                if (!this.importSource.name) errors.push('Name is required');
-                if (!this.importSource.description) errors.push('Description is required');
+                if (!this.viewSource.name) errors.push('Name is required');
+                if (!this.viewSource.description) errors.push('Description is required');
                 if (!this.rawPreviewResponse.sessionId) errors.push('Sample file is required');
                 break;
             case 'station':
@@ -248,54 +238,70 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         return this.visitedSteps.has(step);
     }
 
-    // ─── File Upload ───
+    protected get canUploadFile(): boolean {
+        return !this.rawPreviewLoading && !this.transformedPreviewLoading;
+    }
 
-    protected onFileSelected(file: File): void {
-        this.uploadedFileName = file.name;
+    private initPreviewFromSavedFile(): void {
+        if (!this.viewSource.sampleFileName) return;
 
+        this.rawPreviewLoading = true;
+        this.transformedPreviewLoading = true;
+
+        this.importPreviewService.initFromFile(
+            this.viewSource.sampleFileName,
+            {
+                importAdapterId: this.viewSource.adapterId || null,
+                rowsToSkip: this.tabularImportParams.rowsToSkip,
+                delimiter: this.tabularImportParams.delimiter || null,
+            }
+        ).pipe(
+            take(1),
+            // Step 2: Store raw preview data, then run the transformation preview
+            switchMap((rawResponse: RawPreviewResponse) => {
+                this.rawPreviewLoading = false;
+                this.rawPreviewResponse = rawResponse;
+                const previewDef = this.getTransformedPreviewDefinition();
+                return this.importPreviewService.previewStep(
+                    this.rawPreviewResponse.sessionId,
+                    previewDef[0],
+                    previewDef[1],
+                );
+            }),
+        ).subscribe({
+            next: (transformedResponse: TransformedPreviewResponse) => {
+                this.transformedPreviewLoading = false;
+                this.transformedPreviewResponse = transformedResponse;
+                this.selectedFileName = this.viewSource.sampleFileName;
+            },
+            error: (err) => {
+                console.error('Error initializing preview from saved file.', err);
+                // File no longer exists on server — silently fall back to "upload a sample file" prompt
+                this.rawPreviewLoading = false;
+                this.transformedPreviewLoading = false;
+                this.selectedFileName = '';
+            }
+        });
+    }
+
+    protected onSampleFileSelected(file: File): void {
+        this.selectedFileName = file.name;
         this.rawPreviewLoading = true;
         this.transformedPreviewLoading = true;
         this.transformedPreviewResponse.error = undefined;
 
         this.importPreviewService.upload(
             file,
-            this.tabularImportParams.rowsToSkip,
-            this.tabularImportParams.delimiter,
-        ).pipe(take(1)).subscribe({
-            next: (res: RawPreviewResponse) => {
-                this.rawPreviewLoading = false;
-                this.transformedPreviewLoading = false;
-                this.importSource.sampleFileName = res.fileName;
-                this.rawPreviewResponse = res;
-                this.transformedPreviewResponse = {
-                    previewData: res.previewData,
-                };
-            },
-            error: (err) => {
-                this.rawPreviewLoading = false;
-                this.transformedPreviewLoading = false;
-                this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
-                console.error('Preview upload error:', err);
+            {
+                importAdapterId: this.viewSource.adapterId || null,
+                rowsToSkip: this.tabularImportParams.rowsToSkip,
+                delimiter: this.tabularImportParams.delimiter || null,
             }
-        });
-    }
-
-    private initPreviewFromSavedFile(): void {
-        if (!this.importSource.sampleFileName) return;
-
-        this.rawPreviewLoading = true;
-        this.transformedPreviewLoading = true;
-
-        this.importPreviewService.initFromFile(
-            this.importSource.sampleFileName,
-            this.tabularImportParams.rowsToSkip,
-            this.tabularImportParams.delimiter,
         ).pipe(
             take(1),
             // Step 2: Store raw preview data, then run the transformation preview
             switchMap((rawResponse: RawPreviewResponse) => {
                 this.rawPreviewLoading = false;
-                this.uploadedFileName = rawResponse.fileName;
                 this.rawPreviewResponse = rawResponse;
                 const previewDef = this.getTransformedPreviewDefinition();
                 return this.importPreviewService.previewStep(
@@ -310,20 +316,26 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.transformedPreviewResponse = transformedResponse;
             },
             error: (err) => {
-                // File no longer exists on server — silently fall back to "upload a sample file" prompt
+                console.error('Sample file upload error:', err);
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
-                console.error('Error initializing preview from saved file.', err);
-
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message: err.error?.message || 'Something bad happened' };
             }
         });
+    }
+
+    protected onAdapterSelected(adapter: ViewAdapterSpecificationModel | null): void {
+        this.viewSource.adapterId = adapter?.id || null;
+        this.selectedAdapter = adapter;
+
+        this.reLoadRawPreview();
     }
 
     protected reLoadRawPreview(): void {
         if (!this.rawPreviewResponse.sessionId) return;
 
         if (this.rawPreviewLoading && this.transformedPreviewLoading) {
-            // TODO. Display message showing that the 2 previews are still loading
+            this.pagesDataService.showToast({ title: 'Import specification', message: 'Preview still loading', type: ToastEventTypeEnum.INFO });
             return;
         }
 
@@ -333,23 +345,34 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         this.importPreviewService.updateBaseParams(
             this.rawPreviewResponse.sessionId,
-            this.tabularImportParams.rowsToSkip,
-            this.tabularImportParams.delimiter,
-        ).pipe(take(1)).subscribe({
-            next: (res: RawPreviewResponse) => {
+            {
+                importAdapterId: this.viewSource.adapterId || null,
+                rowsToSkip: this.tabularImportParams.rowsToSkip,
+                delimiter: this.tabularImportParams.delimiter || null,
+            }
+        ).pipe(
+            take(1),
+            // Step 2: Store raw preview data, then run the transformation preview
+            switchMap((rawResponse: RawPreviewResponse) => {
                 this.rawPreviewLoading = false;
+                this.rawPreviewResponse = rawResponse;
+                const previewDef = this.getTransformedPreviewDefinition();
+                return this.importPreviewService.previewStep(
+                    this.rawPreviewResponse.sessionId,
+                    previewDef[0],
+                    previewDef[1],
+                );
+            }),
+        ).subscribe({
+            next: (transformedResponse: TransformedPreviewResponse) => {
                 this.transformedPreviewLoading = false;
-                this.rawPreviewResponse = res;
-                this.transformedPreviewResponse = {
-                    previewData: res.previewData,
-                };
+                this.transformedPreviewResponse = transformedResponse;
             },
             error: (err) => {
+                console.error('Raw preview error:', err);
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
-                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to load raw preview.';
-                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
-                console.error('Raw preview error:', err);
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message: err.error?.message || 'Something bad happened' };
             }
         });
     }
@@ -386,34 +409,11 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.transformedPreviewResponse = res;
             },
             error: (err) => {
-                this.transformedPreviewLoading = false;
-                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to generate preview.';
-                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Preview step error:', err);
+                this.transformedPreviewLoading = false;
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message: err.error?.message || 'Something bad happened' };
             }
         });
-    }
-
-    private getTransformedPreviewDefinition(): [CreateSourceSpecificationModel, string | undefined] {
-        const sourceDefinition: CreateSourceSpecificationModel = {
-            name: this.importSource.name,
-            description: this.importSource.description,
-            sourceType: SourceTypeEnum.IMPORT,
-            scaleValues: this.importSource.scaleValues,
-            allowMissingValue: this.importSource.allowMissingValue,
-            sampleFileName: this.importSource.sampleFileName,
-            utcOffset: this.importSource.utcOffset,
-            parameters: this.importSource.parameters,
-            disabled: this.importSource.disabled,
-            comment: this.importSource.comment,
-        };
-
-        // If station is not defined in the file, pass a placeholder station ID for preview
-        let stationId: string | undefined;
-        if (!this.tabularImportParams.stationDefinition) {
-            stationId = 'PREVIEW_STATION';
-        }
-        return [sourceDefinition, stationId]
     }
 
     // ─── Element / DateTime change handler ───
@@ -446,47 +446,48 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     protected get showNavigation(): boolean {
-        return !!this.rawPreviewResponse.sessionId || (this.importSource?.id > 0);
+        return !!this.rawPreviewResponse.sessionId || (this.viewSource?.id > 0);
     }
 
     // ─── Save / Delete / Cancel ───
 
-      protected onSave(): void {
+    protected onSave(): void {
+        if (StringUtils.isNullOrEmpty(this.viewSource.name)) {
+            this.pagesDataService.showToast({ title: 'Import Specification', message: 'Name is required', type: ToastEventTypeEnum.ERROR });
+        }
+
+        if (StringUtils.isNullOrEmpty(this.viewSource.description)) {
+            this.pagesDataService.showToast({ title: 'Import Specification', message: 'Description is required', type: ToastEventTypeEnum.ERROR });
+        }
+
+        if (StringUtils.isNullOrEmpty(this.selectedFileName)) {
+            this.pagesDataService.showToast({ title: 'Import Specification', message: 'Sample file is required', type: ToastEventTypeEnum.ERROR });
+        }
+
         this.dlgSaveConfirm.openDialog();
     }
 
     protected onSaveConfirm(): void {
 
-        if (StringUtils.isNullOrEmpty(this.importSource.name)) {
-            this.pagesDataService.showToast({ title: 'Import specification', message: 'Name is required', type: ToastEventTypeEnum.ERROR });
-        }
-
-        if (StringUtils.isNullOrEmpty(this.importSource.description)) {
-            this.pagesDataService.showToast({ title: 'Import specification', message: 'Description is required', type: ToastEventTypeEnum.ERROR });
-        }
-
-        if (StringUtils.isNullOrEmpty(this.importSource.sampleFileName)) {
-            this.pagesDataService.showToast({ title: 'Import specification', message: 'Sample file is required', type: ToastEventTypeEnum.ERROR });
-        }
-
         this.saving = true;
 
         const createUpdateSource: CreateSourceSpecificationModel = {
-            name: this.importSource.name,
-            description: this.importSource.description,
+            name: this.viewSource.name,
+            description: this.viewSource.description,
             sourceType: SourceTypeEnum.IMPORT,
-            scaleValues: this.importSource.scaleValues,
-            allowMissingValue: this.importSource.allowMissingValue,
-            sampleFileName: this.importSource.sampleFileName,
-            utcOffset: this.importSource.utcOffset,
-            parameters: this.importSource.parameters,
-            disabled: this.importSource.disabled,
-            comment: this.importSource.comment,
+            scaleValues: this.viewSource.scaleValues,
+            allowMissingValue: this.viewSource.allowMissingValue,
+            sampleFileOperationId: this.rawPreviewResponse.sessionId,
+            utcOffset: this.viewSource.utcOffset,
+            parameters: this.viewSource.parameters,
+            adapterId: this.selectedAdapter?.id || null,
+            disabled: this.viewSource.disabled,
+            comment: this.viewSource.comment || null,
         };
 
-        let saveSubscription: Observable<ViewSourceModel>;
-        if (this.importSource.id > 0) {
-            saveSubscription = this.sourcesCacheService.update(this.importSource.id, createUpdateSource);
+        let saveSubscription: Observable<ViewSourceSpecificationModel>;
+        if (this.viewSource.id > 0) {
+            saveSubscription = this.sourcesCacheService.update(this.viewSource.id, createUpdateSource);
         } else {
             saveSubscription = this.sourcesCacheService.add(createUpdateSource);
         }
@@ -494,16 +495,39 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         saveSubscription.pipe(take(1)).subscribe({
             next: () => {
                 this.saving = false;
-                this.pagesDataService.showToast({ title: 'Import specification', message: this.importSource.id > 0 ? `Import specification updated` : `Import specification created`, type: ToastEventTypeEnum.SUCCESS });
+                this.pagesDataService.showToast({ title: 'Import specification', message: this.viewSource.id > 0 ? `Import specification updated` : `Import specification created`, type: ToastEventTypeEnum.SUCCESS });
                 this.closeDialog();
                 this.ok.emit();
             },
             error: (err) => {
-                console.log(err)
+                console.error(err)
                 this.saving = false;
                 this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
             }
         });
+    }
+
+    private getTransformedPreviewDefinition(): [CreateSourceSpecificationModel, string | undefined] {
+        const sourceDefinition: CreateSourceSpecificationModel = {
+            name: this.viewSource.name,
+            description: this.viewSource.description,
+            sourceType: SourceTypeEnum.IMPORT,
+            scaleValues: this.viewSource.scaleValues,
+            allowMissingValue: this.viewSource.allowMissingValue,
+            sampleFileOperationId: this.rawPreviewResponse.sessionId,
+            utcOffset: this.viewSource.utcOffset,
+            parameters: this.viewSource.parameters,
+            adapterId: this.viewSource.adapterId,
+            disabled: this.viewSource.disabled,
+            comment: this.viewSource.comment || null,
+        };
+
+        // If station is not defined in the file, pass a placeholder station ID for preview
+        let stationId: string | undefined;
+        if (!this.tabularImportParams.stationDefinition) {
+            stationId = 'PREVIEW_STATION';
+        }
+        return [sourceDefinition, stationId]
     }
 
     protected onDelete(): void {
@@ -511,15 +535,15 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     protected onDeleteConfirm(): void {
-        this.sourcesCacheService.delete(this.importSource.id).pipe(take(1)).subscribe({
+        this.sourcesCacheService.delete(this.viewSource.id).pipe(take(1)).subscribe({
             next: () => {
                 this.pagesDataService.showToast({ title: 'Import specification', message: 'Import specification deleted', type: ToastEventTypeEnum.SUCCESS });
                 this.closeDialog();
                 this.ok.emit();
             },
             error: err => {
-                console.log(err)
-                this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+                console.error(err)
+                this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
             }
         });
     }
@@ -543,6 +567,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         this.rawPreviewLoading = false;
         this.transformedPreviewLoading = false;
+        this.selectedFileName = '';
     }
 
     private cleanupSession(): void {

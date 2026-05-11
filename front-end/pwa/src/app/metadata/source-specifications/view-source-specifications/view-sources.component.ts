@@ -1,7 +1,7 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
+import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourcesCacheService } from '../services/source-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';
@@ -13,7 +13,7 @@ import { FormSourceInputDialogComponent } from '../form-source-input-dialog/form
 import { ImportSourceInputDialogComponent } from '../import-source-input-dialog/import-source-input-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
-interface View extends ViewSourceModel {
+interface View extends ViewSourceSpecificationModel {
   // Applicable to form source only
   assignedStations: number;
   sourceTypeName: string;
@@ -100,18 +100,18 @@ export class ViewSourcesComponent implements OnDestroy {
   protected onDeleteAllConfirm(): void {
     this.sourcesCacheService.deleteAll().pipe(
       take(1)
-    ).subscribe(data => {
+    ).subscribe(() => {
       this.pagesDataService.showToast({ title: "Source Specifications Deleted", message: `All source specifications deleted`, type: ToastEventTypeEnum.SUCCESS });
     });
   }
 
-  protected onEditSource(source: ViewSourceModel): void {
+  protected onEditSource(source: ViewSourceSpecificationModel): void {
     switch (source.sourceType) {
       case SourceTypeEnum.FORM:
-        this.dlgFormEdit.openDialog(source.id);
+        this.dlgFormEdit.openDialog(source);
         break;
       case SourceTypeEnum.IMPORT:
-        this.dlgImportEdit.openDialog(source.id);
+        this.dlgImportEdit.openDialog(source);
         break;
       default:
         throw new Error('Developer error: Source type not supported');
@@ -149,9 +149,14 @@ export class ViewSourcesComponent implements OnDestroy {
     if (!this.selectedSource) return;
     this.sourcesCacheService.delete(this.selectedSource.id).pipe(
       take(1)
-    ).subscribe(() => {
-      this.pagesDataService.showToast({ title: 'Source Specification', message: 'Source specification deleted', type: ToastEventTypeEnum.SUCCESS });
-      this.selectedSource = null;
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: 'Source specification deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.selectedSource = null;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: err.error?.message || `Something bad happened`, type: ToastEventTypeEnum.ERROR });
+      }
     });
   }
 
@@ -165,7 +170,7 @@ export class ViewSourcesComponent implements OnDestroy {
     if (!this.selectedSource) return;
     const newDisabledState = !this.selectedSource.disabled;
     const { id, assignedStations, sourceTypeName, ...updateDto } = this.selectedSource;
-    this.sourcesCacheService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
+    this.sourcesCacheService.update(id, { ...updateDto, sampleFileOperationId: null, disabled: newDisabledState }).pipe(
       take(1)
     ).subscribe({
       next: () => {
@@ -173,8 +178,8 @@ export class ViewSourcesComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Source Specification', message: `Source specification ${action}`, type: ToastEventTypeEnum.SUCCESS });
         this.selectedSource = null;
       },
-      error: err => {
-        this.pagesDataService.showToast({ title: 'Source Specification', message: `Error updating source specification - ${err.message}`, type: ToastEventTypeEnum.ERROR });
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: err.error?.message || `Something bad happened`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
@@ -211,7 +216,7 @@ export class ViewSourcesComponent implements OnDestroy {
 
   private updatePaging(): void {
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setPageSize(365);
     this.pageInputDefinition.setTotalRowCount(this.sources.length);
   }
 

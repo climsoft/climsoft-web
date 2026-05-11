@@ -139,7 +139,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
 
   private updatePaging(): void {
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setPageSize(365);
     this.pageInputDefinition.setTotalRowCount(this.qCSpecifications.length);
   }
 

@@ -1,6 +1,14 @@
 {
   "name": "climsoftweb",
   "version": "preview-3.0.0",
+  "description": "Climsoft PWA",
+  "author": "Patrick Munyoki <patrickmunyoki3@gmail.com",
+  "contributors": [
+    "Samuel Machua <nhmarcellino@yahoo.fr>",
+    "Marcellin Habimana <smmachua@yahoo.com>"
+  ],
+  "private": true,
+  "license": "GPL-3.0-only",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -8,7 +16,6 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^16.0.0",
     "@angular/cdk": "^16.0.1",

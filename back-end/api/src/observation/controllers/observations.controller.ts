@@ -135,8 +135,6 @@ export class ObservationsController {
   // Once import preview is considered as first enough even for large imports, it may not be necessary to have this handler for by front end.
   // For external systems. Consider using source names instead of source id.
   //-------------------------------------------------------------------------------
-  // TODO. Merge this with route `'upload/:sourceid/:stationid'`. This can be done by using a dto that has both source id and station id, with station id being optional.
-  // Note, the front end manual import uses `ImportPreviewController` controller. So this should be deprecated or modified for external systems only.
   @Post('upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -150,10 +148,9 @@ export class ObservationsController {
       ]
     })
     ) file: Express.Multer.File) {
-    return this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id);
+    return this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id, null);
   }
 
-  // TODO. Merge this with route `'upload/:sourceid'`. This can be done by using a dto that has both source id and station id, with station id being optional.
   // Note, front end manual import uses `ImportPreviewController` controller. So this should be deprecated or modified for external systems only.
   @Post('upload/:sourceid/:stationid')
   @UseInterceptors(FileInterceptor('file'))
@@ -164,6 +161,7 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         // 1GB to accomodate preview of large files. Note, should always be same us that used in `ImportPreviewController` for upload endpoint to ensure smooth preview of files uploaded for import.
+        // TODO. In future, this should come from environment variables
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
         new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]

@@ -1,0 +1,6 @@
+# Add your Python dependencies here, one per line.
+# These will be installed automatically on the first run.
+# Example:
+# pandas>=2.0
+# numpy
+# openpyxl

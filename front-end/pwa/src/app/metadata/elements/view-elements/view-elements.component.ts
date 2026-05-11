@@ -92,7 +92,7 @@ export class ViewElementsComponent implements OnDestroy {
 
   private updatePaging(): void {
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setPageSize(365);
     this.pageInputDefinition.setTotalRowCount(this.elements.length);
   }
 
@@ -158,7 +158,10 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
-      case 'Delete All':
+      case OptionEnum.DOWNLOAD:
+        window.open(this.elementsCacheService.getDownloadUrl(), '_blank');
+        break;
+      case OptionEnum.DELETE_ALL:
         this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
@@ -170,10 +173,6 @@ export class ViewElementsComponent implements OnDestroy {
     this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
       this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
     });
-  }
-
-  protected get downloadLink(): string {
-    return this.elementsCacheService.downloadLink;
   }
 
 }

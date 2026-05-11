@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as mariadb from 'mariadb';
+import mariadb from 'mariadb';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
@@ -9,7 +9,7 @@ import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/stat
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
+import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
@@ -449,17 +449,17 @@ export class ClimsoftV4WebSyncSetUpService {
         return true;
     }
 
-    public getClimsoftImportSource(): ViewSourceSpecificationDto | null {
+    public getClimsoftImportSource(): ViewSourceSpecificationModel | null {
         const allSources = this.sourcesService.findAll();
         const existingClimsoftV4Source = allSources.filter(s => s.name === 'climsoft_v4');
         return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
     }
 
-    public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceSpecificationDto> {
-        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = this.getClimsoftImportSource();
+    public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceSpecificationModel> {
+        const existingClimsoftV4Source: ViewSourceSpecificationModel | null = this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
-            return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);
+            return await this.sourcesService.update(existingClimsoftV4Source.id, { ...existingClimsoftV4Source, sampleFileOperationId: null }, userId);
         } else {
             const newClismoftSource: CreateSourceSpecificationDto = {
                 name: 'climsoft_v4',
@@ -469,7 +469,8 @@ export class ClimsoftV4WebSyncSetUpService {
                 utcOffset: this.v4UtcOffset,
                 allowMissingValue: true,
                 scaleValues: false,
-                sampleFileName: '',
+                sampleFileOperationId: null,
+                adapterId: null,
                 disabled: false,
                 comment: null,
             }

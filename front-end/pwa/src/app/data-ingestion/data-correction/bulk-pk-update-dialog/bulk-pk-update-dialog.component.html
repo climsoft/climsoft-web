@@ -73,15 +73,14 @@
                 <!-- Datetime: Shift amount/unit -->
                 <div *ngIf="selectedPkField?.value === PkFieldEnum.DATE_TIME">
                     <div class="mb-3">
-                        <app-number-input [id]="'shiftAmount'" [label]="'Shift Amount'" [(numValue)]="shiftAmount" />
-                        <div class="form-text">Use negative values to subtract (e.g. -1 to go back)</div>
-                    </div>
-                    <div class="mb-3">
                         <app-selector-single-input [id]="'shiftUnit'" [label]="'Shift Unit'" [options]="shiftUnits"
                             [optionDisplayFn]="optionLabelFn" [(selectedOption)]="selectedShiftUnit" />
                     </div>
+                    <div class="mb-3">
+                        <app-number-input [id]="'shiftAmount'" [label]="'Shift Amount'" [(numValue)]="shiftAmount" />
+                        <div class="form-text">Use negative values to subtract (e.g. -1 to go back)</div>
+                    </div>
                 </div>
-
             </div>
 
             <!-- Step 2: Checking spinner -->

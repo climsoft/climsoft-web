@@ -39,14 +39,9 @@ export class StationsController {
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="stations.csv"')
-  async downloadStationsCsv(
-    @Req() request: Request,
-  ) {
-    // Fetch stations and generate the CSV file
-    const csvFilePath = await this.stationImportExportService.export(AuthUtil.getLoggedInUser(request).id);
-
-    // Stream the file to the response
-    return this.fileIOService.createStreamableFile(csvFilePath);
+  async downloadStationsCsv() {
+    const apiFilePathName = await this.stationImportExportService.export();
+    return this.fileIOService.createStreamableFile(apiFilePathName);
   }
 
   @Admin()

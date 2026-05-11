@@ -1,0 +1,7 @@
+{
+  "name": "climsoft-adapter",
+  "version": "1.0.0",
+  "description": "Climsoft adapter script for data transformation",
+  "main": "index.js",
+  "dependencies": {}
+}

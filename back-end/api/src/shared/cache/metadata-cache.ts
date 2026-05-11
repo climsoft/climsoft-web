@@ -51,7 +51,7 @@ export class MetadataCache<TViewDto> {
 
     private async doRefresh(): Promise<void> {
         try {
-            const result = await this.loadFn();
+            const result: CacheLoadResult<TViewDto> = await this.loadFn();
             this.records = result.records;
             this.recordsById = new Map(result.records.map(r => [this.getIdFn(r), r]));
             this.lastModifiedDate = result.lastModifiedDate;

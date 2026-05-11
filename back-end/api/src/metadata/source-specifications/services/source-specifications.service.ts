@@ -1,7 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewSourceSpecificationDto } from '../dtos/view-source-specification.dto';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { ViewSourceSpecificationModel } from '../dtos/view-source-specification.model';
 import { CreateSourceSpecificationDto } from '../dtos/create-source-specification.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { SourceSpecificationEntity } from '../entities/source-specification.entity';
@@ -9,16 +12,19 @@ import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/meta
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
+import { FileIOService } from 'src/shared/services/file-io.service';
 
 @Injectable()
 export class SourceSpecificationsService implements OnModuleInit {
-    private readonly cache: MetadataCache<ViewSourceSpecificationDto>;
+    private readonly logger = new Logger(SourceSpecificationsService.name);
+    private readonly cache: MetadataCache<ViewSourceSpecificationModel>;
 
     constructor(
         @InjectRepository(SourceSpecificationEntity) private sourceRepo: Repository<SourceSpecificationEntity>,
         private eventEmitter: EventEmitter2,
+        private fileIOService: FileIOService,
     ) {
-        this.cache = new MetadataCache<ViewSourceSpecificationDto>(
+        this.cache = new MetadataCache<ViewSourceSpecificationModel>(
             'SourceSpecifications',
             () => this.loadCacheData(),
             (dto) => dto.id,
@@ -29,7 +35,7 @@ export class SourceSpecificationsService implements OnModuleInit {
         await this.cache.init();
     }
 
-    private async loadCacheData(): Promise<CacheLoadResult<ViewSourceSpecificationDto>> {
+    private async loadCacheData(): Promise<CacheLoadResult<ViewSourceSpecificationModel>> {
         const entities = await this.sourceRepo.find({ order: { id: "ASC" } });
         const records = entities.map(entity => this.createViewDto(entity));
         const lastModifiedDate = entities.length > 0
@@ -38,7 +44,7 @@ export class SourceSpecificationsService implements OnModuleInit {
         return { records, lastModifiedDate };
     }
 
-    public find(id: number): ViewSourceSpecificationDto {
+    public find(id: number): ViewSourceSpecificationModel {
         const dto = this.cache.getById(id);
         if (!dto) {
             throw new NotFoundException(`Source #${id} not found`);
@@ -46,20 +52,20 @@ export class SourceSpecificationsService implements OnModuleInit {
         return dto;
     }
 
-    public findAll(): ViewSourceSpecificationDto[] {
+    public findAll(): ViewSourceSpecificationModel[] {
         return this.cache.getAll();
     }
 
-    public findSourcesByIds(ids: number[]): ViewSourceSpecificationDto[] {
+    public findSourcesByIds(ids: number[]): ViewSourceSpecificationModel[] {
         const idSet = new Set(ids);
         return this.cache.getAll().filter(dto => idSet.has(dto.id));
     }
 
-    public findSourcesByType(sourceType: SourceTypeEnum): ViewSourceSpecificationDto[] {
+    public findSourcesByType(sourceType: SourceTypeEnum): ViewSourceSpecificationModel[] {
         return this.cache.getAll().filter(dto => dto.sourceType === sourceType);
     }
 
-    public async create(dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationDto> {
+    public async create(dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationModel> {
         // Source templates are required to have unique names
         let entity = await this.sourceRepo.findOneBy({
             name: dto.name,
@@ -73,21 +79,11 @@ export class SourceSpecificationsService implements OnModuleInit {
             name: dto.name,
         });
 
-        entity.description = dto.description;
-        entity.sourceType = dto.sourceType;
-        entity.parameters = dto.parameters;
-        entity.utcOffset = dto.utcOffset;
-        entity.allowMissingValue = dto.allowMissingValue ? true : false;
-        entity.scaleValues = dto.scaleValues ? true : false;
-        entity.sampleFileName = dto.sampleFileName ? dto.sampleFileName : null;
-        entity.disabled = dto.disabled ? true : false;
-        entity.comment = dto.comment ? dto.comment : null;
-        entity.entryUserId = userId;
-
+        await this.updateEntityFromDto(entity, dto, userId);
         await this.sourceRepo.save(entity);
         await this.cache.invalidate();
 
-        const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
+        const viewDto: ViewSourceSpecificationModel = this.createViewDto(entity);
 
         this.eventEmitter.emit('source.created', { id: entity.id, viewDto });
 
@@ -95,28 +91,72 @@ export class SourceSpecificationsService implements OnModuleInit {
 
     }
 
-    public async update(id: number, dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationDto> {
-        const entity = await this.findEntity(id);
+    public async update(id: number, dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationModel> {
+        const entity: SourceSpecificationEntity = await this.findEntity(id);
+
+        await this.updateEntityFromDto(entity, dto, userId);
+        await this.sourceRepo.save(entity);
+        await this.cache.invalidate();
+
+        const viewDto: ViewSourceSpecificationModel = this.createViewDto(entity);
+
+        this.eventEmitter.emit('source.updated', { id, viewDto });
+
+        return viewDto;
+    }
+
+    private async updateEntityFromDto(entity: SourceSpecificationEntity, dto: CreateSourceSpecificationDto, userId: number): Promise<void> {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.sourceType = dto.sourceType;
         entity.parameters = dto.parameters;
         entity.utcOffset = dto.utcOffset;
-        entity.allowMissingValue = dto.allowMissingValue ? true : false;
-        entity.scaleValues = dto.scaleValues ? true : false;
-        entity.sampleFileName = dto.sampleFileName ? dto.sampleFileName : null;
-        entity.disabled = dto.disabled ? true : false;
-        entity.comment = dto.comment ? dto.comment : null;
+        entity.allowMissingValue = dto.allowMissingValue;
+        entity.scaleValues = dto.scaleValues;
+
+           // Copy the sample file from the operation's input directory to the persistent samples directory.
+        entity.sampleFileName = await this.persistSampleFile(entity.sampleFileName, dto.sampleFileOperationId);
+
+        entity.disabled = dto.disabled;
+        entity.comment = dto.comment;
+        entity.adapterId = dto.adapterId;
         entity.entryUserId = userId;
+    }
 
-        await this.sourceRepo.save(entity);
-        await this.cache.invalidate();
+    /**
+     * Copies the sample file from the operation's input directory(`/app/operations/uuid/input`) to the
+     * persistent samples directory(`/app/samples/`). 
+     * Returns the new filename, or null if no sample file was provided, or previous file name if no sample file was provided.
+     */
+    private async persistSampleFile(previousSampleFileName: string | null, sampleFileOperationId: string | null): Promise<string | null> {
+        if (!sampleFileOperationId) {
+            this.logger.warn('No file preview operation detected. Same sample file retained.');
+            return previousSampleFileName;
+        }
 
-        const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
+        const op = this.fileIOService.getOperationContext(sampleFileOperationId as crypto.UUID);
+        const inputFiles: string[] = await fs.promises.readdir(op.inputDir);
+        if (inputFiles.length === 0) {
+            throw new NotFoundException(`Sample file not found`);
+        }
 
-        this.eventEmitter.emit('source.updated', { id, viewDto });
+        const sampleFileName: string = path.basename(inputFiles[0]);
 
-        return viewDto;
+        if (previousSampleFileName === sampleFileName) {
+            this.logger.warn('Sample file not changed.  Same sample file retained.');
+            return previousSampleFileName;
+        }
+
+        const sourcePath = path.posix.join(op.inputDir, sampleFileName);
+        const destPath = path.posix.join(this.fileIOService.apiSamplesDir, sampleFileName);
+        try {
+            this.logger.log(`Copying new sample file '${sampleFileName}' to dir: ${destPath}`);
+            await fs.promises.copyFile(sourcePath, destPath);
+        } catch (err) {
+            this.logger.warn(`Could not copy sample file '${sampleFileName}' to samples dir: ${(err as Error).message}`);
+        }
+
+        return sampleFileName;
     }
 
     public async delete(id: number): Promise<number> {
@@ -147,19 +187,20 @@ export class SourceSpecificationsService implements OnModuleInit {
         return entity;
     }
 
-    private createViewDto(entity: SourceSpecificationEntity): ViewSourceSpecificationDto {
-        const dto: ViewSourceSpecificationDto = {
+    private createViewDto(entity: SourceSpecificationEntity): ViewSourceSpecificationModel {
+        const dto: ViewSourceSpecificationModel = {
             id: entity.id,
             name: entity.name,
-            description: entity.description ? entity.description : '',
+            description: entity.description,
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleFileName: entity.sampleFileName ? entity.sampleFileName : '',
+            sampleFileName: entity.sampleFileName,
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
+            adapterId: entity.adapterId ?? null,
             disabled: entity.disabled,
-            comment: entity.comment ? entity.comment : '',
+            comment: entity.comment,
         }
         return dto;
     }

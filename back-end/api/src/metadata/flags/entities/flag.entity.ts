@@ -6,22 +6,22 @@ import { Check, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 @Check("CHK_flag_name_not_empty", `"name" <> ''`)
 export class FlagEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id", type: 'int' })
-  id: number;
+  id!: number;
 
   @Column({ name: "abbreviation", type: 'varchar', unique: true })
-  abbreviation: string;
+  abbreviation!: string;
 
   @Column({ name: "name", type: 'varchar', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ name: "description", type: 'varchar', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
-  comment: string | null;
+  comment!: string | null;
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
-  log: FlagLogVo[] | null;
+  log!: FlagLogVo[] | null;
 }
 
 export interface FlagLogVo extends BaseLogVo {

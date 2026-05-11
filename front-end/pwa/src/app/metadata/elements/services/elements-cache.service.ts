@@ -169,7 +169,7 @@ export class ElementsCacheService {
             );
     }
 
-    public get downloadLink(): string {
+    public getDownloadUrl(): string {
         return `${this.endPointUrl}/download`;
     }
 
