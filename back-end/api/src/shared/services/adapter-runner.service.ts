@@ -26,8 +26,8 @@ export interface AdapterRef {
  */
 export interface AdapterRunMetadata {
     //originalFileName: string;
-    uploadedByUserId: number;
-    uploadedAt: string;
+    initiatedByUserId: number;
+    initiatedAt: string;
     sourceSpecId: number | null;
     sourceSpecName: string | null;
     stationId: string | null;

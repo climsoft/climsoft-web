@@ -255,8 +255,8 @@ export class ImportPreviewService implements OnModuleDestroy {
         };
 
         const metadata: AdapterRunMetadata = {
-            uploadedByUserId: userId,
-            uploadedAt: new Date().toISOString(),
+            initiatedByUserId: userId,
+            initiatedAt: new Date().toISOString(),
             sourceSpecId: null,
             sourceSpecName: null,
             stationId: null,
