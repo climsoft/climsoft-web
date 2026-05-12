@@ -115,6 +115,34 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         return viewDto;
     }
 
+    /**
+     * Flips just the `disabled` flag without touching any other field. Emits
+     * `connector.disabledChanged` only on a real state transition so the
+     * scheduler can react (register/unregister the cron schedule and enqueue
+     * an immediate run when enabling).
+     */
+    public async setDisabled(id: number, disabled: boolean, userId: number): Promise<ViewConnectorSpecificationModel> {
+        const entity: ConnectorSpecificationEntity = await this.findEntity(id);
+
+        // No-op early return: avoids firing the event (and the scheduler's
+        // immediate enqueue) for callers that POST the current value.
+        if (entity.disabled === disabled) {
+            return this.createViewDtoFromEntity(entity);
+        }
+
+        entity.disabled = disabled;
+        entity.entryUserId = userId;
+
+        await this.connectorRepo.save(entity);
+        await this.cache.invalidate();
+
+        const viewDto: ViewConnectorSpecificationModel = this.createViewDtoFromEntity(entity);
+
+        this.eventEmitter.emit('connector.disabledChanged', { id, viewDto });
+
+        return viewDto;
+    }
+
     private updateEntityFromDto(entity: ConnectorSpecificationEntity, dto: CreateConnectorSpecificationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;

@@ -190,6 +190,22 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
     }
 
     /**
+     * Handle the dedicated enable/disable toggle. On disable we just drop the
+     * cron schedule. On enable we register the cron AND enqueue an immediate
+     * run so the user sees activity without waiting for the next cron tick.
+     */
+    @OnEvent('connector.disabledChanged')
+    async handleConnectorDisabledChanged(event: { id: number; viewDto: ViewConnectorSpecificationModel }) {
+        const { id, viewDto } = event;
+        if (viewDto.disabled) {
+            this.removeConnectorSchedule(id);
+            return;
+        }
+        await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule);
+        await this.scheduleConnectorJob(viewDto.id);
+    }
+
+    /**
      * Handle connector deleted event
      */
     @OnEvent('connector.deleted')

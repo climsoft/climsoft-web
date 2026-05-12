@@ -41,6 +41,18 @@ export enum ObservationWindowDateFieldEnum {
 
 export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
+/**
+ * Payload for the dedicated enable/disable endpoint
+ * (`PATCH /connector-specifications/:id/disabled`). Keeps the toggle action
+ * separate from a full update so the controller doesn't have to re-validate
+ * unrelated fields and so the scheduler can react with toggle-specific
+ * behaviour (e.g. immediate enqueue on enable).
+ */
+export class ToggleConnectorDisabledDto {
+    @IsBoolean()
+    disabled!: boolean;
+}
+
 export class CreateConnectorSpecificationDto {
     @IsString()
     @IsNotEmpty()

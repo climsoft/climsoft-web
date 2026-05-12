@@ -154,13 +154,7 @@ export class ViewConnectorSpecificationsComponent {
     const newDisabledState = !this.selectedConnector.disabled;
     const action = newDisabledState ? 'disabled' : 'enabled';
 
-    // Destructure to exclude 'id', 'entryUserId' and 'log' since API expects CreateConnectorSpecificationModel
-    const { id, entryUserId, log, ...updateDto } = this.selectedConnector;
-
-    this.connectorSpecificationsService.update(id, {
-      ...updateDto,
-      disabled: newDisabledState
-    }).pipe(
+    this.connectorSpecificationsService.setDisabled(this.selectedConnector.id, newDisabledState).pipe(
       take(1)
     ).subscribe({
       next: () => {
