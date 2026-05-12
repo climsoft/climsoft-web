@@ -105,7 +105,7 @@ export class ObservationsExportService {
 
     private getContentTypeForFile(fileName: string): string {
         const ext = path.extname(fileName).toLowerCase();
-         switch (ext) {
+        switch (ext) {
             case '.csv':
                 return 'text/csv';
             case '.zip':
@@ -196,7 +196,7 @@ export class ObservationsExportService {
             elementIds: exportPermissions.elementIds,
             intervals: exportPermissions.intervals,
             qcStatuses: exportPermissions.qcStatuses,
-            dateField: exportPermissions.observationPeriod?.useEntryDateTime? ObservationWindowDateFieldEnum.ENTRY : ObservationWindowDateFieldEnum.OBSERVATION ,
+            dateField: exportPermissions.observationPeriod?.useEntryDateTime ? ObservationWindowDateFieldEnum.ENTRY : ObservationWindowDateFieldEnum.OBSERVATION,
             within: exportPermissions.observationPeriod?.within,
             fromDate: exportPermissions.observationPeriod?.fromDate,
             last: exportPermissions.observationPeriod?.last // In minutes
@@ -318,7 +318,7 @@ export class ObservationsExportService {
             conditions.push(`ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`);
         }
 
-        const dateTimeCol: string = exportQuery.dateField? 'ob.entry_date_time' : 'ob.date_time' ;
+        const dateTimeCol: string = exportQuery.dateField === ObservationWindowDateFieldEnum.OBSERVATION ? 'ob.date_time' : 'ob.entry_date_time';
 
         if (exportQuery.within) {
             const within = exportQuery.within;
