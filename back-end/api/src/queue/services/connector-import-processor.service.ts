@@ -10,7 +10,7 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationModel } from 'src/metadata/connector-specifications/dtos/view-connector-specification.model';
-import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { ServerTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
 import { FileMetadataVo, ImportFileProcessingResultVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
@@ -69,15 +69,15 @@ export class ConnectorImportProcessorService {
         // Step 1. Download the files
         startTime = new Date().getTime();
         this.logger.log(`Downloading files from connector: ${connector.name}`);
-        switch (connector.endPointType) {
-            case EndPointTypeEnum.FILE_SERVER:
+        switch (connector.serverType) {
+            case ServerTypeEnum.FILE_SERVER:
                 await this.downloadFromFileServer(connector, newConnectorLog);
                 break;
-            case EndPointTypeEnum.WEB_SERVER:
+            case ServerTypeEnum.WEB_SERVER:
                 // TODO
                 break;
             default:
-                throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
+                throw new Error(`Developer Error. Unsupported server type: ${connector.serverType}`);
         }
         this.logger.log(`Completed downloading files from connector ${connector.name}. Time taken: ${new Date().getTime() - startTime} milliseconds`);
 
@@ -170,7 +170,7 @@ export class ConnectorImportProcessorService {
                 await this.downloadFileOverSftp(connector, newConnectorLog, lastProcessedRemoteFiles);
                 break;
             default:
-                throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
+                throw new Error(`Developer Error. Unsupported server type: ${connector.serverType}`);
         }
     }
 

@@ -1,21 +1,21 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { StringUtils } from '../../../../shared/utils/string.utils';
-import { EndPointTypeEnum } from '../../models/create-connector-specification.model';
+import { ServerTypeEnum } from '../../models/create-connector-specification.model';
 
 @Component({
-  selector: 'app-end-point-selector-single',
-  templateUrl: './end-point-selector-single.component.html',
-  styleUrls: ['./end-point-selector-single.component.scss']
+  selector: 'app-server-type-selector-single',
+  templateUrl: './server-type-selector-single.component.html',
+  styleUrls: ['./server-type-selector-single.component.scss']
 })
-export class EndPointSelectorSingleComponent implements OnChanges {
+export class ServerTypeSelectorSingleComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public errorMessage!: string;
-  @Input() public includeOnlyIds!: EndPointTypeEnum[];
-  @Input() public selectedId!: EndPointTypeEnum;
-  @Output() public selectedIdChange = new EventEmitter<EndPointTypeEnum>();
+  @Input() public includeOnlyIds!: ServerTypeEnum[];
+  @Input() public selectedId!: ServerTypeEnum;
+  @Output() public selectedIdChange = new EventEmitter<ServerTypeEnum>();
 
-  protected options!: EndPointTypeEnum[];
-  protected selectedOption!: EndPointTypeEnum | null;
+  protected options!: ServerTypeEnum[];
+  protected selectedOption!: ServerTypeEnum | null;
 
   constructor() { }
 
@@ -24,7 +24,7 @@ export class EndPointSelectorSingleComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //load options once
     if (!this.options) {
-      this.options = Object.values(EndPointTypeEnum);
+      this.options = Object.values(ServerTypeEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
@@ -42,11 +42,11 @@ export class EndPointSelectorSingleComponent implements OnChanges {
 
   }
 
-  protected optionDisplayFunction(option: EndPointTypeEnum): string {
+  protected optionDisplayFunction(option: ServerTypeEnum): string {
     return StringUtils.formatEnumForDisplay(option).toUpperCase();
   }
 
-  protected onSelectedOptionChange(selectedOption: EndPointTypeEnum | null) {
+  protected onSelectedOptionChange(selectedOption: ServerTypeEnum | null) {
     if (selectedOption) {
       this.selectedOption = selectedOption;
       this.selectedIdChange.emit(selectedOption);

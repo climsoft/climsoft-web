@@ -14,7 +14,7 @@ export class ConnectorExecutionLogEntity extends AppBaseEntity {
     @Index()
     connectorId!: number;
     // ManyToOne relationship with ElementTypeEntity
-    @ManyToOne(() => ConnectorSpecificationEntity, { onDelete: "RESTRICT" })
+    @ManyToOne(() => ConnectorSpecificationEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'connector_id' })
     connectorSpecification!: ConnectorSpecificationEntity;
     //---------------------------

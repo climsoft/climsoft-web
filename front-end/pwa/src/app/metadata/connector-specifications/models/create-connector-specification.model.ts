@@ -4,7 +4,7 @@ export enum ConnectorTypeEnum {
     EXPORT = 'export'
 }
 
-export enum EndPointTypeEnum {
+export enum ServerTypeEnum {
     FILE_SERVER = 'file_server',
     WEB_SERVER = 'web_server',
     // MQTT_BROKER = 'mqtt_broker',
@@ -22,6 +22,27 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
+/**
+ * Which timestamp to compare a row's "recency" against when picking up
+ * observations for an auto-export run:
+ *  - OBSERVATION: when the reading was taken (date_time)
+ *  - ENTRY:       when the reading was recorded in the system (entry_date_time)
+ */
+export enum ObservationWindowDateFieldEnum {
+    OBSERVATION = 'observation',
+    ENTRY = 'entry',
+}
+
+/**
+ * Rolling time window each scheduled export run pulls observations from.
+ * `durationMinutes` is the look-back length; `dateField` chooses which
+ * row timestamp the window applies to.
+ */
+export interface ObservationWindowModel {
+    durationMinutes: number;
+    dateField: ObservationWindowDateFieldEnum;
+}
+
 export type ConnectorParameters = ImportFileServerParametersModel | ExportFileServerParametersModel;
 
 export interface CreateConnectorSpecificationModel {
@@ -31,13 +52,13 @@ export interface CreateConnectorSpecificationModel {
 
     connectorType: ConnectorTypeEnum;
 
-    endPointType: EndPointTypeEnum;
+    serverType: ServerTypeEnum;
 
     hostName: string;
 
     timeout: number; // in seconds
 
-    maxAttempts: number;
+    retryAttempts: number;
 
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
@@ -68,7 +89,7 @@ export interface ImportFileServerParametersModel extends FileServerParametersMod
 }
 
 export interface ExportFileServerParametersModel extends FileServerParametersModel {
-    observationPeriod: number; // In minutes
+    observationWindow: ObservationWindowModel;
 
     specifications: ExportFileServerSpecificationModel[];
 }
@@ -83,10 +104,6 @@ export interface ImportFileServerSpecificationModel {
 }
 
 export interface ExportFileServerSpecificationModel {
-
-    // TODO. Is this needed?
-    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
-
     specificationId: number; // export specification id
 
     stationId: string | null;

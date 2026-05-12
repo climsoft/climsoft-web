@@ -22,6 +22,7 @@ import { DisseminationExportParametersDto } from 'src/metadata/export-specificat
 import { Wis2BoxExportParametersDto, ReportTypeEnum } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
 import { Wis2BoxExportService } from './wis2box-export.service';
 import { ExportQueryModel } from 'src/metadata/export-specifications/dtos/export-query.model';
+import { ObservationWindowDateFieldEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ObservationsExportService {
@@ -176,7 +177,7 @@ export class ObservationsExportService {
                     observationPeriod.fromDate = queryDto.fromDate;
                 }
             } else if (observationPeriod.last) {
-                // TODO. validate from and to date based on specified last period
+                // TODO. validate from and to date based on specified last period permission
             }
         } else {
             if (queryDto.fromDate && queryDto.toDate) {
@@ -195,7 +196,7 @@ export class ObservationsExportService {
             elementIds: exportPermissions.elementIds,
             intervals: exportPermissions.intervals,
             qcStatuses: exportPermissions.qcStatuses,
-            useEntryDate: exportPermissions.observationPeriod?.useEntryDate,
+            dateField: exportPermissions.observationPeriod?.useEntryDateTime? ObservationWindowDateFieldEnum.ENTRY : ObservationWindowDateFieldEnum.OBSERVATION ,
             within: exportPermissions.observationPeriod?.within,
             fromDate: exportPermissions.observationPeriod?.fromDate,
             last: exportPermissions.observationPeriod?.last // In minutes
@@ -317,7 +318,7 @@ export class ObservationsExportService {
             conditions.push(`ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`);
         }
 
-        const dateTimeCol: string = exportQuery.useEntryDate? 'ob.entry_date_time' : 'ob.date_time' ;
+        const dateTimeCol: string = exportQuery.dateField? 'ob.entry_date_time' : 'ob.date_time' ;
 
         if (exportQuery.within) {
             const within = exportQuery.within;

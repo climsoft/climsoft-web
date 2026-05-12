@@ -10,7 +10,7 @@ export enum ConnectorTypeEnum {
     EXPORT = 'export'
 }
 
-export enum EndPointTypeEnum {
+export enum ServerTypeEnum {
     FILE_SERVER = 'file_server',
     WEB_SERVER = 'web_server',
     // MQTT_BROKER = 'mqtt_broker',
@@ -28,6 +28,17 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
+/**
+ * Which timestamp to compare a row's "recency" against when picking up
+ * observations for an auto-export run:
+ *  - OBSERVATION: when the reading was taken (date_time)
+ *  - ENTRY:       when the reading was recorded in the system (entry_date_time)
+ */
+export enum ObservationWindowDateFieldEnum {
+    OBSERVATION = 'observation',
+    ENTRY = 'entry',
+}
+
 export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
 export class CreateConnectorSpecificationDto {
@@ -42,8 +53,8 @@ export class CreateConnectorSpecificationDto {
     @IsEnum(ConnectorTypeEnum, { message: 'Connector type must be either import or export' })
     connectorType!: ConnectorTypeEnum;
 
-    @IsEnum(EndPointTypeEnum, { message: 'End point type must be a valid value' })
-    endPointType!: EndPointTypeEnum;
+    @IsEnum(ServerTypeEnum, { message: 'Server type must be a valid value' })
+    serverType!: ServerTypeEnum;
 
     @IsString()
     @IsNotEmpty()
@@ -55,7 +66,7 @@ export class CreateConnectorSpecificationDto {
 
     @IsInt()
     @Min(0)
-    maxAttempts!: number;
+    retryAttempts!: number;
 
     @IsString()
     @IsNotEmpty()
@@ -128,10 +139,24 @@ export class ImportFileServerParametersDto extends FileServerParametersDto {
     specifications!: ImportFileServerSpecificationDto[];
 }
 
-export class ExportFileServerParametersDto extends FileServerParametersDto {
+/**
+ * Defines the rolling time window each scheduled export run pulls
+ * observations from. `durationMinutes` is the look-back length;
+ * `dateField` chooses which row timestamp the window applies to.
+ */
+export class ObservationWindowDto {
     @IsInt()
     @Min(1)
-    observationPeriod!: number; // In minutes
+    durationMinutes!: number;
+
+    @IsEnum(ObservationWindowDateFieldEnum, { message: 'Date field must be either observation or entry' })
+    dateField!: ObservationWindowDateFieldEnum;
+}
+
+export class ExportFileServerParametersDto extends FileServerParametersDto {
+    @Type(() => ObservationWindowDto)
+    @ValidateNested()
+    observationWindow!: ObservationWindowDto;
 
     @IsArray()
     @ValidateNested({ each: true })

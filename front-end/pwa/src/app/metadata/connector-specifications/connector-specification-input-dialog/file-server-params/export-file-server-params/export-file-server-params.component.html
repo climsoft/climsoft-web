@@ -1,7 +1,23 @@
 <div *ngIf="exportFileServerParameters">
-    <div>
-        <app-number-input [label]="'Observation Period'" [labelSuperScript]="'minutes'"
-            [(numValue)]="exportFileServerParameters.observationPeriod" />
+
+    <div class="card">
+        <div class="card-header">Observation Window</div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                Each scheduled run exports observations whose chosen date falls within the look-back window.
+            </p>
+
+            <div class="mb-3">
+                <app-number-input [label]="'Look back the last'" [labelSuperScript]="'minutes'"
+                    [(numValue)]="exportFileServerParameters.observationWindow.durationMinutes" />
+            </div>
+
+            <div>
+                <app-selector-single-input [label]="'Filter by'" [options]="dateFieldOptions"
+                    [optionDisplayFn]="dateFieldDisplay" [selectedOption]="selectedDateFieldOption"
+                    (selectedOptionChange)="onDateFieldChange($event)" />
+            </div>
+        </div>
     </div>
 
     <hr />

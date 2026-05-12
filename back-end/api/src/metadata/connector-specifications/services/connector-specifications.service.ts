@@ -119,10 +119,10 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.connectorType = dto.connectorType;
-        entity.endPointType = dto.endPointType;
+        entity.serverType = dto.serverType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maxAttempts = dto.maxAttempts;
+        entity.retryAttempts = dto.retryAttempts;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
         entity.disabled = dto.disabled;
@@ -162,10 +162,10 @@ export class ConnectorSpecificationsService implements OnModuleInit {
             name: entity.name,
             description: entity.description,
             connectorType: entity.connectorType,
-            endPointType: entity.endPointType,
+            serverType: entity.serverType,
             hostName: entity.hostName,
             timeout: entity.timeout,
-            maxAttempts: entity.maxAttempts,
+            retryAttempts: entity.retryAttempts,
             cronSchedule: entity.cronSchedule,
             parameters: entity.parameters,
             disabled: entity.disabled,
