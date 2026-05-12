@@ -1,6 +1,6 @@
 <div *ngIf="viewExportTemplate" class="card border-0">
    <div class="card-body px-0">
-      <div *ngIf="!downloadLink">
+      <div *ngIf="!uniqueDownloadId">
          <div>
       
                <div>
@@ -47,17 +47,16 @@
          </div>
       </div>
 
-      <div *ngIf="downloadLink" class="d-flex flex-column justify-content-center">
+      <div *ngIf="uniqueDownloadId" class="d-flex flex-column justify-content-center">
          <div *ngIf="!hideDownloadButton">
             <div class="d-flex justify-content-center">
                Export is now ready for download. Click the download button below to download the export.
             </div>
             <div class="d-flex  justify-content-center">
                <button type="button" class="btn btn-outline-secondary btn-sm"
-                  (click)="elementDownloadLink.click(); onDownloadStarted();">
+                  (click)="onDownloadExport();">
                   Download
                </button>
-               <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
             </div>
          </div>
          <div *ngIf="hideDownloadButton" class="d-flex  justify-content-center">

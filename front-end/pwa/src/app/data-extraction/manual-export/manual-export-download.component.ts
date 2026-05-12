@@ -31,7 +31,7 @@ export class ManualExportDownloadComponent implements OnInit {
 
   protected viewExportTemplate!: ViewExportSpecificationModel;
   protected hidePreparingExport: boolean = true;
-  protected downloadLink: string = '';
+  protected uniqueDownloadId: string = '';
   protected hideDownloadButton: boolean = true;
   protected showDateSelection: boolean = true;
 
@@ -153,9 +153,9 @@ export class ManualExportDownloadComponent implements OnInit {
     this.observationService.generateExport(this.viewExportTemplate.id, observationFilter).pipe(
       take(1)
     ).subscribe({
-      next: uniqueDownloadId => {
+      next: (uniqueDownloadId) => {
         this.hidePreparingExport = true;
-        this.downloadLink = this.observationService.getDownloadExportLink(uniqueDownloadId);
+        this.uniqueDownloadId = uniqueDownloadId;
         this.hideDownloadButton = false;
       },
       error: err => {
@@ -165,8 +165,10 @@ export class ManualExportDownloadComponent implements OnInit {
     });
   }
 
-  protected onDownloadStarted(): void {
+  protected onDownloadExport(): void {
     this.pagesDataService.showToast({ title: `${this.viewExportTemplate.name} Download`, message: 'Downloading...', type: ToastEventTypeEnum.INFO });
+    const url = this.observationService.getDownloadExportLink(this.uniqueDownloadId);
+    window.open(url, '_blank');
     this.hideDownloadButton = true;
   }
 
