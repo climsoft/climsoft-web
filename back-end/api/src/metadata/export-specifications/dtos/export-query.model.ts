@@ -1,3 +1,4 @@
+import { ObservationWindowDateFieldEnum } from "src/metadata/connector-specifications/dtos/create-connector-specification.dto";
 import { QCStatusEnum } from "src/observation/enums/qc-status.enum";
 
 export interface ExportQueryModel {
@@ -9,7 +10,9 @@ export interface ExportQueryModel {
 
     qcStatuses?: QCStatusEnum[];
 
-    useEntryDate?: boolean;
+    //---------------------------
+    // Observation Window
+    dateField?: ObservationWindowDateFieldEnum;
 
     within?: {
         fromDate: string;
@@ -19,4 +22,5 @@ export interface ExportQueryModel {
     fromDate?: string;
 
     last?: number; // In minutes
+    //---------------------------
 }

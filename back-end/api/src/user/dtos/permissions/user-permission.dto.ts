@@ -8,7 +8,7 @@ export class ObservationPeriodPermissionsDto {
     @IsOptional()
     @Type(() => String) // Required to stop transformer from converting the value type to boolean
     @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-    useEntryDate?: boolean;
+    useEntryDateTime?: boolean;
 
     @IsOptional()
     within?: {

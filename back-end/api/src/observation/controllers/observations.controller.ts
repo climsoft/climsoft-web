@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseUUIDPipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -90,7 +90,7 @@ export class ObservationsController {
 
   @Get('download-export/:uniquedownloadid')
   async download(
-    @Param('uniquedownloadid') uniqueDownloadId: string
+    @Param('uniquedownloadid', new ParseUUIDPipe()) uniqueDownloadId: string
   ) {
     // Stream the exported file to the response
     return this.observationExportsService.manualDownloadExport(uniqueDownloadId);

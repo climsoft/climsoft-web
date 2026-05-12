@@ -82,7 +82,7 @@ import { StationEnvironmentSelectorMultipleComponent } from './stations/station-
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
 import { ImportSourceValueDetailComponent } from './source-specifications/import-source-input-dialog/import-source-value-detail/import-source-value-detail.component';
 import { ConnectorSpecificationInputDialogComponent } from './connector-specifications/connector-specification-input-dialog/connector-specification-input-dialog.component';
-import { EndPointSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/end-point-selector-single/end-point-selector-single.component';
+import { ServerTypeSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/server-type-selector-single/server-type-selector-single.component';
 import { FileServerParametersInputComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-parameters-input.component';
 import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
 import { ConnectorTypeSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/connector-type-selector-single/connector-type-selector-single.component';
@@ -203,7 +203,7 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
 
     ViewConnectorSpecificationsComponent,
     ConnectorSpecificationInputDialogComponent,
-    EndPointSelectorSingleComponent,
+    ServerTypeSelectorSingleComponent,
     FileServerParametersInputComponent,
     ImportFileServerParamsComponent,
     ExportFileServerParamsComponent,

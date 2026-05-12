@@ -318,8 +318,8 @@ export class AdaptersService implements OnModuleInit {
             };
 
             const metadata: AdapterRunMetadata = {
-                uploadedByUserId: userId,
-                uploadedAt: new Date().toISOString(),
+                initiatedByUserId: userId,
+                initiatedAt: new Date().toISOString(),
                 sourceSpecId: null,
                 sourceSpecName: null,
                 stationId: null,

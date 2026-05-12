@@ -5,7 +5,15 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
-import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, ImportFileServerParametersModel } from '../models/create-connector-specification.model';
+import {
+  ConnectorParameters,
+  CreateConnectorSpecificationModel,
+  ServerTypeEnum,
+  ExportFileServerParametersModel,
+  FileServerProtocolEnum,
+  ImportFileServerParametersModel,
+  ObservationWindowDateFieldEnum,
+} from '../models/create-connector-specification.model';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -20,18 +28,21 @@ export class ConnectorSpecificationInputDialogComponent {
 
   protected open: boolean = false;
   protected title: string = '';
-  protected connector!: ViewConnectorSpecificationModel;
-  protected parametersErrormMessage: string = '';
+  protected connector?: ViewConnectorSpecificationModel;
+  protected parametersErrorMessage: string = '';
+  protected readonly ServerTypeEnum = ServerTypeEnum;
 
   constructor(
     private connectorSpecificationsService: ConnectorSpecificationsService,
     private pagesDataService: PagesDataService) { }
 
   public showDialog(connectorId?: number): void {
-    this.open = true;
+    this.parametersErrorMessage = '';
 
     if (connectorId) {
       this.title = 'Edit Connector Specification';
+      this.connector = undefined;
+      this.open = true;
       this.connectorSpecificationsService.findOne(connectorId).pipe(
         take(1),
       ).subscribe(data => {
@@ -39,99 +50,80 @@ export class ConnectorSpecificationInputDialogComponent {
       });
     } else {
       this.title = 'New Connector Specification';
-      const ftpMetadata: ImportFileServerParametersModel = {
-        protocol: FileServerProtocolEnum.FTP,
-        port: 21,
-        username: '',
-        password: '',
-        remotePath: '/',
-        recursive: false,
-        specifications: [],
-      };
-
-      this.connector = {
-        id: 0,
-        name: '',
-        description: '',
-        connectorType: ConnectorTypeEnum.IMPORT,
-        endPointType: EndPointTypeEnum.FILE_SERVER,
-        hostName: '',
-        timeout: 300,
-        maxAttempts: 1,
-        cronSchedule: '',
-        parameters: ftpMetadata,
-        disabled: true, // New connectors are disabled by default. User can enable after creating the connection.
-        comment: null,
-        entryUserId: 0,
-        log: null,
-      };
-
+      this.connector = this.buildDefaultConnector();
+      this.open = true;
     }
   }
 
   protected onSubmitClick(): void {
+    if (!this.connector) return;
+
     if (!this.connector.name) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      this.showValidationError('Connector name required');
       return;
     }
 
     if (!this.connector.description) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector description required', type: ToastEventTypeEnum.ERROR });
+      this.showValidationError('Connector description required');
       return;
     }
 
     if (!this.connector.hostName) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector host name required', type: ToastEventTypeEnum.ERROR });
+      this.showValidationError('Connector host name required');
       return;
     }
 
     if (!this.connector.cronSchedule) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
+      this.showValidationError('Cron schedule required');
       return;
     }
 
-    if (!this.connector.parameters.password) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Password required', type: ToastEventTypeEnum.ERROR });
+    if (this.parametersErrorMessage) {
+      this.showValidationError(this.parametersErrorMessage);
       return;
     }
 
-    if (this.parametersErrormMessage) {
-      this.pagesDataService.showToast({ title: 'Connector Specification', message: this.parametersErrormMessage, type: ToastEventTypeEnum.ERROR });
-      return;
-    }
-
+    // View model carries server-only fields (id, entryUserId, log) that aren't
+    // part of the create payload — pick exactly the fields the API expects.
     const createConnector: CreateConnectorSpecificationModel = {
       name: this.connector.name,
       description: this.connector.description,
       connectorType: this.connector.connectorType,
-      endPointType: this.connector.endPointType,
+      serverType: this.connector.serverType,
       hostName: this.connector.hostName,
       timeout: this.connector.timeout,
-      maxAttempts: this.connector.maxAttempts,
+      retryAttempts: this.connector.retryAttempts,
       cronSchedule: this.connector.cronSchedule,
       parameters: this.connector.parameters,
       disabled: this.connector.disabled,
       comment: this.connector.comment || null,
     };
 
-    let saveSubscription: Observable<ViewConnectorSpecificationModel>;
-    if (this.connector.id > 0) {
-      saveSubscription = this.connectorSpecificationsService.update(this.connector.id, createConnector);
-    } else {
-      saveSubscription = this.connectorSpecificationsService.add(createConnector);
-    }
+    const isUpdate: boolean = this.connector.id > 0;
+    const saveSubscription: Observable<ViewConnectorSpecificationModel> = isUpdate
+      ? this.connectorSpecificationsService.update(this.connector.id, createConnector)
+      : this.connectorSpecificationsService.add(createConnector);
 
     saveSubscription.pipe(
       take(1)
     ).subscribe({
       next: () => {
         this.open = false;
-        this.pagesDataService.showToast({ title: 'Connector Specification', message: this.connector.id > 0 ? `Connector specification updated` : `Connector specification created`, type: ToastEventTypeEnum.SUCCESS });
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: isUpdate ? 'Connector specification updated' : 'Connector specification created',
+          type: ToastEventTypeEnum.SUCCESS,
+        });
         this.ok.emit();
       },
       error: err => {
-        console.log('error: ', err);
-        this.pagesDataService.showToast({ title: 'Connector Specification', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        console.error(err);
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: err.error?.message || 'Request failed',
+          type: ToastEventTypeEnum.ERROR,
+          timeout: 8000,
+        });
       }
     });
   }
@@ -141,6 +133,7 @@ export class ConnectorSpecificationInputDialogComponent {
   }
 
   protected onDeleteConfirm(): void {
+    if (!this.connector) return;
     this.connectorSpecificationsService.delete(this.connector.id).pipe(
       take(1)
     ).subscribe(() => {
@@ -151,7 +144,94 @@ export class ConnectorSpecificationInputDialogComponent {
   }
 
   protected onValidationError(errorMessage: string): void {
-    this.parametersErrormMessage = errorMessage;
+    this.parametersErrorMessage = errorMessage;
+  }
+
+  /**
+   * Resets `parameters` to a sensible default whenever the connector type
+   * or server type changes — otherwise import-shaped params would
+   * leak into an export connector (and vice versa).
+   */
+  protected onConnectorTypeChange(connectorType: ConnectorTypeEnum): void {
+    if (!this.connector || this.connector.connectorType === connectorType) return;
+    this.connector.connectorType = connectorType;
+    this.connector.parameters = this.buildDefaultParameters(connectorType, this.connector.serverType);
+    this.parametersErrorMessage = '';
+  }
+
+  protected onServerTypeChange(serverType: ServerTypeEnum): void {
+    if (!this.connector || this.connector.serverType === serverType) return;
+    this.connector.serverType = serverType;
+    this.connector.parameters = this.buildDefaultParameters(this.connector.connectorType, serverType);
+    this.parametersErrorMessage = '';
+  }
+
+  private buildDefaultConnector(): ViewConnectorSpecificationModel {
+    const connectorType = ConnectorTypeEnum.IMPORT;
+    const serverType = ServerTypeEnum.FILE_SERVER;
+    return {
+      id: 0,
+      name: '',
+      description: '',
+      connectorType,
+      serverType,
+      hostName: '',
+      timeout: 300,
+      retryAttempts: 0,
+      cronSchedule: '',
+      parameters: this.buildDefaultParameters(connectorType, serverType),
+      // New connectors are forced-disabled; the form hides the toggle until
+      // the spec is saved at least once, so the user only enables it once
+      // the connection has been verified.
+      disabled: true,
+      comment: null,
+      entryUserId: 0,
+      log: null,
+    };
+  }
+
+  private buildDefaultParameters(connectorType: ConnectorTypeEnum, serverType: ServerTypeEnum): ConnectorParameters {
+    if (serverType !== ServerTypeEnum.FILE_SERVER) {
+      // Web-server isn't implemented yet; return an empty file-server shape so
+      // the form stays usable if the user toggles back.
+      return this.buildDefaultFileServerParameters(connectorType);
+    }
+    return this.buildDefaultFileServerParameters(connectorType);
+  }
+
+  private buildDefaultFileServerParameters(connectorType: ConnectorTypeEnum): ConnectorParameters {
+    const base = {
+      protocol: FileServerProtocolEnum.FTP,
+      port: 21,
+      username: '',
+      password: '',
+      remotePath: '/',
+    };
+    if (connectorType === ConnectorTypeEnum.EXPORT) {
+      const exportParams: ExportFileServerParametersModel = {
+        ...base,
+        observationWindow: {
+          durationMinutes: 60,
+          dateField: ObservationWindowDateFieldEnum.OBSERVATION,
+        },
+        specifications: [],
+      };
+      return exportParams;
+    }
+    const importParams: ImportFileServerParametersModel = {
+      ...base,
+      recursive: false,
+      specifications: [],
+    };
+    return importParams;
+  }
+
+  private showValidationError(message: string): void {
+    this.pagesDataService.showToast({
+      title: 'Connector Specification',
+      message,
+      type: ToastEventTypeEnum.ERROR,
+    });
   }
 
 }

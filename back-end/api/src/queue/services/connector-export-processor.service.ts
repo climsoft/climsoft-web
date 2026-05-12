@@ -8,7 +8,7 @@ import crypto from 'node:crypto';
 import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import { ViewConnectorSpecificationModel } from 'src/metadata/connector-specifications/dtos/view-connector-specification.model';
-import { EndPointTypeEnum, ExportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { ServerTypeEnum, ExportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 import { ObservationsExportService } from 'src/observation/services/observations-export.service';
@@ -71,15 +71,15 @@ export class ConnectorExportProcessorService {
         // Step 2. Upload generated files to remote server
         this.logger.log(`Generating exports for connector ${connector.name}`);
         startTime = new Date().getTime();
-        switch (connector.endPointType) {
-            case EndPointTypeEnum.FILE_SERVER:
+        switch (connector.serverType) {
+            case ServerTypeEnum.FILE_SERVER:
                 await this.uploadToFileServer(connector, newConnectorLog);
                 break;
-            case EndPointTypeEnum.WEB_SERVER:
+            case ServerTypeEnum.WEB_SERVER:
                 // TODO
                 break;
             default:
-                throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
+                throw new Error(`Developer Error. Unsupported server type: ${connector.serverType}`);
         }
         this.logger.log(`Completed uploading exports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
@@ -105,7 +105,14 @@ export class ConnectorExportProcessorService {
 
                 try {
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
-                    await this.observationsExportService.generateExport(spec.specificationId, op, { stationIds: spec.stationId ? [spec.stationId] : undefined,  last: connectorParams.observationPeriod  });
+                    await this.observationsExportService.generateExport(
+                        spec.specificationId,
+                        op,
+                        {
+                            stationIds: spec.stationId ? [spec.stationId] : undefined,
+                            dateField: connectorParams.observationWindow.dateField,
+                            last: connectorParams.observationWindow.durationMinutes,
+                        });
 
                     // Scan the operation's output directory for generated files
                     const outputFiles = await fs.promises.readdir(op.outputDir);

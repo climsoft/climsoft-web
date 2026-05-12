@@ -1,5 +1,5 @@
 import { BaseLogVo } from "src/shared/entity/app-base-entity";
-import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "./create-connector-specification.dto";
+import { ConnectorParameters, ConnectorTypeEnum, ServerTypeEnum } from "./create-connector-specification.dto";
 
 export interface ViewConnectorSpecificationModel {
     id: number;
@@ -9,13 +9,13 @@ export interface ViewConnectorSpecificationModel {
 
     connectorType: ConnectorTypeEnum;
 
-    endPointType: EndPointTypeEnum;
+    serverType: ServerTypeEnum;
 
     hostName: string;
 
     timeout: number; // in seconds
 
-    maxAttempts: number;
+    retryAttempts: number;
 
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 

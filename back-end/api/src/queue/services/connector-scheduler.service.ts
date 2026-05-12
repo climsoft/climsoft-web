@@ -106,12 +106,15 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
 
             const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
 
-            // Create queue job to be processed
+            // Create queue job to be processed.
+            // Job queue uses total-attempt semantics (maxAttempts), while a
+            // connector's `retryAttempts` counts retries *after* the first try,
+            // so add 1 for the initial attempt.
             await this.jobQueueService.createJob(
                 connector.name,
                 jobType,
                 JobTriggerEnum.SCHEDULE,
-                connector.maxAttempts,
+                connector.retryAttempts + 1,
                 payload,
                 new Date(), // Schedule immediately
                 connector.entryUserId, // User who created it
@@ -147,11 +150,12 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
 
         const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
 
+        // See scheduleConnectorJob: convert retries-after-first to total attempts for the queue.
         const job = await this.jobQueueService.createJob(
             connector.name,
             jobType,
             JobTriggerEnum.MANUAL,
-            connector.maxAttempts,
+            connector.retryAttempts + 1,
             payload,
             new Date(),
             userId
@@ -183,6 +187,22 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
         if (!viewDto.disabled) {
             await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule);
         }
+    }
+
+    /**
+     * Handle the dedicated enable/disable toggle. On disable we just drop the
+     * cron schedule. On enable we register the cron AND enqueue an immediate
+     * run so the user sees activity without waiting for the next cron tick.
+     */
+    @OnEvent('connector.disabledChanged')
+    async handleConnectorDisabledChanged(event: { id: number; viewDto: ViewConnectorSpecificationModel }) {
+        const { id, viewDto } = event;
+        if (viewDto.disabled) {
+            this.removeConnectorSchedule(id);
+            return;
+        }
+        await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule);
+        await this.scheduleConnectorJob(viewDto.id);
     }
 
     /**

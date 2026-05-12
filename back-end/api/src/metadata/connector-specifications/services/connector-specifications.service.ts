@@ -115,14 +115,42 @@ export class ConnectorSpecificationsService implements OnModuleInit {
         return viewDto;
     }
 
+    /**
+     * Flips just the `disabled` flag without touching any other field. Emits
+     * `connector.disabledChanged` only on a real state transition so the
+     * scheduler can react (register/unregister the cron schedule and enqueue
+     * an immediate run when enabling).
+     */
+    public async setDisabled(id: number, disabled: boolean, userId: number): Promise<ViewConnectorSpecificationModel> {
+        const entity: ConnectorSpecificationEntity = await this.findEntity(id);
+
+        // No-op early return: avoids firing the event (and the scheduler's
+        // immediate enqueue) for callers that POST the current value.
+        if (entity.disabled === disabled) {
+            return this.createViewDtoFromEntity(entity);
+        }
+
+        entity.disabled = disabled;
+        entity.entryUserId = userId;
+
+        await this.connectorRepo.save(entity);
+        await this.cache.invalidate();
+
+        const viewDto: ViewConnectorSpecificationModel = this.createViewDtoFromEntity(entity);
+
+        this.eventEmitter.emit('connector.disabledChanged', { id, viewDto });
+
+        return viewDto;
+    }
+
     private updateEntityFromDto(entity: ConnectorSpecificationEntity, dto: CreateConnectorSpecificationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.connectorType = dto.connectorType;
-        entity.endPointType = dto.endPointType;
+        entity.serverType = dto.serverType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maxAttempts = dto.maxAttempts;
+        entity.retryAttempts = dto.retryAttempts;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
         entity.disabled = dto.disabled;
@@ -162,10 +190,10 @@ export class ConnectorSpecificationsService implements OnModuleInit {
             name: entity.name,
             description: entity.description,
             connectorType: entity.connectorType,
-            endPointType: entity.endPointType,
+            serverType: entity.serverType,
             hostName: entity.hostName,
             timeout: entity.timeout,
-            maxAttempts: entity.maxAttempts,
+            retryAttempts: entity.retryAttempts,
             cronSchedule: entity.cronSchedule,
             parameters: entity.parameters,
             disabled: entity.disabled,

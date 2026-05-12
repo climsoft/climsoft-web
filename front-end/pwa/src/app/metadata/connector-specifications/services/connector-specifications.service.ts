@@ -33,6 +33,10 @@ export class ConnectorSpecificationsService {
         return this.http.patch<ViewConnectorSpecificationModel>(`${this.endPointUrl}/${id}`, updateDto);
     }
 
+    public setDisabled(id: number, disabled: boolean): Observable<ViewConnectorSpecificationModel> {
+        return this.http.patch<ViewConnectorSpecificationModel>(`${this.endPointUrl}/${id}/disabled`, { disabled });
+    }
+
     public delete(id: number): Observable<number> {
         return this.http.delete<number>(`${this.endPointUrl}/${id}`);
     }

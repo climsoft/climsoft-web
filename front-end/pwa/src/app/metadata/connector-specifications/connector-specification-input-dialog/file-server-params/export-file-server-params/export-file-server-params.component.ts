@@ -1,5 +1,13 @@
 import { Component, Input } from '@angular/core';
-import { ExportFileServerParametersModel } from '../../../models/create-connector-specification.model';
+import {
+  ExportFileServerParametersModel,
+  ObservationWindowDateFieldEnum,
+} from '../../../models/create-connector-specification.model';
+
+interface DateFieldOption {
+  id: ObservationWindowDateFieldEnum;
+  label: string;
+}
 
 @Component({
   selector: 'app-export-file-server-params',
@@ -11,12 +19,29 @@ export class ExportFileServerParamsComponent {
   @Input()
   public exportFileServerParameters!: ExportFileServerParametersModel;
 
+  protected readonly dateFieldOptions: DateFieldOption[] = [
+    { id: ObservationWindowDateFieldEnum.OBSERVATION, label: 'Observation date' },
+    { id: ObservationWindowDateFieldEnum.ENTRY, label: 'Entry date' },
+  ];
+
+  protected get selectedDateFieldOption(): DateFieldOption | null {
+    return this.dateFieldOptions.find(o => o.id === this.exportFileServerParameters.observationWindow.dateField) ?? null;
+  }
+
+  protected onDateFieldChange(option: DateFieldOption | null): void {
+    if (!option) return;
+    this.exportFileServerParameters.observationWindow.dateField = option.id;
+  }
+
+  protected dateFieldDisplay(option: DateFieldOption): string {
+    return option.label;
+  }
+
   protected onAddSpecification(): void {
     if (!this.exportFileServerParameters.specifications) {
       this.exportFileServerParameters.specifications = [];
     }
     this.exportFileServerParameters.specifications.push({
-      filePattern: 'yyyymmddhhmmss',
       specificationId: 0,
       stationId: '',
     });

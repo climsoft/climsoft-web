@@ -1,6 +1,6 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "../dtos/create-connector-specification.dto";
+import { ConnectorParameters, ConnectorTypeEnum, ServerTypeEnum } from "../dtos/create-connector-specification.dto";
 
 @Entity("connector_specifications")
 @Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
@@ -18,9 +18,9 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Index()
   connectorType!: ConnectorTypeEnum;
 
-  @Column({ name: 'protocol', type: 'enum', enum: EndPointTypeEnum })
+  @Column({ name: 'server_type', type: 'enum', enum: ServerTypeEnum })
   @Index()
-  endPointType!: EndPointTypeEnum;
+  serverType!: ServerTypeEnum;
 
   @Column({ name: 'host_name', type: 'varchar' })
   hostName!: string;
@@ -28,8 +28,8 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Column({ name: 'timeout', type: 'int' })
   timeout!: number; // in seconds
 
-  @Column({ name: 'max_attempts', type: "int" })
-  maxAttempts!: number;
+  @Column({ name: 'retry_attempts', type: "int" })
+  retryAttempts!: number;
 
   @Column({ name: 'cron_schedule', type: 'varchar' })
   cronSchedule!: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)

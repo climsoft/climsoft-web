@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
-import { CreateConnectorSpecificationDto } from '../dtos/create-connector-specification.dto';
+import { CreateConnectorSpecificationDto, ToggleConnectorDisabledDto } from '../dtos/create-connector-specification.dto';
 
 @Controller('connector-specifications')
 export class ConnectorSpecificationsController {
@@ -43,6 +43,16 @@ export class ConnectorSpecificationsController {
         @Body() dto: CreateConnectorSpecificationDto
     ) {
         return this.connectorSpecificationsService.update(id, dto, AuthUtil.getLoggedInUserId(request));
+    }
+
+    @Admin()
+    @Patch(':id/disabled')
+    public setDisabled(
+        @Req() request: Request,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: ToggleConnectorDisabledDto,
+    ) {
+        return this.connectorSpecificationsService.setDisabled(id, dto.disabled, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
