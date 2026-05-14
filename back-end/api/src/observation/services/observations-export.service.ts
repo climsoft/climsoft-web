@@ -123,7 +123,11 @@ export class ObservationsExportService {
         let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {
-            exportPermissions = { ...user.permissions.exportPermissions };
+            // Deep clone so the narrowing logic below (which mutates nested
+            // fields like `observationPeriod.within` and the `stationIds` /
+            // `elementIds` / `intervals` arrays) doesn't bleed into the
+            // cached permissions on `user.permissions`.
+            exportPermissions = structuredClone(user.permissions.exportPermissions);
         }
 
         if (exportPermissions.stationIds) {
@@ -152,8 +156,6 @@ export class ObservationsExportService {
 
 
         if (exportPermissions.observationPeriod) {
-
-            console.log("I'm here 1")
             if (exportPermissions.observationPeriod.within) {
 
                 if (queryDto.fromDate) {
@@ -202,7 +204,6 @@ export class ObservationsExportService {
                 // else: no user-supplied dates — keep the rolling `last` as-is.
             }
         } else {
-            console.log("I'm here 2")
             if (queryDto.fromDate && queryDto.toDate) {
                 exportPermissions.observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
             } else if (queryDto.fromDate) {
