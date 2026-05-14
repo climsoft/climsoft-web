@@ -51,7 +51,7 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
     }
 
     public executeQuery(filter: DataAvailabilitySummaryQueryModel, stationsPermitted: StationCacheModel[]): void {
-        this.filter = filter;
+        this.filter = { ...filter };
         this.stationsPermitted = stationsPermitted;
         this.loadSummary();
     }
@@ -63,7 +63,6 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
     }
 
     private loadSummary(): void {
-        console.log('loading...')
         this.loading = true;
         this.loadingChange.emit(true);
         this.observationService.findDataAvailabilitySummary(this.filter).pipe(
@@ -152,10 +151,10 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
     }
 
     protected onVmMinChange(input: number | null): void {
-        if(input === null ){
+        if (input === null) {
             return
         }
-   
+
         const option = this.chartInstance.getOption() as any;
         const visualMap = option?.visualMap;
         if (input < visualMap[0].min) {
@@ -166,11 +165,11 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
         this.chartInstance.setOption({ visualMap: visualMap });
     }
 
-    protected onVmMaxChange(input: number| null): void {
-        if(input === null ){
+    protected onVmMaxChange(input: number | null): void {
+        if (input === null) {
             return
         }
-   
+
         const option = this.chartInstance.getOption() as any;
         const visualMap = option?.visualMap;
         if (input > visualMap[0].max) {
@@ -251,7 +250,7 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
 
         this.chartInstance.setOption(chartOptions);
 
-        this.chartInstance.on('datarangeselected', () => {            
+        this.chartInstance.on('datarangeselected', () => {
             const option = this.chartInstance.getOption() as any;
             const range = option?.visualMap?.[0]?.range;
             if (range) {
@@ -310,7 +309,30 @@ export class DataAvailabilityHeatmapComponent implements OnDestroy {
                 break;
             case DurationTypeEnum.YEAR:
                 fromDate.setUTCMonth(dateValue - 1);
-                toDate.setUTCMonth(dateValue - 1);
+                // Save original day
+                const originalDay: number = toDate.getUTCDate();
+                const monthIndex: number = dateValue - 1;
+
+                //------------------------------------------
+                // Setting the to month with `toDate.setUTCMonth(dateValue - 1);` 
+                // may result to overflow when the end day of the previous month does not exist.
+                // So to prevent overflow while changing month
+
+                // Set the day to first day
+                toDate.setUTCDate(1);
+
+                // Change month
+                toDate.setUTCMonth(monthIndex);
+
+                // Get max valid day in target month
+                const maxDay: number = new Date(Date.UTC(
+                    toDate.getUTCFullYear(), monthIndex + 1, 0
+                )).getUTCDate();
+
+                // Restore day safely
+                toDate.setUTCDate(Math.min(originalDay, maxDay));
+                //------------------------------------------
+
                 filter.durationType = DurationTypeEnum.MONTH;
                 break;
             case DurationTypeEnum.YEARS:

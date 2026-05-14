@@ -1,8 +1,9 @@
 <ng-container *ngIf="open">
     <app-dialog [(open)]="open" [title]="'Bulk Delete Observations'"
         [firstButtonOptions]="displayOkOption ? {label: okButtonLabel, color: 'primary', disable: disableOkOption, closeDialogOnClick: false} : undefined"
+        (firstButtonClick)="onOkClick()"
         [secondButtonOptions]="displayCancelOption ? {label: cancelButtonLabel, closeDialogOnClick: false} : undefined"
-        (firstButtonClick)="onOkClick()" (secondButtonClick)="onCancelClick()">
+        (secondButtonClick)="onCancelClick()">
         <div style="min-height: 70vh;">
 
             <!-- Step 1: Checking spinner -->
@@ -20,7 +21,7 @@
                 </div>
 
                 <div *ngIf="checkResponse.totalMatchingRows > 0">
-                    <div class="alert alert-danger py-2">
+                    <div class="alert alert-warning py-2">
                         These observations will be marked as deleted. This action can be undone by restoring from the
                         Deleted Data view.
                     </div>

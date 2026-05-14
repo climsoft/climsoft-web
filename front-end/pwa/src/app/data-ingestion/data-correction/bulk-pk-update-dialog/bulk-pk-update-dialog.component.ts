@@ -251,8 +251,15 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     return `change ${label} from ${from} to ${to}`;
   }
 
-  protected get cancelButtonLabel(): string {
-    return this.step === 'conflicts' ? 'Back' : 'Cancel';
+  protected get canGoBack(): boolean {
+    return this.step === 'conflicts';
+  }
+
+  protected onBack(): void {
+    this.cleanupSession();
+    this.checkResponse = null;
+    this.executeResponse = null;
+    this.step = 'configure';
   }
 
   protected onOkClick(): void {
@@ -264,11 +271,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
   }
 
   protected onCancelClick(): void {
-    if (this.step === 'conflicts') {
-      this.onBack();
-    } else {
-      this.closeDialog();
-    }
+    this.closeDialog();
   }
 
   private closeDialog(): void {
@@ -278,12 +281,7 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     }
   }
 
-  private onBack(): void {
-    this.cleanupSession();
-    this.checkResponse = null;
-    this.executeResponse = null;
-    this.step = 'configure';
-  }
+
 
   private resetForm(): void {
     this.selectedPkField = null;
