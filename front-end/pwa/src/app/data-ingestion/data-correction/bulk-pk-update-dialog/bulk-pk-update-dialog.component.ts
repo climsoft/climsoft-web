@@ -281,8 +281,6 @@ export class BulkPkUpdateDialogComponent implements OnDestroy {
     }
   }
 
-
-
   private resetForm(): void {
     this.selectedPkField = null;
     this.fromStationId = null;
