@@ -105,7 +105,7 @@ export class ObservationsExportService {
 
     private getContentTypeForFile(fileName: string): string {
         const ext = path.extname(fileName).toLowerCase();
-         switch (ext) {
+        switch (ext) {
             case '.csv':
                 return 'text/csv';
             case '.zip':
@@ -119,10 +119,15 @@ export class ObservationsExportService {
     private validateAndRedefineExportFiltersBasedOnUserQueryRequest(
         user: LoggedInUserDto,
         queryDto: ViewObservationQueryDTO): ExportQueryModel {
+
         let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {
-            exportPermissions = user.permissions.exportPermissions;
+            // Deep clone so the narrowing logic below (which mutates nested
+            // fields like `observationPeriod.within` and the `stationIds` /
+            // `elementIds` / `intervals` arrays) doesn't bleed into the
+            // cached permissions on `user.permissions`.
+            exportPermissions = structuredClone(user.permissions.exportPermissions);
         }
 
         if (exportPermissions.stationIds) {
@@ -149,54 +154,71 @@ export class ObservationsExportService {
             exportPermissions.intervals = queryDto.intervals;
         }
 
-        let observationPeriod: ObservationPeriodPermissionsDto | undefined = exportPermissions.observationPeriod;
 
-        if (observationPeriod) {
-            if (observationPeriod.within) {
+        if (exportPermissions.observationPeriod) {
+            if (exportPermissions.observationPeriod.within) {
 
                 if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.within.fromDate)) {
+                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationPeriod.within.fromDate)) {
                         throw new BadRequestException('from date can not be less than that what is allowed by the permissions');
                     }
-                    observationPeriod.within.fromDate = queryDto.fromDate;
+                    exportPermissions.observationPeriod.within.fromDate = queryDto.fromDate;
                 }
 
                 if (queryDto.toDate) {
-                    if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
+                    if (new Date(queryDto.toDate) > new Date(exportPermissions.observationPeriod.within.toDate)) {
                         throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
                     }
-                    observationPeriod.within.toDate = queryDto.toDate;
+                    exportPermissions.observationPeriod.within.toDate = queryDto.toDate;
                 }
 
-            } else if (observationPeriod.fromDate) {
+            } else if (exportPermissions.observationPeriod.fromDate) {
 
                 if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
+                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationPeriod.fromDate)) {
                         throw new BadRequestException('from date can not be less that what is allowed by the permissions');
                     }
-                    observationPeriod.fromDate = queryDto.fromDate;
+                    exportPermissions.observationPeriod.fromDate = queryDto.fromDate;
                 }
-            } else if (observationPeriod.last) {
-                // TODO. validate from and to date based on specified last period permission
+            } else if (exportPermissions.observationPeriod.last) {
+                // Permission grants access to the last N minutes of data. If the
+                // user submits explicit dates, narrow the window further but
+                // reject anything that reaches earlier than the rolling cutoff.
+                const cutoffMs: number = Date.now() - (exportPermissions.observationPeriod.last * 60 * 1000);
+
+                if (queryDto.fromDate && new Date(queryDto.fromDate).getTime() < cutoffMs) {
+                    throw new BadRequestException('from date is older than the period allowed by the permissions');
+                }
+
+                if (queryDto.fromDate && queryDto.toDate) {
+                    exportPermissions.observationPeriod.within = { fromDate: queryDto.fromDate, toDate: queryDto.toDate };
+                    exportPermissions.observationPeriod.last = undefined;
+                } else if (queryDto.fromDate) {
+                    exportPermissions.observationPeriod.fromDate = queryDto.fromDate;
+                    exportPermissions.observationPeriod.last = undefined;
+                } else if (queryDto.toDate) {
+                    // toDate-only: clamp the lower bound to the permission cutoff.
+                    exportPermissions.observationPeriod.within = { fromDate: new Date(cutoffMs).toISOString(), toDate: queryDto.toDate };
+                    exportPermissions.observationPeriod.last = undefined;
+                }
+                // else: no user-supplied dates — keep the rolling `last` as-is.
             }
         } else {
             if (queryDto.fromDate && queryDto.toDate) {
-                observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
+                exportPermissions.observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
             } else if (queryDto.fromDate) {
-                observationPeriod = { fromDate: queryDto.fromDate };
+                exportPermissions.observationPeriod = { fromDate: queryDto.fromDate };
             } else if (queryDto.toDate) {
                 throw new BadRequestException('to date only is not allowed by the permissions');
             }
         }
-
-        exportPermissions.observationPeriod = observationPeriod;
 
         const exportQuery: ExportQueryModel = {
             stationIds: exportPermissions.stationIds,
             elementIds: exportPermissions.elementIds,
             intervals: exportPermissions.intervals,
             qcStatuses: exportPermissions.qcStatuses,
-            dateField: exportPermissions.observationPeriod?.useEntryDateTime? ObservationWindowDateFieldEnum.ENTRY : ObservationWindowDateFieldEnum.OBSERVATION ,
+            dateField: exportPermissions.observationPeriod?.useEntryDateTime ? ObservationWindowDateFieldEnum.ENTRY : ObservationWindowDateFieldEnum.OBSERVATION,
             within: exportPermissions.observationPeriod?.within,
             fromDate: exportPermissions.observationPeriod?.fromDate,
             last: exportPermissions.observationPeriod?.last // In minutes
@@ -318,7 +340,7 @@ export class ObservationsExportService {
             conditions.push(`ob.station_id IN (${exportQuery.stationIds.map(id => `'${id}'`).join(',')})`);
         }
 
-        const dateTimeCol: string = exportQuery.dateField? 'ob.entry_date_time' : 'ob.date_time' ;
+        const dateTimeCol: string = exportQuery.dateField === ObservationWindowDateFieldEnum.OBSERVATION ? 'ob.date_time' : 'ob.entry_date_time';
 
         if (exportQuery.within) {
             const within = exportQuery.within;

@@ -12,7 +12,7 @@ export interface ExportQueryModel {
 
     //---------------------------
     // Observation Window
-    dateField?: ObservationWindowDateFieldEnum;
+    dateField: ObservationWindowDateFieldEnum;
 
     within?: {
         fromDate: string;

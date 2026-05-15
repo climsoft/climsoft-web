@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary-query.model';
 import { DataAvailabilityHeatmapComponent, DataAvailabilityCellClickEvent } from './data-availability-heatmap/data-availability-heatmap.component';

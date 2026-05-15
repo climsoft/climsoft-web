@@ -25,7 +25,7 @@ export enum ConflictResolutionEnum {
 
 export class PkChangeSpecDto {
     @IsEnum(PkFieldEnum)
-    field: PkFieldEnum;
+    field!: PkFieldEnum;
 
     // For non-datetime fields: the current value to match
     @IsOptional()
@@ -54,20 +54,20 @@ export class PkChangeSpecDto {
 export class BulkPkUpdateCheckDto {
     @ValidateNested()
     @Type(() => BulkObservationFilterDto)
-    filter: BulkObservationFilterDto;
+    filter!: BulkObservationFilterDto;
 
     @ValidateNested()
     @Type(() => PkChangeSpecDto)
-    change: PkChangeSpecDto;
+    change!: PkChangeSpecDto;
 }
 
 export class BulkPkUpdateExecuteDto {
     @IsString()
     @IsNotEmpty()
-    sessionId: string;
+    sessionId!: string;
 
     @IsEnum(ConflictResolutionEnum)
-    conflictResolution: ConflictResolutionEnum;
+    conflictResolution!: ConflictResolutionEnum;
 }
 
 export interface BulkPkUpdateCheckResponse {
