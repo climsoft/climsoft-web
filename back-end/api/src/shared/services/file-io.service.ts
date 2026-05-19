@@ -179,7 +179,6 @@ export class FileIOService implements OnModuleInit, OnModuleDestroy {
         return new StreamableFile(fs.createReadStream(filePathName));
     }
 
-
     //--------------------------
     // The 2 functions below can be removed once the sql-scripts-loader.service.ts is refactored to not use tem
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {
