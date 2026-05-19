@@ -7,7 +7,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { RangeThresholdQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.enum';
-import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/defintitions/form-entry.definition';
+import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/form-entry.definition';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';

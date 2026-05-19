@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList } from '@angular/core';
-import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition'; 
+import { FieldEntryDefinition, FormEntryDefinition } from '../form-entry.definition'; 
 import { ValueFlagInputComponent } from '../../../value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { ViewObservationModel } from '../../../models/view-observation.model';
