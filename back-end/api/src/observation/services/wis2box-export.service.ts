@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import path from 'node:path';
 import { Wis2BoxExportParametersDto } from 'src/metadata/export-specifications/dtos/wis2box-export-parameters.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { PRESSURE_TENDENCY_FM12_MACRO_SQL, WMO_STATION_TYPE_MACRO_SQL } from './wis2box-export-macros';
+import { CALCULATE_DEWPOINT_MACRO_SQL, CALCULATE_GEOPOTENTIAL_MACRO_SQL, CALCULATE_MSLP_MACRO_SQL, CALCULATE_RH_MACRO_SQL, PRESSURE_TENDENCY_FM12_MACRO_SQL, WMO_STATION_TYPE_MACRO_SQL } from './wis2box-export-macros';
 
 @Injectable()
 export class Wis2BoxExportService implements OnModuleInit {
@@ -41,7 +41,11 @@ export class Wis2BoxExportService implements OnModuleInit {
     public async onModuleInit(): Promise<void> {
         await this.fileIOService.duckDbConn.run(PRESSURE_TENDENCY_FM12_MACRO_SQL);
         await this.fileIOService.duckDbConn.run(WMO_STATION_TYPE_MACRO_SQL);
-        this.logger.log('DuckDB macros registered: pressure_tendency_fm12, wmo_station_type');
+        await this.fileIOService.duckDbConn.run(CALCULATE_DEWPOINT_MACRO_SQL);
+        await this.fileIOService.duckDbConn.run(CALCULATE_RH_MACRO_SQL);
+        await this.fileIOService.duckDbConn.run(CALCULATE_GEOPOTENTIAL_MACRO_SQL);
+        await this.fileIOService.duckDbConn.run(CALCULATE_MSLP_MACRO_SQL);
+        this.logger.log('DuckDB macros registered: pressure_tendency_fm12, wmo_station_type, calculate_dewpoint, calculate_rh, calculate_geopotential, calculate_mslp');
     }
 
     /**
@@ -120,6 +124,10 @@ export class Wis2BoxExportService implements OnModuleInit {
             pivot('geopotential_height'),
             // Air temperature (C -> K)
             pivot('air_temperature', this.celciusToK),
+            // Wet bulb is auxiliary — never emitted in the output CSV, only used
+            // by the `derived` CTE below to fill dewpoint_temperature when it
+            // isn't supplied directly.
+            pivot('wet_bulb_temperature', this.celciusToK),
             pivot('dewpoint_temperature', this.celciusToK),
             pivot('relative_humidity'),
             pivot('horizontal_visibility'),
@@ -384,6 +392,42 @@ export class Wis2BoxExportService implements OnModuleInit {
                         station_obs_processing_method,
                         date_time
                 ),
+                derived AS (
+                    -- Fill values that weren't supplied by mapped elements using
+                    -- standard meteorological formulas. COALESCE keeps user-supplied
+                    -- values untouched — derivation only kicks in when a value is
+                    -- missing. If any input to a derivation is itself missing, the
+                    -- macro returns NULL and the column simply stays missing.
+                    SELECT
+                        p.* EXCLUDE (dewpoint_temperature, msl_pressure, geopotential_height),
+                        COALESCE(
+                            p.dewpoint_temperature,
+                            calculate_dewpoint(p.air_temperature, p.wet_bulb_temperature)
+                        ) AS dewpoint_temperature,
+                        COALESCE(
+                            p.msl_pressure,
+                            calculate_mslp(p.station_pressure, p.air_temperature, p.station_elevation::DOUBLE)
+                        ) AS msl_pressure,
+                        -- 85000 Pa = 850 hPa, the standard pressure level used in
+                        -- the outer SELECT for 'pressure_standard_level'.
+                        COALESCE(
+                            p.geopotential_height,
+                            calculate_geopotential(p.station_pressure, p.air_temperature, p.station_elevation::DOUBLE, 85000)
+                        ) AS geopotential_height
+                    FROM pivoted p
+                ),
+                derived_rh AS (
+                    -- Derived in a second pass so calculate_rh can reference the
+                    -- already-COALESCE'd dewpoint_temperature (covering the case
+                    -- where dewpoint was derived above).
+                    SELECT
+                        d.* EXCLUDE (relative_humidity),
+                        COALESCE(
+                            d.relative_humidity,
+                            calculate_rh(d.dewpoint_temperature, d.air_temperature)
+                        ) AS relative_humidity
+                    FROM derived d
+                ),
                 station_meta AS (
                     -- One row per station: identifiers + min/max observation_dt.
                     -- Identifiers are added to GROUP BY (rather than aggregated) on the
@@ -399,7 +443,7 @@ export class Wis2BoxExportService implements OnModuleInit {
                         station_obs_processing_method,
                         MIN(observation_dt) AS min_dt,
                         MAX(observation_dt) AS max_dt
-                    FROM pivoted
+                    FROM derived_rh
                     GROUP BY
                         station_id,
                         station_name,
@@ -419,7 +463,7 @@ export class Wis2BoxExportService implements OnModuleInit {
                     FROM station_meta m
                 ),
                 filled AS (
-                    -- Attach pivoted measurements to the contiguous grid; hours with no
+                    -- Attach derived measurements to the contiguous grid; hours with no
                     -- input data get NULL-filled measurement columns.
                     SELECT
                         g.*,
@@ -429,7 +473,7 @@ export class Wis2BoxExportService implements OnModuleInit {
                             station_obs_processing_method, observation_dt
                         )
                     FROM hourly_grid g
-                    LEFT JOIN pivoted p USING (station_id, observation_dt)
+                    LEFT JOIN derived_rh p USING (station_id, observation_dt)
                 )
                 SELECT
                     ${columns.join(',\n                    ')}
