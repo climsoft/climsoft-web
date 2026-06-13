@@ -44,8 +44,6 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationEntry[] = [];
     private _obsDefsForGridLayout: ObservationEntry[][] = [];
 
-
-
     private cachedMetadataSearchService: CachedMetadataService;
 
     constructor(

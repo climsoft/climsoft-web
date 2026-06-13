@@ -1,131 +1,140 @@
-<app-dialog [(open)]="open" [title]="title"
-    [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
-    (firstButtonClick)="onOkClick()"
-    [secondButtonOptions]="{label: 'Cancel', closeDialogOnClick: false}"
-    (secondButtonClick)="onCancelClick()">
-    <div *ngIf="station && open">
+<ng-container *ngIf="open && station">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onOkClick()"
+        [secondButtonOptions]="title === 'Edit Station' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDelete()" [thirdButtonOptions]="{label: 'Cancel', closeDialogOnClick: false}"
+        (thirdButtonClick)="onCancelClick()">
         <div>
-            <app-text-input [label]="'Id'" [(value)]="station.id" />
-        </div>
+            <div>
+                <app-text-input [label]="'Id'" [disabled]="title === 'Edit Station'" [(value)]="station.id" />
+            </div>
 
-        <hr />
+            <hr />
 
-        <div>
-            <app-text-input [label]="'Name'" [(value)]="station.name" />
-        </div>
+            <div>
+                <app-text-input [label]="'Name'" [(value)]="station.name" />
+            </div>
 
-        <hr />
+            <hr />
 
-        <div>
-            <app-text-input [label]="'Description'" [(value)]="station.description" />
-        </div>
+            <div>
+                <app-text-input [label]="'Description'" [(value)]="station.description" />
+            </div>
 
-        <hr />
+            <hr />
 
-        <div>
-            <div class="d-flex justify-content-between">
-                <div>Location</div>
-                <div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary " (click)="requestLocation()">
-                        <i class="bi bi-geo-alt"></i>
-                    </button>
+            <div>
+                <div class="d-flex justify-content-between">
+                    <div>Location</div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary " (click)="requestLocation()">
+                            <i class="bi bi-geo-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex mt-2">
+                    <div>
+                        <app-number-input [label]="'Latitude'" [value]="station.latitude"
+                            (valueChange)="onLatitudeChange($event)" />
+                    </div>
+                    <div class="ms-2">
+                        <app-number-input [label]="'Longitude'" [value]="station.longitude"
+                            (valueChange)="onLongitudeChange($event)" />
+                    </div>
                 </div>
             </div>
-            <div class="d-flex mt-2">
-                <div>
-                    <app-number-input [label]="'Latitude'" [value]="station.latitude"
-                        (valueChange)="onLatitudeChange($event)" />
-                </div>
-                <div class="ms-2">
-                    <app-number-input [label]="'Longitude'" [value]="station.longitude"
-                        (valueChange)="onLongitudeChange($event)" />
-                </div>
+
+            <hr />
+
+            <div>
+                <app-number-input [label]="'Elevation'" [value]="station.elevation"
+                    (valueChange)="onElevationChange($event)" />
             </div>
+
+            <hr />
+
+            <div>
+                <app-station-obs-processing-single-selector [label]="'Observation Processing Method'"
+                    [selectedId]="station.stationObsProcessingMethod"
+                    (selectedIdChange)="onStationObsMethodChange($event)" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-station-environment-selector-single [label]="'Observation Environment'"
+                    [(selectedId)]="station.stationObsEnvironmentId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-station-focus-selector-single [label]="'Observation Focus'"
+                    [(selectedId)]="station.stationObsFocusId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-organisation-selector-single-single [label]="'Owner'" [(selectedId)]="station.ownerId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-organisation-selector-single-single [label]="'Operator'" [(selectedId)]="station.operatorId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'WMO ID'" [(value)]="station.wmoId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'WIGOS ID'" [(value)]="station.wigosId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'ICAO ID'" [(value)]="station.icaoId" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-station-status-selector-single [label]="'Operational Status'" [(selectedId)]="station.status"
+                    (selectedIdChange)="onStationStatusChange($event)" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-date-input [label]="'Date Established'" [(value)]="station.dateEstablished" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-date-input [label]="'Date Closed'" [(value)]="station.dateClosed" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'Comment'" [(value)]="station.comment" />
+            </div>
+
         </div>
-
-        <hr />
-
-        <div>
-            <app-number-input [label]="'Elevation'" [value]="station.elevation"
-                (valueChange)="onElevationChange($event)" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-station-obs-processing-single-selector [label]="'Observation Processing Method'"
-                [selectedId]="station.stationObsProcessingMethod"
-                (selectedIdChange)="onStationObsMethodChange($event)" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-station-environment-selector-single [label]="'Observation Environment'"
-                [(selectedId)]="station.stationObsEnvironmentId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-station-focus-selector-single [label]="'Observation Focus'"
-                [(selectedId)]="station.stationObsFocusId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-organisation-selector-single-single [label]="'Owner'" [(selectedId)]="station.ownerId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-organisation-selector-single-single [label]="'Operator'" [(selectedId)]="station.operatorId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-text-input [label]="'WMO ID'" [(value)]="station.wmoId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-text-input [label]="'WIGOS ID'" [(value)]="station.wigosId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-text-input [label]="'ICAO ID'" [(value)]="station.icaoId" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-station-status-selector-single [label]="'Operational Status'" [(selectedId)]="station.status"
-                (selectedIdChange)="onStationStatusChange($event)" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-date-input [label]="'Date Established'" [(value)]="station.dateEstablished" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-date-input [label]="'Date Closed'" [(value)]="station.dateClosed" />
-        </div>
-
-        <hr />
-
-        <div>
-            <app-text-input [label]="'Comment'" [(value)]="station.comment" />
-        </div>
-
-    </div>
-</app-dialog>
+    </app-dialog>
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Station'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the station <strong>{{ station.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+</ng-container>

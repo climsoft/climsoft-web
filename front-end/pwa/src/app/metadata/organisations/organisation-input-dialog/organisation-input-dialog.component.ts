@@ -1,9 +1,10 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { OrganisationsCacheService } from '../services/organisations-cache.service';
 import { ViewOrganisationModel } from '../models/view-organisation.model';
 import { CreateUpdateOrganisationModel } from '../models/create-update-organisation.model';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-organisation-input-dialog',
@@ -11,11 +12,11 @@ import { CreateUpdateOrganisationModel } from '../models/create-update-organisat
   styleUrls: ['./organisation-input-dialog.component.scss']
 })
 export class OrganisationInputDialogComponent implements OnDestroy {
-  @Output()
-  public ok = new EventEmitter<void>();
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
+  @Output() public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected title: string = '';
+  protected title: 'Edit Organisation' | 'New Organisation' = 'New Organisation';
   protected viewOrganisation!: ViewOrganisationModel;
   protected errorMessage!: string;
 
@@ -83,6 +84,26 @@ export class OrganisationInputDialogComponent implements OnDestroy {
         }
       });
     }
+  }
+
+  protected onDelete(): void {
+    this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.organisationsCacheService.delete(this.viewOrganisation.id).pipe(
+      take(1),
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Organisation Details', message: 'Organisation deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();
+      },
+      error: (err) => {
+        console.error(err);
+        this.pagesDataService.showToast({ title: 'Organisation Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
   }
 
 }

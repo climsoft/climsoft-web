@@ -82,6 +82,7 @@
                 <table class="table table-sm ms-2">
                   <thead>
                     <tr>
+                      <th>#</th>
                       <th>Element</th>
                       <th>Interval</th>
                       <th></th>
@@ -89,6 +90,7 @@
                   </thead>
                   <tbody class="table-group-divider">
                     <tr *ngFor="let item of elementsToFetch; let i = index;">
+                      <td>{{ i + 1 }}</td>
                       <td>
                         <app-element-selector-single [id]="i + '_element_id'" [(selectedId)]="item.elementId"
                           (selectedIdChange)="onElementIntervalEntry()" />

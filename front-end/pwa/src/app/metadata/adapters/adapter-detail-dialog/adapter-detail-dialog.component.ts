@@ -28,11 +28,10 @@ const DEFAULT_ENTRY_POINTS: Record<AdapterLanguageEnum, string> = {
 })
 export class AdapterDetailDialogComponent implements OnDestroy {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
-
   @Output() public saved = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected title: string = '';
+  protected title: 'Edit Adapter' | 'New Adapter' = 'New Adapter';
 
   protected adapter!: ViewAdapterSpecificationModel;
   protected selectedFileName: string = '';
@@ -253,6 +252,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         this.saved.emit();
       },
       error: (err) => {
+        console.error(err);
         this.pagesDataService.showToast({ title: 'Adapter Specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
     });

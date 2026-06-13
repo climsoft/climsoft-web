@@ -1,10 +1,11 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { FlagsCacheService } from '../services/flags-cache.service';
 import { ViewFlagModel } from '../models/view-flag.model';
 import { CreateUpdateFlagModel } from '../models/create-update-flag.model';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-flag-input-dialog',
@@ -12,11 +13,11 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./flag-input-dialog.component.scss']
 })
 export class FlagInputDialogComponent implements OnDestroy {
-  @Output()
-  public ok = new EventEmitter<void>();
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
+  @Output() public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected title: string = '';
+  protected title: 'Edit Flag' | 'New Flag' = 'New Flag';
   protected viewFlag!: ViewFlagModel;
   protected errorMessage!: string;
 
@@ -96,16 +97,23 @@ export class FlagInputDialogComponent implements OnDestroy {
     }
   }
 
-  protected onDeleteClick(): void {
-    this.flagsCacheService.delete(this.viewFlag.id).subscribe({
+  protected onDelete(): void {
+    this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.flagsCacheService.delete(this.viewFlag.id).pipe(
+      take(1),
+    ).subscribe({
       next: () => {
-        this.pagesDataService.showToast({ title: 'Flag Details', message: `${this.viewFlag.name} deleted`, type: ToastEventTypeEnum.SUCCESS });
-        this.open = false;
+        this.pagesDataService.showToast({ title: 'Flag Details', message: 'Flag deleted', type: ToastEventTypeEnum.SUCCESS });
         this.ok.emit();
+        this.open = false;
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Failed to save changes';
-      }
+        console.error(err);
+        this.pagesDataService.showToast({ title: 'Flag Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
     });
   }
 

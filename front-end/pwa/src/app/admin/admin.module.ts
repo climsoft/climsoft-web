@@ -8,7 +8,7 @@ import { MetadataModule } from '../metadata/metadata.module';
 import { ClimsoftDisplayTimezoneComponent } from './general-settings/general-setting-dialog/climsoft-display-timezone/climsoft-display-timezone.component';
 import { SchedulerSettingComponent } from './general-settings/general-setting-dialog/scheduler-setting/scheduler-setting.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
-import { UserDetailsComponent } from './users/user-details/user-details.component';
+import { UserInputDialogComponent } from './users/user-input-dialog/user-input-dialog.component';
 import { UserGroupSelectorSingleComponent } from './users/user-group-selector-single/user-group-selector-single.component';
 import { PasswordChangeComponent } from './users/password-change/password-change.component';
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
@@ -42,7 +42,7 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
     ViewUserGroupsComponent,
     ViewUsersComponent,
     UserGroupDetailsComponent,
-    UserDetailsComponent,
+    UserInputDialogComponent,
     EditUserPermissionsComponent,
     EditUserPermissionsDurationComponent,
 

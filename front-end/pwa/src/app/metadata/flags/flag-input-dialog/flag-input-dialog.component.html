@@ -2,8 +2,8 @@
     <app-dialog [(open)]="open" [title]="title"
         [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
         (firstButtonClick)="onSaveClick()"
-        [secondButtonOptions]="viewFlag.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
-        (secondButtonClick)="onDeleteClick()"
+        [secondButtonOptions]="title === 'Edit Flag'? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDelete()"
         [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
@@ -36,4 +36,10 @@
         </div>
 
     </app-dialog>
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Flag'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the flag <strong>{{ viewFlag.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

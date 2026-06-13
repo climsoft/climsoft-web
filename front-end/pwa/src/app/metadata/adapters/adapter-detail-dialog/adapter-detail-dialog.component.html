@@ -2,7 +2,7 @@
     <app-dialog [(open)]="open" [title]="title"
         [firstButtonOptions]="{label: 'Save', color: 'primary', disable: !canSave, closeDialogOnClick: false}"
         (firstButtonClick)="onSave()"
-        [secondButtonOptions]="adapter.id ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        [secondButtonOptions]="title === 'Edit Adapter' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
         (secondButtonClick)="onDelete()"
         [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 

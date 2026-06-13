@@ -20,6 +20,7 @@ import { DataEntryAndCorrectionCheckService } from '../services/data-entry-corec
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
+import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -81,16 +82,20 @@ export class ObservationsController {
   }
 
   @Get('generate-export/:specificationid')
-  generateExports(
+  async generateExports(
     @Req() request: Request,
     @Param('specificationid', AuthorisedExportsPipe) exportSpecificationId: number,
     @Query() viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationExportsService.generateManualExport(exportSpecificationId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
+    const downloadId: string = await this.observationExportsService.generateManualExport(
+      exportSpecificationId,
+      viewObsevationQuery,
+      AuthUtil.getLoggedInUser(request));
+    return { downloadId };
   }
 
-  @Get('download-export/:uniquedownloadid')
+  @Get('download-export/:downloadId')
   async download(
-    @Param('uniquedownloadid', new ParseUUIDPipe()) uniqueDownloadId: string
+    @Param('downloadId', new ParseUUIDPipe()) uniqueDownloadId: string
   ) {
     // Stream the exported file to the response
     return this.observationExportsService.manualDownloadExport(uniqueDownloadId);
@@ -101,7 +106,7 @@ export class ObservationsController {
     @Req() request: Request,
     @Body(new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
     // Get logged in user
-    const user = AuthUtil.getLoggedInUser(request);
+    const user: LoggedInUserDto = AuthUtil.getLoggedInUser(request);
 
     // Validate form and data correction data. If any invalid bad request will be thrown
     await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');

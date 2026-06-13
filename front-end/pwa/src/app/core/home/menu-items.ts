@@ -17,7 +17,7 @@ export enum MainMenuNameEnum {
     QUALITY_CONTROL = 'Quality Control',
     DATA_EXTRACTION = 'Data Extraction',
     METADATA = 'Metadata',
-    SYSTEM_ADMINISTRATOR = 'System Administrator',
+    SYSTEM_ADMINISTRATION = 'System Administration',
 }
 
 export enum SubMenuNameEnum {
@@ -206,7 +206,7 @@ export class MenuItemsUtil {
 
     public static get SYSTEM_ADMIN_MENU_ITEMS(): MenuItem {
         return {
-            name: MainMenuNameEnum.SYSTEM_ADMINISTRATOR,
+            name: MainMenuNameEnum.SYSTEM_ADMINISTRATION,
             url: '/admin',
             icon: 'bi bi-gear',
             open: false,

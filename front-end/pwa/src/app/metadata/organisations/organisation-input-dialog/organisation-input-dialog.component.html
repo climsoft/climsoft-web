@@ -1,5 +1,10 @@
 <ng-container *ngIf="open && viewOrganisation">
-    <app-dialog [(open)]="open" [title]="title" [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}" (firstButtonClick)="onSaveClick()" [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onSaveClick()"
+        [secondButtonOptions]="title === 'Edit Organisation' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDelete()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewOrganisation.name" />
@@ -23,6 +28,11 @@
                 {{ errorMessage }}
             </div>
         </div>
-
     </app-dialog>
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Organisation'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the organisation<strong>{{ viewOrganisation.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

@@ -242,7 +242,7 @@ export class ObservationsExportService {
         const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
 
         if (viewExportDto.disabled) {
-            throw new Error('Export is disabled');
+            throw new BadRequestException('Export is disabled');
         }
 
         const hasAdapter: boolean = !!viewExportDto.adapterId;
@@ -264,7 +264,7 @@ export class ObservationsExportService {
                 await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
                 break;
             default:
-                throw new Error('Export type not supported');
+                throw new BadRequestException('Export type not supported');
         }
     }
 
@@ -472,18 +472,31 @@ export class ObservationsExportService {
 
         }
 
+        const fromAndWhere: string = `
+            FROM observations ob
+            INNER JOIN stations st on ob.station_id = st.id
+            INNER JOIN elements el on ob.element_id = el.id
+            INNER JOIN source_templates so on ob.source_id = so.id
+            INNER JOIN users us on ob.entry_user_id = us.id
+            WHERE ${sqlCondition}
+        `;
+
+        // Short-circuit if no observations match. EXISTS stops at the first
+        // matching row, so we bail before writing a header-only CSV.
+        const existsResult: { has_data: boolean }[] = await this.dataSource.manager.query(
+            `SELECT EXISTS (SELECT 1 ${fromAndWhere}) AS has_data`,
+        );
+        if (!existsResult[0]?.has_data) {
+            throw new BadRequestException('No observations matched the export filters');
+        }
+
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
         const dbFilePathName = path.posix.join(dbDestDir, `${timestamp}.csv`);
         const sql: string = `
             COPY (
                 SELECT
                 ${columnSelections.join(',')}
-                FROM observations ob
-                INNER JOIN stations st on ob.station_id = st.id
-                INNER JOIN elements el on ob.element_id = el.id
-                INNER JOIN source_templates so on ob.source_id = so.id
-                INNER JOIN users us on ob.entry_user_id = us.id
-                WHERE ${sqlCondition}
+                ${fromAndWhere}
                 ORDER BY ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
@@ -547,6 +560,24 @@ export class ObservationsExportService {
             'ob.value AS value',
         ];
 
+        const fromAndWhere: string = `
+            FROM observations ob
+            INNER JOIN stations st on ob.station_id = st.id
+            INNER JOIN elements el on ob.element_id = el.id
+            WHERE ${sqlCondition}
+        `;
+
+        // Short-circuit if no observations match. EXISTS stops the planner at
+        // the first matching row instead of scanning all of them, then we bail
+        // before writing an empty CSV (which would otherwise produce a useless
+        // header-only WIS2BOX file downstream).
+        const existsResult: { has_data: boolean }[] = await this.dataSource.manager.query(
+            `SELECT EXISTS (SELECT 1 ${fromAndWhere}) AS has_data`,
+        );
+        if (!existsResult[0]?.has_data) {
+            throw new BadRequestException('No observations matched the export filters');
+        }
+
         // Postgres COPY TO -> op.inputDir; the WIS2BOX transformer reads from there.
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
         const rawFileName = `${timestamp}.csv`;
@@ -557,10 +588,7 @@ export class ObservationsExportService {
             COPY (
                 SELECT
                     ${columnSelections.join(',\n                        ')}
-                FROM observations ob
-                INNER JOIN stations st on ob.station_id = st.id
-                INNER JOIN elements el on ob.element_id = el.id
-                WHERE ${sqlCondition}
+                ${fromAndWhere}
                 ORDER BY
                     ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;

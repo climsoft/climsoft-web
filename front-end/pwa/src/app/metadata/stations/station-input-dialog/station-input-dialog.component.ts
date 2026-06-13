@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationsCacheService } from '../services/stations-cache.service';
@@ -7,6 +7,7 @@ import { CreateStationModel } from '../models/create-station.model';
 import { StationStatusEnum } from '../models/station-status.enum';
 import { StationProcessingMethodEnum } from '../models/station-processing-method.enum';
 import { UpdateStationModel } from '../models/update-station.model';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-station-input-dialog',
@@ -14,11 +15,12 @@ import { UpdateStationModel } from '../models/update-station.model';
   styleUrls: ['./station-input-dialog.component.scss']
 })
 export class StationInputDialogComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
   @Output() public ok = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected title!: string;
+  protected title: 'Edit Station' | 'New Station' = 'New Station';
   protected station!: CreateStationModel;
 
   constructor(
@@ -150,10 +152,10 @@ export class StationInputDialogComponent {
     }
 
     let saveSubscription: Observable<CreateStationModel>;
-    if (this.station.id) {
-      saveSubscription = this.stationsCacheService.update(this.station.id, updateStation);
-    } else {
+    if (this.title === 'New Station') {
       saveSubscription = this.stationsCacheService.create({ ...updateStation, id: this.station.id });
+    } else {
+      saveSubscription = this.stationsCacheService.update(this.station.id, updateStation);
     }
 
     saveSubscription.pipe(
@@ -172,10 +174,29 @@ export class StationInputDialogComponent {
     });
   }
 
+  protected onDelete(): void {
+    this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.stationsCacheService.delete(this.station.id).pipe(
+      take(1),
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Station Details', message: 'Station deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.ok.emit();
+        this.open = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.pagesDataService.showToast({ title: 'Station Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
+  }
+
   protected onCancelClick(): void {
     this.cancelClick.emit();
     this.open = false;
   }
-
 
 }

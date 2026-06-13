@@ -120,13 +120,13 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onAddClick(): void {
     if (this.isSystemAdmin) {
-      this.dlgInputElement.showDialog();
+      this.dlgInputElement.openDialog();
     }
   }
 
   protected onEditClick(elementId: number): void {
     if (this.isSystemAdmin) {
-      this.dlgInputElement.showDialog(elementId);
+      this.dlgInputElement.openDialog(elementId);
     }
   }
 

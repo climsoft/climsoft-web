@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs'; 
+import { Observable } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ViewUserModel } from 'src/app/admin/users/models/view-user.model';
 import { CreateUserModel } from 'src/app/admin/users/models/create-user.model';
@@ -11,7 +11,7 @@ import { ChangePasswordModel } from 'src/app/admin/users/models/change-password.
 })
 export class UsersService {
 
-  private endPointUrl: string  ;
+  private endPointUrl: string;
 
   constructor(private appConfigService: AppConfigService, private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
@@ -35,6 +35,10 @@ export class UsersService {
 
   public changeUserPassword(changedPassword: ChangePasswordModel): Observable<ViewUserModel> {
     return this.http.patch<ViewUserModel>(`${this.endPointUrl}/change-password`, changedPassword);
+  }
+
+  public delete(userId: number): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/${userId}`);
   }
 
 }
