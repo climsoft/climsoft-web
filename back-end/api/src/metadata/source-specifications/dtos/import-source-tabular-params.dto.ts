@@ -37,7 +37,7 @@ export class LevelDefinition {
 export class FlagDefinition {
     @IsInt()
     @Min(1)
-    flagColumnPosition: number;
+    flagColumnPosition!: number;
 
     @IsOptional()
     flagsToFetch?: { sourceId: string; databaseId: number }[];
@@ -47,7 +47,7 @@ export class ValueDefinition {
     /** Value column position. */
     @IsInt()
     @Min(1)
-    valueColumnPosition: number;
+    valueColumnPosition!: number;
 
     /** Flag column position. Optional */
     @IsOptional()
@@ -68,7 +68,7 @@ export class StationDefinition {
      */
     @IsInt()
     @Min(1)
-    columnPosition: number;
+    columnPosition!: number;
 
     /**
      * Represents stations to fetch and matches the source ids to the database element ids. 
@@ -211,22 +211,22 @@ export class ImportSourceTabularParamsDto {
     /**elements and value definition*/
     @ValidateNested()
     @Type(() => ElementDefinition)
-    elementDefinition: ElementDefinition;
+    elementDefinition!: ElementDefinition;
 
     /** Interval of the observation */
     @ValidateNested()
     @Type(() => IntervalDefinition)
-    intervalDefinition: IntervalDefinition;
+    intervalDefinition!: IntervalDefinition;
 
     /** Whether to fetch level and its column position */
     @ValidateNested()
     @Type(() => LevelDefinition)
-    levelDefinition: LevelDefinition;
+    levelDefinition!: LevelDefinition;
 
     /** Date time columns and formats */
     @ValidateNested()
     @Type(() => DateTimeDefinition)
-    datetimeDefinition: DateTimeDefinition;
+    datetimeDefinition!: DateTimeDefinition;
 
     @IsOptional()
     @ValidateNested()
@@ -243,7 +243,7 @@ export class ImportSourceTabularParamsDto {
      */
     @IsInt()
     @Min(0)
-    rowsToSkip: number;
+    rowsToSkip!: number;
 
     /**
      * Applies to csv file formats onl e.g CSV, DAT, TSV.
