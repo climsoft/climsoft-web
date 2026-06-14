@@ -250,5 +250,5 @@ export class ImportSourceTabularParamsDto {
      */
     @IsOptional()
     @IsString()
-    delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
+    delimiter?: string
 }
