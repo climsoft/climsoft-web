@@ -4,7 +4,7 @@
         (firstButtonClick)="onPrevious()"
         [secondButtonOptions]="showNavigation && activeStep !== 'review' ? {label:  'Next' , color: 'info', closeDialogOnClick: false} : undefined"
         (secondButtonClick)="onNext()"
-        [thirdButtonOptions]="!transformedPreviewResponse.error ? {label: saving ? 'Saving...' : 'Save', color: 'primary', disable: !showNavigation || saving || !!transformedPreviewResponse.error, closeDialogOnClick: false} : undefined"
+        [thirdButtonOptions]="!transformedPreviewResponse.error ? {label: saving ? 'Saving...' : 'Submit', color: 'primary', disable: !showNavigation || saving || !!transformedPreviewResponse.error, closeDialogOnClick: false} : undefined"
         (thirdButtonClick)="onSave()"
         [fourthButtonOptions]="viewSource.id > 0 ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
         (fourthButtonClick)="onDelete()"
@@ -74,7 +74,7 @@
 
                         <hr />
 
-                        <div>
+                        <div [title]="'A sample file is required for import specifications. It is stored alongside the source and used for future preview operations.'">
                             <app-file-input [label]="'Sample File'"
                                 [buttonLabel]="viewSource.sampleFileName? 'Change Sample File': 'Upload Sample File'"
                                 [disabled]="!canUploadFile" [fileName]="selectedFileName"

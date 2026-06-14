@@ -6,6 +6,7 @@ import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/im
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
 import { FormSourceInputDialogComponent } from './source-specifications/form-source-input-dialog/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from './source-specifications/import-source-input-dialog/import-source-input-dialog.component';
+import { SourceCloneDialogComponent } from './source-specifications/source-clone-dialog/source-clone-dialog.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { StationInputDialogComponent } from './stations/station-input-dialog/station-input-dialog.component';
 import { StationsImportDialogComponent } from './stations/stations-import-dialog/stations-import-dialog.component';
@@ -118,6 +119,7 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
     ViewSourcesComponent,
     FormSourceInputDialogComponent,
     ImportSourceInputDialogComponent,
+    SourceCloneDialogComponent,
 
     ViewStationsComponent,
     StationInputDialogComponent,

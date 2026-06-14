@@ -78,7 +78,9 @@ export class CreateSourceSpecificationDto {
   @Min(1)
   adapterId!: number | null;
 
-  /** Operation ID from the preview session that contains the sample file. Used to copy the file to the persistent samples directory on save. */
+  /** Operation ID from the preview session that contains the sample file. 
+  * Used to copy the file to the persistent samples directory on save.
+  */
   @ValidateIf((_o, v) => v !== null)
   @IsString()
   @IsNotEmpty()

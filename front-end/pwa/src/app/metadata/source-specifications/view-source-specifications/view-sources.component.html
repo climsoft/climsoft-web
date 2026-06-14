@@ -23,8 +23,8 @@
           <col style="width: 20%;" />
           <col style="width: 10%;" />
           <col style="width: 44%;" />
-          <col style="width: 12%;" />
-          <col style="width: 12%;" />
+          <col style="width: 8%;" />
+          <col style="width: 16%;" />
         </colgroup>
         <thead>
           <tr>
@@ -77,6 +77,10 @@
                   (click)="onToggleDisabledClick(source, $event)">
                   <i class="bi" [ngClass]="source.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
                 </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Clone source"
+                  (click)="onCloneClick(source, $event)">
+                  <i class="bi bi-files"></i>
+                </button>
                 <button type="button" class="btn btn-sm btn-outline-danger" title="Delete source"
                   (click)="onDeleteClick(source, $event)">
                   <i class="bi bi-trash"></i>
@@ -120,4 +124,5 @@
   <!-- Source Input Dialogs -->
   <app-form-source-input-dialog #dlgFormEdit />
   <app-import-source-input-dialog #dlgImportEdit />
+  <app-source-clone-dialog #dlgClone />
 </div>

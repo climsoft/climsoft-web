@@ -114,7 +114,7 @@ export class SourceSpecificationsService implements OnModuleInit {
         entity.allowMissingValue = dto.allowMissingValue;
         entity.scaleValues = dto.scaleValues;
 
-           // Copy the sample file from the operation's input directory to the persistent samples directory.
+        // Copy the sample file from the operation's input directory to the persistent samples directory.
         entity.sampleFileName = await this.persistSampleFile(entity.sampleFileName, dto.sampleFileOperationId);
 
         entity.disabled = dto.disabled;
@@ -143,7 +143,7 @@ export class SourceSpecificationsService implements OnModuleInit {
         const sampleFileName: string = path.basename(inputFiles[0]);
 
         if (previousSampleFileName === sampleFileName) {
-            this.logger.warn('Sample file not changed.  Same sample file retained.');
+            this.logger.warn('Sample file not changed. Same sample file retained.');
             return previousSampleFileName;
         }
 
