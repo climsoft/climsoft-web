@@ -86,7 +86,6 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
                     }
                 }
 
-
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.FORM,
                     sourceSpec: {
