@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
+import { FormElementMetadata, FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
 import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
@@ -7,6 +7,7 @@ import { take } from 'rxjs';
 import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { SourcesCacheService } from '../services/source-cache.service';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 // TODO. Try using angular forms?
 
@@ -31,7 +32,8 @@ export class FormSourceInputDialogComponent {
   protected selectedSelectors: SelectorFieldControlType[] = [];
   protected selectedFields: SelectorFieldControlType[] = [];
   protected selectedLayout: LayoutType = LayoutType.LINEAR;
-  protected selectedElementIds: number[] = [];
+  /** Per-element config: element id and its allowed hours (`null` = inherit form hours). */
+  protected elementsMetadata: FormElementMetadata[] = [];
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
   protected selectedIntervalId: number | null = null;
@@ -43,12 +45,12 @@ export class FormSourceInputDialogComponent {
   protected allowDoubleDataEntry: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
-  protected hoursErrorMessage: string = '';
   protected intervalErrorMessage: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourcesCacheService) {
+    private sourcesCacheService: SourcesCacheService,
+    private cachedMetadataService: CachedMetadataService) {
   }
 
   public openDialog(source?: ViewSourceSpecificationModel): void {
@@ -65,7 +67,7 @@ export class FormSourceInputDialogComponent {
         selectors: [SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR],
         fields: [SelectorFieldControlType.ELEMENT],
         layout: LayoutType.LINEAR,
-        elementIds: [],
+        elementsMetadata: [],
         hours: [],
         interval: 1440,
         requireTotalInput: false,
@@ -113,8 +115,9 @@ export class FormSourceInputDialogComponent {
     this.possibleFields = possibleFields;
     this.selectedFields = selectedFields;
     this.selectedLayout = entryForm.layout;
-    this.selectedElementIds = entryForm.elementIds;
-    this.selectedHourIds = entryForm.hours;
+    // Clone each element row so dialog edits don't mutate the source's stored parameters until save.
+    this.elementsMetadata = entryForm.elementsMetadata.map(m => ({ elementId: m.elementId, hours: m.hours === null ? null : [...m.hours] }));
+    this.selectedHourIds = [...entryForm.hours];
     this.selectedIntervalId = entryForm.interval;
     this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
@@ -155,31 +158,58 @@ export class FormSourceInputDialogComponent {
   protected onIntervalSelected(intervalId: number | null) {
     this.selectedIntervalId = intervalId;
     this.selectedHourIds = [];
+    this.pruneElementHoursToFormHours();
     this.intervalErrorMessage = this.selectedIntervalId === null ? 'Select interval' : '';
   }
 
   protected onHoursSelected(hourIds: number[]) {
-    this.hoursErrorMessage = '';
-
-    if (this.selectedIntervalId === 1440 && hourIds.length !== 1) {
-      // for 24 hours
-      this.hoursErrorMessage = '1 hour expected only';
-    } else if (this.selectedIntervalId === 720 && hourIds.length !== 2) {
-      //for 12 hour
-      this.hoursErrorMessage = '2 hours expected only';
-    } else if (this.selectedIntervalId === 360 && hourIds.length !== 4) {
-      //for 6 hours
-      this.hoursErrorMessage = '4 hours expected only';
-    } else if (this.selectedIntervalId === 180 && hourIds.length !== 8) {
-      //for 3 hours
-      this.hoursErrorMessage = '8 hours expected only';
-    }
-
-    if (this.hoursErrorMessage) {
-      this.selectedHourIds = hourIds;
-    }
-
+    this.selectedHourIds = hourIds;
+    this.pruneElementHoursToFormHours();
   }
+
+  /** Drop any per-element hour that's no longer present in `selectedHourIds`; snap back to inherit when emptied. */
+  private pruneElementHoursToFormHours(): void {
+    const allowed: Set<number> = new Set(this.selectedHourIds);
+    for (const meta of this.elementsMetadata) {
+      if (meta.hours === null) continue;
+      const pruned = meta.hours.filter(h => allowed.has(h));
+      meta.hours = pruned.length === 0 ? null : pruned;
+    }
+  }
+
+  // ─── Per-element configuration ───
+
+  /** Ids displayed by the element multi-selector; derived from elementsMetadata to preserve row order. */
+  protected get selectedElementIds(): number[] {
+    return this.elementsMetadata.map(m => m.elementId);
+  }
+
+  protected onElementsSelected(newIds: number[]): void {
+    const existing = new Map<number, FormElementMetadata>(this.elementsMetadata.map(m => [m.elementId, m]));
+    // Preserve existing per-element config for ids that remain; new ids default to "inherit form hours".
+    this.elementsMetadata = newIds.map(id => existing.get(id) ?? { elementId: id, hours: null });
+  }
+
+  protected getElementLabel(elementId: number): string {
+    const el = this.cachedMetadataService.getElement(elementId);
+    return el ? `${el.id} - ${el.abbreviation} - ${el.name}` : `#${elementId}`;
+  }
+
+  protected isInheritingFormHours(meta: FormElementMetadata): boolean {
+    return meta.hours === null;
+  }
+
+  protected onAllHoursToggle(index: number, inheritAll: boolean): void {
+    // Toggling on snaps back to "inherit". Toggling off seeds with the current form hours so admin can trim.
+    this.elementsMetadata[index].hours = inheritAll ? null : [...this.selectedHourIds];
+  }
+
+  protected onElementHoursChange(index: number, newHours: number[]): void {
+    // Empty restriction is meaningless — fall back to inheriting form hours.
+    this.elementsMetadata[index].hours = newHours.length === 0 ? null : newHours;
+  }
+
+  // ─── Save / Delete ───
 
   protected onSave(): void {
 
@@ -208,7 +238,7 @@ export class FormSourceInputDialogComponent {
       return;
     }
 
-    if (this.selectedElementIds.length === 0) {
+    if (this.elementsMetadata.length === 0) {
       this.pagesDataService.showToast({ title: 'Form specification', message: 'Select elements', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -231,7 +261,7 @@ export class FormSourceInputDialogComponent {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
       layout: this.selectedLayout,
-      elementIds: this.selectedElementIds,
+      elementsMetadata: this.elementsMetadata,
       hours: this.selectedHourIds,
       interval: this.selectedIntervalId!,
       requireTotalInput: this.requireTotalInput,

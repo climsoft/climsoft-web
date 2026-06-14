@@ -10,6 +10,20 @@ export enum LayoutType {
   GRID = 'GRID'
 }
 
+/** Per-element configuration on a form. */
+export interface FormElementMetadata {
+    /** Element id allowed on the form. */
+    elementId: number;
+
+    /**
+     * Hours at which this element is enabled.
+     * - `null` means the element inherits the form's `hours` (enabled at every form hour).
+     * - A non-empty array MUST be a subset of `FormSourceModel.hours`.
+     * - An empty array is not valid and should be rejected at the dialog/DTO layer.
+     */
+    hours: number[] | null;
+}
+
 export interface FormSourceModel {
     /** Defines the extra entry selectors used by the form to get data */
     selectors: [SelectorFieldControlType, SelectorFieldControlType?];
@@ -20,8 +34,8 @@ export interface FormSourceModel {
     /** Layout used by entry fields */
     layout: LayoutType;
 
-    /** Elements ids allowed to be recorded by the form */
-    elementIds: number[];
+    /** Per-element configuration for elements allowed on the form. */
+    elementsMetadata: FormElementMetadata[];
 
     /** Hours allowed to be recorded by the form */
     hours: number[];

@@ -11,7 +11,8 @@
             [labelSuperScript]="fieldDef.nameSuperScript" [borderSize]="userFormSettings.fieldsBorderSize"
             [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [applyEntryScaleFactor]="true"
             [observationEntry]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
-            [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
+            [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true"
+            [disableValueFlagEntry]="getObservationDefByFieldDef(fieldDef).enabled === false" />
         </div>
       </div>
 
@@ -37,7 +38,8 @@
       [borderSize]="userFormSettings.fieldsBorderSize"
       [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [applyEntryScaleFactor]="true"
       [observationEntry]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
-      [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
+      [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true"
+      [disableValueFlagEntry]="getObservationDefByIndex(firstIndex).enabled === false" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
       <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"

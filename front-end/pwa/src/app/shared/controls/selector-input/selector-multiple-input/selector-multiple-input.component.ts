@@ -10,6 +10,7 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   @ViewChild('appMultipleSelectorSearchInput') searchInput!: TextInputComponent;
   @Input() public id!: string;
   @Input() public label!: string;
+  @Input() public labelSuperScript!: string;
   @Input() public placeholder!: string;
   @Input() public errorMessage!: string;
   @Input() public options: T[] = [];

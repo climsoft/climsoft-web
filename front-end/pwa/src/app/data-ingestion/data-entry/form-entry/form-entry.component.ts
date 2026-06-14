@@ -389,6 +389,16 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSubmit(): void {
+    // For some reasons, 
+    // slower computers may fail to detect changes when user quickly enters data, 
+    // presses enter twice for focusing and clicking on the submit button.
+    // TODO. Investigate more about the bug.
+    setTimeout(() => {
+      this.save();
+    }, 0);
+  }
+
+  protected save(): void {
     if (this.userLocationErrorMessage) {
       this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
