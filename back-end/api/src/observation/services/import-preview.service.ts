@@ -93,9 +93,10 @@ export class ImportPreviewService implements OnModuleDestroy {
             await fs.promises.copyFile(samplesPath, path.posix.join(op.inputDir, fileName));
         } else {
             // New upload — save from memory to the operation's input directory
-            // For uploads, always use the new operation id as the original name because new "sample file" uploads need to be logged as changes
+            // For uploads, always use the new operation id as the original name because new "sample file" uploads need to be logged as changes.
+            // The original file's extension is preserved so downstream readers (DuckDB sniffer, persisted sample file in /app/samples) see a real file type.
             // Note. Auto import doesn't need this because the downloaded file names will never be used as sample file names in that operation
-            fileName = op.operationId;
+            fileName = op.operationId + path.extname(fileOrFileName.originalname);
             this.logger.log(`writing uploaded file ${fileOrFileName.originalname} from memory to file: ${fileName}`);
             await fs.promises.writeFile(path.posix.join(op.inputDir, fileName), fileOrFileName.buffer);
         }
