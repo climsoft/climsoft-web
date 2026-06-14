@@ -140,7 +140,7 @@ export class SourceSpecificationsService implements OnModuleInit {
             throw new NotFoundException(`Sample file not found`);
         }
 
-        const sampleFileName: string = path.basename(inputFiles[0]);
+        const sampleFileName: string = path.posix.basename(inputFiles[0]);
 
         if (previousSampleFileName === sampleFileName) {
             this.logger.warn('Sample file not changed. Same sample file retained.');
