@@ -18,7 +18,7 @@ health_handler <- function() {
 run_handler <- function(req) {
   body <- req$body
 
-  required <- c("scriptDir", "entryPoint", "inputDir", "outputDir", "metadataFile", "timeoutSeconds")
+  required <- c("scriptDir", "entryPoint", "inputFilePathName", "outputDir", "metadataFile", "timeoutSeconds")
   missing <- setdiff(required, names(body))
   if (length(missing) > 0) {
     return(list(
@@ -30,7 +30,7 @@ run_handler <- function(req) {
 
   script_dir     <- body$scriptDir
   entry_point    <- body$entryPoint
-  input_dir      <- body$inputDir
+  input_file_path_name      <- body$inputFilePathName
   output_dir     <- body$outputDir
   metadata_file  <- body$metadataFile
   timeout_secs   <- as.integer(body$timeoutSeconds)
@@ -87,7 +87,7 @@ run_handler <- function(req) {
 
   # Step 2: run the script with the right env vars
   env_vars <- c(
-    paste0("CLIMSOFT_INPUT_DIR=", input_dir),
+    paste0("CLIMSOFT_INPUT_FILE_PATH_NAME=", input_file_path_name),
     paste0("CLIMSOFT_OUTPUT_DIR=", output_dir),
     paste0("CLIMSOFT_METADATA_FILE=", metadata_file),
     paste0("CLIMSOFT_WARNINGS_FILE=", warnings_file),

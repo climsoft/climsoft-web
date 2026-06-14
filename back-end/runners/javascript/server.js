@@ -23,13 +23,13 @@ app.get('/health', (_req, res) => {
 app.post('/run', async (req, res) => {
   try {
     const body = req.body;
-    const required = ['scriptDir', 'entryPoint', 'inputDir', 'outputDir', 'metadataFile', 'timeoutSeconds'];
+    const required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
       return res.json(errorSummary('RUNTIME_ERROR', `Missing required fields: ${missing.join(', ')}`));
     }
 
-    const { scriptDir, entryPoint, inputDir, outputDir, metadataFile, timeoutSeconds } = body;
+    const { scriptDir, entryPoint, inputFilePathName, outputDir, metadataFile, timeoutSeconds } = body;
 
     // Derive paths by convention
     const envDir = path.join(scriptDir, INSTALLED_DIR_NAME);
@@ -78,7 +78,7 @@ app.post('/run', async (req, res) => {
     // Step 2: run the script
     const env = {
       ...process.env,
-      CLIMSOFT_INPUT_DIR: inputDir,
+      CLIMSOFT_INPUT_FILE_PATH_NAME: inputFilePathName,
       CLIMSOFT_OUTPUT_DIR: outputDir,
       CLIMSOFT_METADATA_FILE: metadataFile,
       CLIMSOFT_WARNINGS_FILE: warningsFile,

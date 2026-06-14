@@ -10,7 +10,7 @@ Contract:
     {
         "scriptDir":      "/app/adapters/<uuid>",
         "entryPoint":     "main.py",
-        "inputDir":       "/app/operations/<uuid>/input",
+        "inputFilePathName":       "/app/operations/<uuid>/input/<filename>",
         "outputDir":      "/app/operations/<uuid>/output",
         "metadataFile":   "/app/operations/<uuid>/output/metadata.json",
         "timeoutSeconds": 300
@@ -29,7 +29,7 @@ The runner derives all log file paths from outputDir by convention.
 
 The script is invoked with the following environment variables:
 
-    CLIMSOFT_INPUT_DIR
+    CLIMSOFT_INPUT_FILE_PATH_NAME
     CLIMSOFT_OUTPUT_DIR
     CLIMSOFT_METADATA_FILE
     CLIMSOFT_WARNINGS_FILE
@@ -60,7 +60,7 @@ def run_adapter():
         if not body:
             return jsonify(_error_summary('RUNTIME_ERROR', 'Request body must be JSON')), 200
 
-        required = ['scriptDir', 'entryPoint', 'inputDir', 'outputDir', 'metadataFile', 'timeoutSeconds']
+        required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds']
         missing = [k for k in required if k not in body]
         if missing:
             return jsonify(_error_summary(
@@ -70,7 +70,7 @@ def run_adapter():
 
         script_dir = body['scriptDir']
         entry_point = body['entryPoint']
-        input_dir = body['inputDir']
+        input_file_path_name = body['inputFilePathName']
         output_dir = body['outputDir']
         metadata_file = body['metadataFile']
         timeout_seconds = int(body['timeoutSeconds'])
@@ -108,7 +108,7 @@ def run_adapter():
 
         environ = os.environ.copy()
         environ.update({
-            'CLIMSOFT_INPUT_DIR': input_dir,
+            'CLIMSOFT_INPUT_FILE_PATH_NAME': input_file_path_name,
             'CLIMSOFT_OUTPUT_DIR': output_dir,
             'CLIMSOFT_METADATA_FILE': metadata_file,
             'CLIMSOFT_WARNINGS_FILE': warnings_file,

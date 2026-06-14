@@ -251,8 +251,9 @@ export class ObservationsExportService {
             case ExportTypeEnum.RAW:
                 if (hasAdapter) {
                     // Postgres -> inputDir, then adapter -> outputDir
-                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
-                    await this.runExportAdapter(viewExportDto, op);
+                    const fileName = await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
+                    const inputFilePathName = path.posix.join(op.inputDir, fileName);
+                    await this.runExportAdapter(viewExportDto, inputFilePathName, op.outputDir);
                 } else {
                     // Postgres -> outputDir directly
                     await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir);
@@ -289,7 +290,10 @@ export class ObservationsExportService {
     /**
      * Runs the post-export adapter. Reads from op.inputDir, writes to op.outputDir.
      */
-    private async runExportAdapter(exportSpec: ViewSpecificationExportModel, op: OperationContext): Promise<void> {
+    private async runExportAdapter(
+        exportSpec: ViewSpecificationExportModel,
+        inputFilePathName: string,
+        outputDir: string,): Promise<void> {
         const adapter = this.adaptersService.find(exportSpec.adapterId!);
 
         if (adapter.disabled) {
@@ -317,7 +321,7 @@ export class ObservationsExportService {
             testRun: false,
         };
 
-        const result = await this.adapterRunnerService.run(adapterRef, op.inputDir, op.outputDir, metadata);
+        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata);
 
         if (result.status !== 'success') {
             throw new Error(`Export adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
@@ -358,7 +362,7 @@ export class ObservationsExportService {
         exportParams: RawExportParametersDto,
         exportQuery: ExportQueryModel,
         dbDestDir: string,
-    ): Promise<void> {
+    ): Promise<string> {
 
         const conditions: string[] = this.buildBaseObservationConditions(exportQuery);
 
@@ -491,7 +495,8 @@ export class ObservationsExportService {
         }
 
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
-        const dbFilePathName = path.posix.join(dbDestDir, `${timestamp}.csv`);
+        const fileName = `${timestamp}.csv`;
+        const dbFilePathName = path.posix.join(dbDestDir, fileName);
         const sql: string = `
             COPY (
                 SELECT
@@ -502,6 +507,8 @@ export class ObservationsExportService {
         `;
 
         await this.dataSource.manager.query(sql);
+
+        return fileName;
     }
 
     private async generateWis2BoxExport(

@@ -11,7 +11,7 @@
  * <scriptDir>/.installed/ across runs.
  *
  * The SQL script accesses paths via DuckDB variables:
- *   getvariable('climsoft_input_dir')  — input directory path
+ *   getvariable('climsoft_input_file_path_name')  — input directory path
  *   getvariable('climsoft_output_dir') — output directory path
  *   getvariable('climsoft_metadata')   — metadata sidecar path
  *   getvariable('climsoft_warnings')   — warnings file path
@@ -49,13 +49,13 @@ app.get('/health', async (_req, res) => {
 app.post('/run', async (req, res) => {
   try {
     const body = req.body;
-    const required = ['scriptDir', 'entryPoint', 'inputDir', 'outputDir', 'metadataFile', 'timeoutSeconds'];
+    const required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
       return res.json(errorSummary('RUNTIME_ERROR', `Missing required fields: ${missing.join(', ')}`));
     }
 
-    const { scriptDir, entryPoint, inputDir, outputDir, metadataFile, timeoutSeconds } = body;
+    const { scriptDir, entryPoint, inputFilePathName, outputDir, metadataFile, timeoutSeconds } = body;
 
     // Derive log paths by convention
     const warningsFile = path.join(outputDir, 'warnings.jsonl');
@@ -94,7 +94,7 @@ app.post('/run', async (req, res) => {
       fs.writeFileSync(installLogFile, installLog);
 
       // Step 2: inject the path variables the SQL script reads via getvariable().
-      await conn.run(`SET VARIABLE climsoft_input_dir = '${inputDir.replace(/'/g, "''")}';`);
+      await conn.run(`SET VARIABLE climsoft_input_file_path_name = '${inputFilePathName.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_output_dir = '${outputDir.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_metadata = '${metadataFile.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_warnings = '${warningsFile.replace(/'/g, "''")}';`);
@@ -118,7 +118,9 @@ app.post('/run', async (req, res) => {
       const isTimeout = /timeout/i.test(stderr) || /interrupt/i.test(stderr);
       if (isTimeout) {
         return res.json({
-          status: 'timeout', durationMs, exitCode: 124,
+          status: 'timeout', 
+          durationMs, 
+          exitCode: 124,
           errorType: 'TIMEOUT',
           errorMessage: `SQL execution exceeded timeout of ${timeoutSeconds}s`,
         });

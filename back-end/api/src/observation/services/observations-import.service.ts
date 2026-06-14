@@ -134,7 +134,6 @@ export class ObservationImportService {
         };
 
         const metadata: AdapterRunMetadata = {
-            //originalFileName: inputFileName,
             initiatedByUserId: userId,
             initiatedAt: new Date().toISOString(),
             sourceSpecId: sourceDef.id,
