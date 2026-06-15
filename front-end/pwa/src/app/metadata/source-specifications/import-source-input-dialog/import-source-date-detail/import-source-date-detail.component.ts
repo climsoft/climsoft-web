@@ -21,7 +21,7 @@ export class ImportSourceDateDetailComponent {
     this.datetimeDefinition.dateTimeInMultipleColumns = undefined;
     this.datetimeDefinition.dateInMultipleColumns = undefined;
 
-    if (selection === 'Date Time in Single Column') {
+    if (selection === 'Date and Time in Single Column') {
       this.datetimeDefinition.dateTimeInSingleColumn = {
         columnPosition: 0,
         datetimeFormat: '%Y-%m-%d %H:%M:%S'
@@ -32,14 +32,14 @@ export class ImportSourceDateDetailComponent {
         dateFormat: '%Y-%m-%d',
         defaultHour: 0
       };
-    } else if (selection === 'Date Time in Two Columns') {
+    } else if (selection === 'Date and Time in Two Columns') {
       this.datetimeDefinition.dateTimeInTwoColumns = {
         dateColumnPosition: 0,
         dateFormat: '%Y-%m-%d',
         timeColumnPosition: 0,
         timeFormat: '%H:%M:%S'
       };
-    } else if (selection === 'Date Time in Multiple Columns') {
+    } else if (selection === 'Date and Time in Multiple Columns') {
       this.datetimeDefinition.dateTimeInMultipleColumns = {
         yearColumnPosition: 0,
         monthColumnPosition: 0,
