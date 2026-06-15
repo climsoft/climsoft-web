@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { StationColumnMappingModel } from '../../../models/metadata-import-preview.model';
-import { DateTimeDefinition } from '../../../source-specifications/models/import-source-tabular-params.model';
+import { DateTimeDefinition, DateTimeFormat } from '../../../source-specifications/models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-station-import-dates-detail',
@@ -28,7 +28,7 @@ export class StationImportDatesDetailComponent {
     return {
       dateTimeInSingleColumn: {
         columnPosition: 0,
-        datetimeFormat: '%Y-%m-%d %H:%M:%S',
+        datetimeFormat: DateTimeFormat.YMD_DASH_HMS,
       },
     };
   }

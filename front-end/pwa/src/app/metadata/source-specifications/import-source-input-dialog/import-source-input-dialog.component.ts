@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
-import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
+import { DateTimeFormat, ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Observable, switchMap, take } from 'rxjs';
@@ -101,7 +101,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 datetimeDefinition: {
                     dateTimeInSingleColumn: {
                         columnPosition: 0,
-                        datetimeFormat: '%Y-%m-%d %H:%M',
+                        datetimeFormat: DateTimeFormat.YMD_DASH_HM,
                     }
                 },
                 intervalDefinition: {

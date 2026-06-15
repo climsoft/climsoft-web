@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { DateTimeDefinition } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
+import { DateFormat, DateTimeDefinition, DateTimeFormat, TimeFormat } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-import-source-date-detail',
@@ -24,20 +24,20 @@ export class ImportSourceDateDetailComponent {
     if (selection === 'Date and Time in Single Column') {
       this.datetimeDefinition.dateTimeInSingleColumn = {
         columnPosition: 0,
-        datetimeFormat: '%Y-%m-%d %H:%M:%S'
+        datetimeFormat: DateTimeFormat.YMD_DASH_HMS
       };
     } else if (selection === 'Date in Single Column') {
       this.datetimeDefinition.dateInSingleColumn = {
         columnPosition: 0,
-        dateFormat: '%Y-%m-%d',
+        dateFormat: DateFormat.YMD_DASH,
         defaultHour: 0
       };
     } else if (selection === 'Date and Time in Two Columns') {
       this.datetimeDefinition.dateTimeInTwoColumns = {
         dateColumnPosition: 0,
-        dateFormat: '%Y-%m-%d',
+        dateFormat: DateFormat.YMD_DASH,
         timeColumnPosition: 0,
-        timeFormat: '%H:%M:%S'
+        timeFormat: TimeFormat.HMS
       };
     } else if (selection === 'Date and Time in Multiple Columns') {
       this.datetimeDefinition.dateTimeInMultipleColumns = {
@@ -45,7 +45,7 @@ export class ImportSourceDateDetailComponent {
         monthColumnPosition: 0,
         dayColumnPosition: '0',
         timeColumnPosition: 0,
-        timeFormat: '%H:%M:%S'
+        timeFormat: TimeFormat.HMS
       };
     } else if (selection === 'Date in Multiple Columns') {
       this.datetimeDefinition.dateInMultipleColumns = {
