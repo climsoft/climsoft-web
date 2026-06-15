@@ -28,19 +28,19 @@ export class DateFormatSelectorSingleComponent implements OnChanges {
   }
 
   private readonly displayLabels: Record<DateFormat, string> = {
-    [DateFormat.YMD_DASH]: '2024-01-15 (%Y-%m-%d — ISO)',
+    [DateFormat.YMD_DASH]: '2024-01-15 (%Y-%m-%d)',
     [DateFormat.DMY_DASH]: '15-01-2024 (%d-%m-%Y)',
-    [DateFormat.MDY_DASH]: '01-15-2024 (%m-%d-%Y — US)',
+    [DateFormat.MDY_DASH]: '01-15-2024 (%m-%d-%Y)',
     [DateFormat.YMD_SLASH]: '2024/01/15 (%Y/%m/%d)',
     [DateFormat.DMY_SLASH]: '15/01/2024 (%d/%m/%Y)',
-    [DateFormat.MDY_SLASH]: '01/15/2024 (%m/%d/%Y — US Excel)',
+    [DateFormat.MDY_SLASH]: '01/15/2024 (%m/%d/%Y)',
     [DateFormat.YMD_DOT]: '2024.01.15 (%Y.%m.%d)',
-    [DateFormat.DMY_DOT]: '15.01.2024 (%d.%m.%Y — DE/RU)',
-    [DateFormat.YMD_COMPACT]: '20240115 (%Y%m%d — ISO basic / WMO)',
+    [DateFormat.DMY_DOT]: '15.01.2024 (%d.%m.%Y)',
+    [DateFormat.YMD_COMPACT]: '20240115 (%Y%m%d)',
     [DateFormat.D_MON_Y_DASH]: '15-Jan-2024 (%d-%b-%Y)',
-    [DateFormat.D_MON_Y_SPACE]: '15 Jan 2024 (%d %b %Y — NCDC)',
-    [DateFormat.Y_J_DASH]: '2024-015 (%Y-%j — year + day of year)',
-    [DateFormat.YJ_COMPACT]: '2024015 (%Y%j — basic Julian)',
+    [DateFormat.D_MON_Y_SPACE]: '15 Jan 2024 (%d %b %Y)',
+    [DateFormat.Y_J_DASH]: '2024-015 (%Y-%j, year + day of year)',
+    [DateFormat.YJ_COMPACT]: '2024015 (%Y%j, basic Julian)',
   };
 
   protected optionDisplayFunction = (option: DateFormat): string => {
