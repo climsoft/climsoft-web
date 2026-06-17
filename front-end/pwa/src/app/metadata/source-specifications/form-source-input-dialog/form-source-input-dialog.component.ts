@@ -58,8 +58,7 @@ export class FormSourceInputDialogComponent {
 
     if (source) {
       this.title = 'Edit Form Specification';
-      // TODO. Think about cloning the arrays inside the parameters. Their references are retained here
-      this.viewSource = { ...source, parameters: { ...source.parameters } };
+      this.viewSource = structuredClone(source);
       this.setControlValues(this.viewSource.parameters as FormSourceModel);
     } else {
       this.title = 'New Form Specification';

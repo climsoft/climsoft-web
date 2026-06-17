@@ -304,7 +304,7 @@ export class DataCorrectorComponent implements OnDestroy {
         this.loadData();
         this.userChangesSubmitted.emit();
       },
-      error: err => {
+      error: (err) => {
         this.setLoadingStatus(false);
         this.handleError(err);
       },
