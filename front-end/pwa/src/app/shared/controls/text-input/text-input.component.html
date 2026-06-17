@@ -1,6 +1,6 @@
 <app-drop-down-container [(displayDropDown)]="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
   <div main-content>
-    <div *ngIf="label" class="fw-bold">
+    <div *ngIf="label" class="fw-bold" [title]="labelTitle">
       <label [for]="id? id:label">{{ label }} </label>
       <span *ngIf="labelSuperScript" class="app-label-super-script">{{ labelSuperScript }}</span>
       <span *ngIf="displaylabelFullColon">:</span>
@@ -10,8 +10,8 @@
 
       <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
-        class="form-control form-control-sm form-control-sm " [autocomplete]="'off'" [id]="id? id:label"
-        [disabled]="disabled" [readOnly]="readonly" [ngClass]="['border-'+ borderSize]"
+        class="form-control form-control-sm form-control-sm " [autocomplete]="'off'" [title]="inputTitle"
+        [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly" [ngClass]="['border-'+ borderSize]"
         [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
         [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
         [class.app-cursor-pointer]="displayDropDownOption" [value]="value ?? ''" [attr.min]="min" [attr.max]="max"
@@ -19,7 +19,7 @@
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
-        [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
+        [autocomplete]="'off'" [title]="inputTitle" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
         [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
         [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
         [class.app-cursor-pointer]="displayDropDownOption" [value]="value ?? ''" [attr.min]="min" [attr.max]="max"
@@ -34,7 +34,8 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
       </button>
 
-      <app-dialog #dlgWarningMessage [title]="'Warning'" [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
+      <app-dialog #dlgWarningMessage [title]="'Warning'"
+        [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
         <div class="fs-5">{{ warningMessage }}</div>
       </app-dialog>
 
@@ -44,7 +45,8 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
       </button>
 
-      <app-dialog #dlgErrorMessage [title]="'Error'" [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
+      <app-dialog #dlgErrorMessage [title]="'Error'"
+        [firstButtonOptions]="{label: 'Ok', color: 'secondary', closeDialogOnClick: true}">
         <div class="fs-5">{{ errorMessage }}</div>
       </app-dialog>
 

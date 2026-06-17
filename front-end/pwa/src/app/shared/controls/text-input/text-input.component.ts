@@ -26,18 +26,20 @@ export class TextInputComponent {
   @Output() public displayCancelOptionClick = new EventEmitter<void>();
 
   @Input() public type: string = 'text';
-  @Input() public id!: string | number;
-  @Input() public label!: string;
-  @Input() public labelSuperScript!: string | undefined;
+  @Input() public id: string | number = '';;
+  @Input() public label: string = '';
+  @Input() public labelSuperScript: string = '';
   @Input() public displaylabelFullColon: boolean = true;
-  @Input() public placeholder!: string;
+  @Input() public inputTitle: string = '';
+  @Input() public labelTitle: string = '';
+  @Input() public placeholder: string = '';
   @Input() public borderSize: number = 1;
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public showChanges: boolean = false;
-  @Input() public hintMessage!: string;
-  @Input() public errorMessage!: string;
-  @Input() public warningMessage!: string;
+  @Input() public hintMessage: string = '';
+  @Input() public errorMessage: string = '';
+  @Input() public warningMessage: string = '';
   @Input() public value: string | number | null | undefined = '';
   @Input() public simulateTabOnEnter: boolean = true;
 

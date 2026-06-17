@@ -77,17 +77,13 @@ export class ElementInputDialogComponent {
       this.pagesDataService.showToast({ title: 'Element Details', message: 'Element name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
-    if (!this.element.typeId) {
-      this.pagesDataService.showToast({ title: 'Element Details', message: 'Element type required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
 
     const updatedElement: UpdateElementModel = {
       name: this.element.name,
       abbreviation: this.element.abbreviation,
       description: this.element.description || undefined,
       units: this.element.units || undefined,
-      typeId: this.element.typeId ?? undefined,
+      typeId: this.element.typeId || undefined,
       entryScaleFactor: this.element.entryScaleFactor ?? undefined,
       comment: this.element.comment || undefined
     }

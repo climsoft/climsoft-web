@@ -36,7 +36,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
   @Input() public label!: string;
 
-  @Input() public labelSuperScript!: string | undefined;
+  @Input() public labelSuperScript!: string;
 
   @Input() public borderSize!: number;
 
@@ -73,6 +73,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected duplicateObservationLog!: ViewObservationLogModel[];
   protected viewQCTestLog!: ViewQCTestLog[];
   protected comment: string = '';
+  protected title: string = '';
 
   // Native HTML title shown on hover over the value/flag input.
   // Contains the user name, email and entry time of the latest log entry.
@@ -90,7 +91,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected validationWarningMessage: string = '';
 
   protected valueFlagInput: string = '';
-  private element!: ElementCacheModel;
+  protected element!: ElementCacheModel;
   private rangeThresholdToUse: RangeThreshold | undefined;
 
   constructor(private cachedMetadataService: CachedMetadataService) { }
@@ -98,6 +99,7 @@ export class ValueFlagInputComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['observationEntry'] && this.observationEntry) {
       this.element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);
+      this.title = this.element.id + ' - ' + this.element.name + ' - ' + this.element.description;
       this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flagId);
       this.comment = this.observationEntry.observation.comment ? this.observationEntry.observation.comment : '';
       // set original database values for future comparison
@@ -222,15 +224,14 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
-    if (!this.valueFlagInput) {
-      this.onInputEntry('M');
-    }
+    // if (!this.valueFlagInput) {
+    //this.onInputEntry('M'); // This feature was disabled as of 16/06/2026 due to clouds data entry
+    //}
 
     // If its a valid change the reformat the input appropriately
     if (this.observationEntry.change === 'valid_change') {
       this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flagId)
     }
-
 
     // Emit the enter key press event
     this.enterKeyPress.emit();
