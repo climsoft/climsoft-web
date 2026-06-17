@@ -132,8 +132,6 @@ export class MetadataDefaults {
         { id: 5, abbreviation: 'C', name: 'Cumulative', description: 'Cumulative measurement', comment: null },
         { id: 6, abbreviation: 'T', name: 'Trace', description: 'Trace amount detected', comment: null },
         { id: 7, abbreviation: 'V', name: 'Variable', description: 'Variable observation', comment: null },
-        
-        // Commented out as users are expected to use WMO table driven codes which uses 63
-        //{ id: 8, abbreviation: '/', name: 'Obscured', description: 'Observation obscured', comment: null },
+        { id: 8, abbreviation: '/', name: 'Obscured', description: 'Observation obscured', comment: null },
     ];
 }
