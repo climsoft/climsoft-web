@@ -31,9 +31,9 @@ export class UserInputDialogComponent {
       this.title = 'Edit User';
       this.usersService.findOne(userId).pipe(
         take(1)
-      ).subscribe((data) => {
-        if (!data) throw new Error('User not found');
-        this.viewUser = data;
+      ).subscribe((res) => {
+        if (!res) throw new Error('User not found');
+        this.viewUser = res;
         this.open = true;
       });
     } else {
@@ -84,13 +84,13 @@ export class UserInputDialogComponent {
     const createUser: CreateUserModel = {
       name: this.viewUser.name,
       email: this.viewUser.email,
-      phone: this.viewUser.phone ? this.viewUser.phone : null,
+      phone: this.viewUser.phone || null,
       isSystemAdmin: this.viewUser.isSystemAdmin,
-      groupId: this.viewUser.groupId ? this.viewUser.groupId : null,
+      groupId: this.viewUser.groupId || null,
       permissions: this.viewUser.permissions,
       extraMetadata: this.viewUser.extraMetadata,
       disabled: this.viewUser.disabled,
-      comment: this.viewUser.comment ? this.viewUser.comment : null,
+      comment: this.viewUser.comment || null,
     };
 
     if (this.title === 'New User') {

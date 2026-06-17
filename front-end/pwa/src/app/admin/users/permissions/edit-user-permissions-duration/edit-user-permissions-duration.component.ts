@@ -17,7 +17,7 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
   protected selectedOption: 'All' | 'Within' | 'From' | 'Last' = 'All';
   protected within: { fromDate: string, toDate: string } = { fromDate: new Date().toISOString().split('T')[0], toDate: new Date().toISOString().split('T')[0] };
   protected fromDate: string = new Date().toISOString().split('T')[0];
-  protected last: number= 60
+  protected last: number = 60;
 
   private utcMetadataLoaded: boolean = false;
 
@@ -35,6 +35,7 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    //console.log('changes: ', changes["observationPeriod"]);
     if (changes["observationPeriod"]) {
       this.setContentsFromObservationPeriod();
     }
@@ -65,27 +66,36 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
 
   protected changeObservationPeriod(option: 'All' | 'Within' | 'From' | 'Last'): void {
     this.selectedOption = option;
-    this.observationPeriod = undefined;
-    if (option === 'Within') {
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it 
-      this.observationPeriod = {
-        within: {
-          fromDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.within.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
-          toDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.within.toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
-        },
-      };
 
-    } else if (option === 'From') {
-      this.observationPeriod = {
-        fromDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
-      };
-    } else if (option === 'Last') {
-      this.observationPeriod = {
-        last: 60,
-      };
+    // TODO. The assignment to `observationPeriod` automatically raises `ngOnChanges`. Investigate how that can be stopped.
+    switch (option) {
+      case 'Within':
+        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it 
+        this.observationPeriod = {
+          within: {
+            fromDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.within.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
+            toDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.within.toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
+          },
+        };
+        break;
+      case 'From':
+        this.observationPeriod = {
+          fromDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract'),
+        };
+        break;
+      case 'Last':
+        this.observationPeriod = {
+          last: this.last,
+        };
+        break;
+      default:
+        this.observationPeriod = undefined;
+        throw new Error('Option not supported.');
     }
 
+    // console.log('emitting: ', this.observationPeriod);
+    // TODO. Before this is emitted, `ngOnChanges` is raised. Investigate how this could be prevented.
     this.observationPeriodChange.emit(this.observationPeriod);
   }
 
@@ -109,5 +119,4 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
     this.changeObservationPeriod('Last');
   }
 
- 
 }

@@ -1,4 +1,4 @@
-import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransform } from '@nestjs/common';
+import { ArgumentMetadata, BadRequestException, Inject, Injectable, Logger, PipeTransform } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
@@ -15,6 +15,8 @@ import { DataAvailabilityDetailsQueryDto } from 'src/observation/dtos/data-avail
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
+  private readonly logger = new Logger(AuthorisedStationsPipe.name);
+
   constructor(@Inject(REQUEST) private readonly request: Request) { }
 
   public transform(value: any, metadata: ArgumentMetadata) {
@@ -68,13 +70,22 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case CreateObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
-        if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
-          return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
-        } else if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
+        //this.logger.log('path: ' + this.request.route.path);
+        if (this.request.route.path === '/observations'
+          || this.request.route.path === '/observations/count') {
+          return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
+            || this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
+        } else if (
+          this.request.route.path === '/observations/correction-data'
+          || this.request.route.path === '/observations/count-correction-data'
+          || this.request.route.path === '/observations/source-check/exists'
+          || this.request.route.path === '/observations/source-check/count'
+          || this.request.route.path === '/observations/source-check/find') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/qc-check/count' || this.request.route.path === '/qc-check/count' || this.request.route.path === '/qc-check/perform-qc') {
+        } else if (this.request.route.path === '/observations/quality-control/perform-qc') {
           return this.handleQualityControlQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else {
+          this.logger.error('No validation option found.');
           throw new BadRequestException('Observations route path not authorised');
         }
       case DeleteObservationDto.name:
