@@ -291,10 +291,7 @@ export class ObservationsService {
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.patch<number>(`${this.endPointUrl}/restore`, observations)
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    return this.http.patch<number>(`${this.endPointUrl}/restore`, observations);
   }
 
   public delete(observations: DeleteObservationModel[]): Observable<number> {
@@ -302,10 +299,7 @@ export class ObservationsService {
   }
 
   public permanentDelete(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.delete<number>(`${this.endPointUrl}/permanent-delete`, { body: observations })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    return this.http.delete<number>(`${this.endPointUrl}/permanent-delete`, { body: observations });
   }
 
   public findStationsObservationStatus(query: StationStatusQueryModel): Observable<string[]> {

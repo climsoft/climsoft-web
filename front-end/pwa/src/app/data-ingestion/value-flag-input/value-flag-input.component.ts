@@ -312,41 +312,49 @@ export class ValueFlagInputComponent implements OnChanges {
     this.validationErrorMessage = '';
     this.validationWarningMessage = '';
 
-    // Validate input format validity. If there is a response then entry is invalid
-    const validatedInput = this.validateAndSeparate(newValueFlagInput);
-    this.validationErrorMessage = validatedInput.errorMessage;
-    if (this.validationErrorMessage !== '') {
-      this.observationEntry.change = 'invalid_change';
-      return;
-    }
-
-    // Extract and set the value and flag 
-
-    let valueInput: number | null;
-    if (this.applyEntryScaleFactor && validatedInput.value !== null) {
-      valueInput = this.element.entryScaleFactor ? (validatedInput.value / this.element.entryScaleFactor) : validatedInput.value;
+    if (newValueFlagInput === '') {
+      this.observationEntry.observation.value = null;
+      this.observationEntry.observation.flagId = null;
     } else {
-      valueInput = validatedInput.value;
-    }
-
-    // If there is a value input then check if it's within the range thresholds
-    if (valueInput !== null && this.rangeThresholdToUse) {
-      // Get the scale factor to use. 
-      // if no need to scale the value or the element does not have a scale factor. Just use 1 to show real threshold otherwise multiple by the scale factor
-      const scaleFactor: number = this.applyEntryScaleFactor && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
-
-      if (valueInput < this.rangeThresholdToUse.lowerThreshold) {
-        this.validationWarningMessage = `Value less than lower limit ${this.rangeThresholdToUse.lowerThreshold * scaleFactor}`;
+      // Validate input format validity. If there is a response then entry is invalid
+      const validatedInput = this.validateAndSeparate(newValueFlagInput);
+      this.validationErrorMessage = validatedInput.errorMessage;
+      if (this.validationErrorMessage !== '') {
+        this.observationEntry.change = 'invalid_change';
+        return;
       }
 
-      if (valueInput > this.rangeThresholdToUse.upperThreshold) {
-        this.validationWarningMessage = `Value higher than upper limit ${this.rangeThresholdToUse.upperThreshold * scaleFactor}`;
+      // Extract and set the value and flag 
+
+      let valueInput: number | null;
+      if (this.applyEntryScaleFactor && validatedInput.value !== null) {
+        valueInput = this.element.entryScaleFactor ? (validatedInput.value / this.element.entryScaleFactor) : validatedInput.value;
+      } else {
+        valueInput = validatedInput.value;
       }
+
+      // If there is a value input then check if it's within the range thresholds
+      if (valueInput !== null && this.rangeThresholdToUse) {
+        // Get the scale factor to use. 
+        // if no need to scale the value or the element does not have a scale factor. Just use 1 to show real threshold otherwise multiple by the scale factor
+        const scaleFactor: number = this.applyEntryScaleFactor && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
+
+        if (valueInput < this.rangeThresholdToUse.lowerThreshold) {
+          this.validationWarningMessage = `Value less than lower limit ${this.rangeThresholdToUse.lowerThreshold * scaleFactor}`;
+        }
+
+        if (valueInput > this.rangeThresholdToUse.upperThreshold) {
+          this.validationWarningMessage = `Value higher than upper limit ${this.rangeThresholdToUse.upperThreshold * scaleFactor}`;
+        }
+      }
+
+      // Set the value and flag to the observation model 
+      this.observationEntry.observation.value = valueInput;
+      this.observationEntry.observation.flagId = validatedInput.flag?.id ?? null;
     }
 
-    // Set the value and flag to the observation model 
-    this.observationEntry.observation.value = valueInput;
-    this.observationEntry.observation.flagId = validatedInput.flag?.id ?? null;
+    // TODO. In future empty comments will not be alllowed in the backend.
+    // Find a way to enforce that in the front end. For now, if comment is empty then just use the existing comment in the observation entry.
     this.observationEntry.observation.comment = commentInput ?? this.observationEntry.observation.comment;
 
     this.valueFlagInput = newValueFlagInput;

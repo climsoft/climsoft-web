@@ -41,6 +41,7 @@ export class ObservationsController {
     return this.observationsService.count(viewObsevationQuery);
   }
 
+  @Admin()
   @Get('count-v4-unsaved-observations')
   countObservationsNotSavedToV4() {
     return this.observationsService.countObservationsNotSavedToV4();
