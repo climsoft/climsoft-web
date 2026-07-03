@@ -98,6 +98,7 @@ export class ElementInputDialogComponent {
           this.open = false;
         },
         error: (err) => {
+          console.error('Failed to create element:', err);
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
         }
       });
@@ -111,6 +112,7 @@ export class ElementInputDialogComponent {
           this.open = false;
         },
         error: (err) => {
+          console.error('Failed to update element:', err);
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
         }
       });
@@ -132,7 +134,7 @@ export class ElementInputDialogComponent {
         this.ok.emit();     
       },
       error: (err) => {
-        console.error(err);
+        console.error('Failed to delete element:', err);
         this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
     });

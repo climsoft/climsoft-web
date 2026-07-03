@@ -4,7 +4,7 @@ Climsoft adapter starter template (Python).
 This script reads the input file, processes it, and writes the output file.
 The paths are provided via environment variables set by the runner:
 
-    CLIMSOFT_INPUT_FILE    — path to the input file to process
+    CLIMSOFT_INPUT_FILE_PATH_NAME    — path to the input file to process
     CLIMSOFT_OUTPUT_DIR   — path where the output file(s) must be written
     CLIMSOFT_METADATA_FILE — path to a JSON sidecar with context metadata
     CLIMSOFT_WARNINGS_FILE — path to write structured warnings (JSON Lines)
@@ -27,8 +27,8 @@ import shutil
 
 
 def main():
-    input_file = os.environ['CLIMSOFT_INPUT_FILE_PATH_NAME']
-    output_file = os.environ['CLIMSOFT_OUTPUT_DIR']
+    input_file_path_name = os.environ['CLIMSOFT_INPUT_FILE_PATH_NAME']
+    output_dir = os.environ['CLIMSOFT_OUTPUT_DIR']
     metadata_file = os.environ['CLIMSOFT_METADATA_FILE']
     # warnings_file = os.environ['CLIMSOFT_WARNINGS_FILE']
 
@@ -40,7 +40,8 @@ def main():
 
     # TODO: Replace this with your actual processing logic.
     # This template simply copies the input to the output unchanged.
-    shutil.copyfile(input_file, output_file)
+    output_file = os.path.join(output_dir, 'output.csv')
+    shutil.copyfile(input_file_path_name, output_file)
 
     print(f"Done. Output written to {output_file}")
 

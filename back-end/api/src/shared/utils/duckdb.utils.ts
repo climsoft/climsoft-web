@@ -176,11 +176,11 @@ export class DuckDBUtils {
 
         // Important. Use uuid here to avoid unintentionally deleting any existing table that use the file name as its table name
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
-        await DuckDBUtils.createTableFromFile(fileIOService.duckDbConn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
+        await DuckDBUtils.createTableFromFile(fileIOService.duckDbConn, importFilePathName, tableName, false, 0, maxPreviewRows, delimiter);
 
         skippedData.totalRowCount = await DuckDBUtils.getPreviewRowCount(fileIOService.duckDbConn, tableName);
         skippedData.columns = await DuckDBUtils.getColumnNames(fileIOService.duckDbConn, tableName);
-        skippedData.rows = await DuckDBUtils.getPreviewRows(fileIOService.duckDbConn, tableName, maxPreviewRows);
+        skippedData.rows = await DuckDBUtils.getPreviewRows(fileIOService.duckDbConn, tableName, rowsToSkip);
 
          await fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
 

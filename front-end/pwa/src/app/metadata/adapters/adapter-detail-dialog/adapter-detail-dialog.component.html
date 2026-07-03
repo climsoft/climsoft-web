@@ -38,6 +38,19 @@
 
                 <hr />
 
+                <!-- Entry Point -->
+                <div>
+                    <app-text-input [label]="'Entry Point'" [(value)]="adapter.entryPoint" />
+                    <div class="form-text text-muted">
+                        Relative path inside the zip to the entry-point file (e.g. <code>main.py</code>,
+                        <code>main.R</code>,
+                        <code>index.js</code>, <code>transform.sql</code>).
+                    </div>
+
+                </div>
+
+                <hr />
+
                 <!-- Adapter Source Upload -->
                 <div>
                     <app-file-input [id]="'adapter_script_source'" [label]="'Adapter Script Source'"
@@ -53,19 +66,6 @@
                             Optional. Upload to replace the current version.
                         </span>
                     </div>
-                </div>
-
-                <hr />
-
-                <!-- Entry Point -->
-                <div>
-                    <app-text-input [label]="'Entry Point'" [(value)]="adapter.entryPoint" />
-                    <div class="form-text text-muted">
-                        Relative path inside the zip to the entry-point file (e.g. <code>main.py</code>,
-                        <code>main.R</code>,
-                        <code>index.js</code>, <code>transform.sql</code>).
-                    </div>
-
                 </div>
 
                 <hr />
@@ -99,8 +99,9 @@
                                     <i class="bi"
                                         [ngClass]="entry.isDirectory ? 'bi-folder-fill text-warning' : 'bi-file-earmark'"></i>
                                     {{ entry.path.split('/').pop() }}
-                                    <span *ngIf="fileIsEntryPoint(entry)" class="badge bg-primary ms-1">entry
-                                        point</span>
+                                    <span *ngIf="fileIsEntryPoint(entry)" class="badge bg-primary ms-1">
+                                        entry point
+                                    </span>
                                 </div>
                             </div>
 
@@ -119,8 +120,7 @@
                             <div class="mt-2">
                                 <div *ngIf=" !entryPointValid" class="text-danger">
                                     <i class="bi bi-exclamation-triangle"></i> Entry point '{{ adapter.entryPoint }}'
-                                    not
-                                    found in the uploaded zip.
+                                    not found in the uploaded zip.
                                 </div>
                                 <div *ngIf="entryPointValid" class="text-success mt-2">
                                     <i class="bi bi-check-circle-fill"></i> Entry point found.

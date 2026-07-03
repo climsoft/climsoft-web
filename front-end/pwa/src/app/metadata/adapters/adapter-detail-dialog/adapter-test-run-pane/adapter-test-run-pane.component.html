@@ -1,16 +1,16 @@
 <div class="test-run-pane">
     <div>
-          <app-file-input [id]="'test_run_sample_file'" [label]="'Sample Input File'" [buttonLabel]="'Choose File'" [disabled]="running" 
-                        (fileSelected)="onSampleFileSelected($event)"  />
+        <app-file-input [id]="'test_run_sample_file'" [label]="'Sample Input File'" [buttonLabel]="'Choose File'"
+            [disabled]="running" (fileSelected)="onSampleFileSelected($event)" />
 
         <div class="form-text text-muted">
-            The file your adapter will receive at <code>CLIMSOFT_INPUT_FILE</code>.
+            The file your adapter will receive at <code>CLIMSOFT_INPUT_FILE_PATH_NAME</code>.
         </div>
     </div>
 
     <div class="mt-2">
         <button type="button" class="btn btn-sm btn-primary" [disabled]="!canRun()" (click)="onRunClick()">
-            <app-spinner  *ngIf="running" />
+            <app-spinner *ngIf="running" />
             <span *ngIf="running" class="spinner-border spinner-border-sm me-1" role="status"></span>
             <i *ngIf="!running" class="bi bi-play-fill"></i>
             {{ running ? 'Running…' : 'Run' }}

@@ -156,7 +156,7 @@
 
                         <div>
                             <app-import-source-comment-detail
-                                [(commentColumnPosition)]="tabularImportParams.commentColumnPosition" />
+                                [(commentDefinition)]="tabularImportParams.commentDefinition" />
                         </div>
 
                     </div>
@@ -196,8 +196,9 @@
                                     <tr>
                                         <td class="text-muted review-label">Level</td>
                                         <td>
-                                            {{ tabularImportParams.levelDefinition.defaultValue ?? 'Column ' +
-                                            tabularImportParams.levelDefinition.columnPosition }}
+                                            {{ tabularImportParams.levelDefinition.default
+                                              ? tabularImportParams.levelDefinition.default.value
+                                              : 'Column ' + tabularImportParams.levelDefinition.inColumn?.columnPosition }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -207,8 +208,9 @@
                                     <tr>
                                         <td class="text-muted review-label">Interval</td>
                                         <td>
-                                            {{ tabularImportParams.intervalDefinition.defaultValue ?? 'Column ' +
-                                            tabularImportParams.intervalDefinition.columnPosition }}
+                                            {{ tabularImportParams.intervalDefinition.default
+                                              ? tabularImportParams.intervalDefinition.default.value
+                                              : 'Column ' + tabularImportParams.intervalDefinition.inColumn?.columnPosition }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -222,8 +224,9 @@
                                     <tr>
                                         <td class="text-muted review-label">Comment</td>
                                         <td>
-                                            {{ tabularImportParams.commentColumnPosition !== undefined ? 'Column ' +
-                                            tabularImportParams.commentColumnPosition : 'Not specified' }}
+                                            {{ tabularImportParams.commentDefinition
+                                              ? 'Column ' + tabularImportParams.commentDefinition.columnPosition
+                                              : 'Not specified' }}
                                         </td>
                                     </tr>
                                     <tr>

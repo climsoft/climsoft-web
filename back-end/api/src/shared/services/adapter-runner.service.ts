@@ -160,6 +160,8 @@ export class AdapterRunnerService {
             const warnings = await this.readWarningsFile(path.posix.join(outputDir, 'warnings.jsonl'));
             const outputFiles = await this.scanOutputFiles(outputDir);
 
+            this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.join(', ')}`);
+
             if (runnerResp.status === 'success' && outputFiles.length > 0) {
                 return {
                     status: 'success',

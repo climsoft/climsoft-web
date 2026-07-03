@@ -81,8 +81,6 @@ services:
       - climsoft_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 1g
-    cpus: 1.0
 
   climsoft_r_runner:
     image: climsoftdevelopers/climsoft-r-runner:preview-3.0.1
@@ -96,8 +94,6 @@ services:
       - climsoft_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 1g
-    cpus: 1.0
 
   climsoft_javascript_runner:
     image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.1
@@ -111,8 +107,6 @@ services:
       - climsoft_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 1g
-    cpus: 1.0
 
   climsoft_duckdb_runner:
     image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.1
@@ -126,8 +120,6 @@ services:
       - climsoft_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 1g
-    cpus: 1.0
 
   climsoft_db:
     image: postgis/postgis:17-3.5

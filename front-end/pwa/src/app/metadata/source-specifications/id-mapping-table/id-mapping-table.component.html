@@ -1,0 +1,49 @@
+<div>
+    <div class="d-flex justify-content-end mb-2">
+        <button type="button" class="btn btn-sm btn-primary" (click)="onAdd()">
+            Add Mapping
+        </button>
+    </div>
+
+    <div *ngIf="mappings.length === 0" class="text-muted text-center py-2">
+        No mappings configured. Click "Add Mapping" to create one.
+    </div>
+
+    <table *ngIf="mappings.length > 0" class="table table-sm">
+        <thead>
+            <tr>
+                <th>{{ sourceLabel }}</th>
+                <th>{{ databaseLabel }}</th>
+                <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            <tr *ngFor="let item of mappings; let i = index">
+                <td>
+                    <app-text-input [id]="i + '_id_mapping_source'" [(value)]="item.sourceId"
+                        (valueChange)="onSourceIdChange()" />
+                </td>
+                <td [ngSwitch]="selectorType">
+                    <app-station-selector-single *ngSwitchCase="'station'"
+                        [id]="i + '_id_mapping_database_station'"
+                        [selectedId]="$any(item.databaseId)"
+                        (selectedIdChange)="onDatabaseIdChange(i, $event)" />
+                    <app-element-selector-single *ngSwitchCase="'element'"
+                        [id]="i + '_id_mapping_database_element'"
+                        [selectedId]="$any(item.databaseId)"
+                        (selectedIdChange)="onDatabaseIdChange(i, $event)" />
+                    <app-flag-selector-single *ngSwitchCase="'flag'"
+                        [id]="i + '_id_mapping_database_flag'"
+                        [selectedId]="$any(item.databaseId)"
+                        (selectedIdChange)="onDatabaseIdChange(i, $event)" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemove(i)"
+                        title="Remove mapping">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

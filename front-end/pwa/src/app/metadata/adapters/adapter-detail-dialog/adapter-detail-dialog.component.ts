@@ -62,10 +62,11 @@ export class AdapterDetailDialogComponent implements OnDestroy {
       ).subscribe({
         next: (data) => {
           this.uploadPreviewLoading = false;
-          this.adapter = data;
+          this.adapter = structuredClone(data);
           this.initFileTreeFromSavedAdapter(adapterId);
         },
         error: (err) => {
+          console.error('Failed to load adapter details:', err);
           this.uploadPreviewLoading = false;
           this.pagesDataService.showToast({ title: 'Adapter', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
           this.open = false;
@@ -156,6 +157,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         this.adapterPreviewResponse = res;
       },
       error: (err) => {
+        console.error('Upload preview error:', err);
         this.uploadPreviewLoading = false;
         this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload and extract zip', type: ToastEventTypeEnum.ERROR });
         console.error('Script upload error:', err);
@@ -172,7 +174,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
     if (!this.adapterPreviewResponse) return false;
     if (this.adapterPreviewResponse.fileTree.length === 0) return true; // No tree loaded — defer to backend
     if (!this.adapter.entryPoint) return false;
-    return this.adapterPreviewResponse.fileTree.some(e => !e.isDirectory && e.path === this.adapter.entryPoint);
+    return this.adapterPreviewResponse.fileTree.some(e => !e.isDirectory && e.path.split('/').pop() === this.adapter.entryPoint);
   }
 
   protected fileIsEntryPoint(file: FileTreeEntry): boolean {
@@ -197,7 +199,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         scriptDirName: this.adapter.scriptDirName,
         entryPoint: this.adapter.entryPoint,
         disabled: this.adapter.disabled,
-        comment: this.adapter.comment,
+        comment: this.adapter.comment || null,
       };
       this.adaptersService.update(this.adapter.id, updateModel).pipe(
         take(1),
@@ -234,6 +236,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
 
   private handleSaveError(err: any): void {
     const serverMessage = err.error?.message;
+    console.error(err);
     const message = Array.isArray(serverMessage) ? serverMessage.join(', ') : (serverMessage ?? err.message);
     this.pagesDataService.showToast({ title: 'Adapter', message: message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
   }

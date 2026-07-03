@@ -35,70 +35,87 @@ export interface StationDefinition {
 }
 
 /**
- * Element and Value column specifications.
- * 
+ * Element column specification.
+ *
+ * Discriminated shape: exactly one of `noElement`, `singleColumn`, or `multipleColumns`
+ * must be set. The wrapper `hasElement` from the old shape has been removed — the
+ * 3-way choice is now flat and matches the orthogonal style used by `DateTimeDefinition`.
+ *
+ * - `noElement`        — the file has no element column; every observation gets a default element id.
+ * - `singleColumn`     — one column holds the element id for each row, with optional source→database id mapping.
+ * - `multipleColumns`  — wide pivot: each column in `columnsMapping` holds the observation value for one
+ *                       database element id. Mapping is explicit because column positions don't naturally
+ *                       map to element ids. Produces the `value` column itself — no separate
+ *                       `valueDefinition` needed.
  */
 export interface ElementDefinition {
-
-    /**
-       * Used when there are elements.
-       * Must be either a single or multiple columns.
-       */
-    hasElement?: {
-        /**
-         *  Used when elements are in a single column.
-         */
-        singleColumn?: {
-
-            elementColumnPosition: number,
-            /**
-             * The elements to fetch and matches the source ids to the database element ids. 
-             * It is optional, meaning fetch all as database element ids.
-             */
-            elementsToFetch?: { sourceId: string, databaseId: number }[],
-        },
-
-        /**
-         *  Used when elements are in multiple columns.
-         */
-        multipleColumn?: {
-
-            /**
-            * Represents the column position.
-            */
-            columnPosition: number,
-
-            /**
-             * Represents the corresponding database element id
-             */
-            databaseId: number
-        }[]
-    };
-
-    /**
-     * Used when there is no element.
-     */
     noElement?: {
-        /**
-         * The default element id (should be in the database). 
-         */
-        databaseId: number,
+        databaseId: number;
     };
 
+    singleColumn?: {
+        columnPosition: number;
+        /**
+         * Source → database element id mapping. Optional — when omitted, the column's cell
+         * value is interpreted directly as a database element id.
+         */
+        elementsToFetch?: { sourceId: string; databaseId: number }[];
+    };
+
+    multipleColumns?: {
+        columnsMapping: ElementColumnMapping[];
+    };
 }
 
 /**
- * When columnPosition is not specified then the defaultInterval should be specified, that is, 
- * either columnPosition or defaultInterval must be provided, but not both.
+ * One row of the wide-pivot mapping (`ElementDefinition.multipleColumns`).
+ * Named because its shape (`columnPosition` + `databaseId`) is distinct from
+ * the source→db mapping used by station / flag / element `*ToFetch` arrays,
+ * which the `IdMappingTableComponent` already unifies via `IdMapping`.
  */
-export interface IntervalDefinition {
-    columnPosition?: number;
-    defaultValue?: number;
+export interface ElementColumnMapping {
+    columnPosition: number;
+    databaseId: number;
 }
 
+/**
+ * Discriminated shape: exactly one of `inColumn` or `default` must be set.
+ *
+ * - `inColumn` — the interval value lives in a file column (in minutes).
+ * - `default`  — no interval column; supply a default value (in minutes).
+ */
+export interface IntervalDefinition {
+    inColumn?: {
+        columnPosition: number;
+    };
+
+    default?: {
+        value: number;
+    };
+}
+
+/**
+ * Discriminated shape: exactly one of `inColumn` or `default` must be set.
+ *
+ * - `inColumn` — the level value lives in a file column.
+ * - `default`  — no level column; supply a default value.
+ */
 export interface LevelDefinition {
-    columnPosition?: number;
-    defaultValue?: number;
+    inColumn?: {
+        columnPosition: number;
+    };
+
+    default?: {
+        value: number;
+    };
+}
+
+/**
+ * Comment column wrapper. Mirrors the other `<Name>Definition` types so the model
+ * stays consistent and comment has room to grow (e.g. fallback text, combined columns).
+ */
+export interface CommentDefinition {
+    columnPosition: number;
 }
 
 // ─── Enum naming convention ──────────────────────────────────────────────
@@ -210,44 +227,106 @@ export enum TimeFormat {
     HM_AMPM = '%I:%M %p',                          // 02:30 PM
 }
 
+// ─── DateTimeDefinition: orthogonal date × time model ────────────────────
+//
+// A datetime is either:
+//   - combinedColumn — a single column with both date and time as one string
+//                      parsed by a DateTimeFormat (e.g. ISO 8601), OR
+//   - separated      — date and time live in different file columns and each
+//                      is configured independently.
+//
+// Inside `separated`, the date part chooses between a single date column and
+// year/month/day columns (where the day position can itself be a single column
+// or a wide range — days-as-columns). The time part chooses between a default
+// hour, a single time column, two columns for hour and minute, or a wide range
+// of hour columns.
+//
+// Wide-pivot constraint: at most one of {dayColumns.columnsRange,
+// time.hourColumnsRange} can be present, because each wide pivot produces the
+// `value` column and the transformer can only do one such pivot per file.
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Day columns inside a year/month/day date layout.
+ *
+ * - `singleColumn`  — one column whose cell value IS the day number (1..31).
+ * - `columnsRange`  — a contiguous range of file columns, one per day-of-month.
+ *                     The cell value is the observation value; the column index
+ *                     is mapped back to the day number. Acts as a wide UNPIVOT.
+ */
+export interface DayColumns {
+    singleColumn?: {
+        columnPosition: number;
+    };
+
+    columnsRange?: {
+        firstColumnPosition: number;
+        lastColumnPosition: number;
+    };
+}
+
+/**
+ * Date part of a separated datetime.
+ *
+ * - `singleColumn`        — one column with date as a string parsed by a DateFormat.
+ * - `yearMonthDayColumns` — year, month, and day each in their own columns.
+ *                           The day part can itself be a single column or a wide range.
+ */
+export interface DatePart {
+    singleColumn?: {
+        columnPosition: number;
+        dateFormat: DateFormat;
+    };
+
+    yearMonthDayColumns?: {
+        yearColumnPosition: number;
+        monthColumnPosition: number;
+        dayColumns: DayColumns;
+    };
+}
+
+/**
+ * Time part of a separated datetime.
+ *
+ * - `defaultHour`           — no time in the file; supply a default hour.
+ * - `singleColumn`          — one column with time as a string parsed by a TimeFormat.
+ * - `hourAndMinuteColumns`  — hour and minute in two separate file columns.
+ * - `hourColumnsRange`      — a contiguous range of file columns, one per hour-of-day.
+ *                             Wide UNPIVOT. Cannot combine with `dayColumns.columnsRange`.
+ */
+export interface TimePart {
+    defaultHour?: {
+        hour: number;
+    };
+
+    singleColumn?: {
+        columnPosition: number;
+        timeFormat: TimeFormat;
+    };
+
+    hourAndMinuteColumns?: {
+        hourColumnPosition: number;
+        minuteColumnPosition: number;
+    };
+
+    hourColumnsRange?: {
+        firstColumnPosition: number;
+        lastColumnPosition: number;
+    };
+}
+
 export interface DateTimeDefinition {
 
-    /** A single column contains both date and time (e.g. '2024-01-15 08:00:00'). */
-    dateTimeInSingleColumn?: {
+    /** A single column contains both date and time (e.g. '2024-01-15T08:00:00'). */
+    combinedColumn?: {
         columnPosition: number;
         datetimeFormat: DateTimeFormat;
     };
 
-    /** A single column contains only the date. A default hour supplies the time component. */
-    dateInSingleColumn?: {
-        columnPosition: number;
-        dateFormat: DateFormat;
-        defaultHour: number;
-    };
-
-    /** Date and time are in two separate columns. */
-    dateTimeInTwoColumns?: {
-        dateColumnPosition: number;
-        dateFormat: DateFormat;
-        timeColumnPosition: number;
-        timeFormat: TimeFormat;
-    };
-
-    /** Date and time are split across year, month, day and time columns. */
-    dateTimeInMultipleColumns?: {
-        yearColumnPosition: number;
-        monthColumnPosition: number;
-        dayColumnPosition: string; // For multiple columns format will be like columnPosX-columnPosY
-        timeColumnPosition: number;
-        timeFormat: TimeFormat;
-    };
-
-    /** Date is split across year, month, day columns. A default hour supplies the time component. */
-    dateInMultipleColumns?: {
-        yearColumnPosition: number;
-        monthColumnPosition: number;
-        dayColumnPosition: string; // For multiple columns format will be like columnPosX-columnPosY
-        defaultHour: number;
+    /** Date and time live in different file columns; each side is configured independently. */
+    separated?: {
+        date: DatePart;
+        time: TimePart;
     };
 }
 
@@ -270,7 +349,7 @@ export interface ImportSourceTabularParamsModel {
 
     valueDefinition?: ValueDefinition;
 
-    commentColumnPosition?: number;
+    commentDefinition?: CommentDefinition;
 
     /**
      * Number of rows to skip.

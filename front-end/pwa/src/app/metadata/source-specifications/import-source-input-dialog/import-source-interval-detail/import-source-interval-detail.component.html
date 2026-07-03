@@ -1,17 +1,16 @@
 <div *ngIf="intervalDefinition">
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'interval_status'" [groupItems]="[
-        { label:'Includes Interval', checked: intervalDefinition.columnPosition !== undefined},
-        { label:'Does Not Include Interval', checked: intervalDefinition.defaultValue !== undefined}
+        { label:'Includes Interval', checked: intervalDefinition.inColumn !== undefined},
+        { label:'Does Not Include Interval', checked: intervalDefinition.default !== undefined}
         ]" (checkedValueChange)="onIntervalStatusSelection($event)" />
 
     <div class="ms-4">
 
-        <app-number-input *ngIf="intervalDefinition.columnPosition !== undefined" [label]="'Column Position'"
-            [labelSuperScript]="'values in mins'" [(numValue)]="intervalDefinition.columnPosition" />
+        <app-number-input *ngIf="intervalDefinition.inColumn !== undefined" [label]="'Column Position'"
+            [labelSuperScript]="'values in mins'" [(numValue)]="intervalDefinition.inColumn.columnPosition" />
 
-        <app-interval-selector-single *ngIf="intervalDefinition.defaultValue !== undefined"
-            [label]="'Default Interval'" [selectedId]="intervalDefinition.defaultValue"
-            (selectedIdChange)="onIntervalSelected($event)" />
+        <app-interval-selector-single *ngIf="intervalDefinition.default !== undefined" [label]="'Default Interval'"
+            [selectedId]="intervalDefinition.default.value" (selectedIdChange)="onIntervalSelected($event)" />
 
     </div>
 </div>

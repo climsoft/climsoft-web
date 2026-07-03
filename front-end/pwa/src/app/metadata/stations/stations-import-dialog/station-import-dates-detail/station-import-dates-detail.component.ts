@@ -26,7 +26,7 @@ export class StationImportDatesDetailComponent {
 
   private getDefaultDateTimeDefinition(): DateTimeDefinition {
     return {
-      dateTimeInSingleColumn: {
+      combinedColumn: {
         columnPosition: 0,
         datetimeFormat: DateTimeFormat.YMD_DASH_HMS,
       },

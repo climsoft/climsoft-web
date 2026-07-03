@@ -13,6 +13,7 @@ import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { ImportSourceDto } from '../dtos/import-source.dto';
 
 @Injectable()
 export class SourceSpecificationsService implements OnModuleInit {

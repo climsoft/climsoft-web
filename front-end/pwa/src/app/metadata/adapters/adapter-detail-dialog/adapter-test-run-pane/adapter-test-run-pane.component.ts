@@ -72,6 +72,7 @@ export class AdapterTestRunPaneComponent {
         this.installOpen = res.installLog !== null && res.installLog.trim().length > 0;
       },
       error: (err) => {
+        console.error('Test run failed:', err);
         this.running = false;
         const serverMessage = err.error?.message;
         this.errorMessage = Array.isArray(serverMessage) ? serverMessage.join(', ') : (serverMessage ?? err.message);

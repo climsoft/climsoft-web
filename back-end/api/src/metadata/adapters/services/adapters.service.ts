@@ -177,8 +177,12 @@ export class AdaptersService implements OnModuleInit {
     private checkManifestInTree(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): { manifestFound: boolean; manifestError?: string } {
         const acceptedNames = MANIFEST_FILENAMES[language];
         const manifestFound = acceptedNames.some(name =>
-            fileTree.some(e => !e.isDirectory && e.path === name),
+            fileTree.some(e => !e.isDirectory && path.basename(e.path) === name),
         );
+
+        // console.log(`Checking manifest for language '${language}': found=${manifestFound}, acceptedNames=${acceptedNames.join(', ')}`);
+        // console.log('File tree:', fileTree.map(e => `${e.isDirectory ? 'DIR ' : 'FILE'} ${e.path}`).join('\n'));
+
         const manifestError = manifestFound ? undefined : `Missing manifest file for '${language}'. Expected one of: ${acceptedNames.join(', ')} at the root of the archive.`;
         return { manifestFound, manifestError };
     }
@@ -257,6 +261,8 @@ export class AdaptersService implements OnModuleInit {
     public async update(id: number, dto: UpdateAdapterSpecificationDto, userId: number): Promise<ViewAdapterSpecificationDto> {
         const entity = await this.findEntity(id);
 
+        console.log(`Updating adapter #${id} with data:`, dto);
+
         entity.name = dto.name;
         entity.description = dto.description ?? null;
         entity.disabled = dto.disabled;
@@ -291,6 +297,7 @@ export class AdaptersService implements OnModuleInit {
      */
     public async testRunPreview(dto: AdapterTestRunPreviewDto, sampleFile: Express.Multer.File, userId: number): Promise<AdapterTestRunResponseDto> {
         if (!this.runner.isRunnerEnabled(dto.language)) {
+            console.error(`Test run failed: runner for language '${dto.language}' is not enabled`);
             return this.toTestRunFailure(FileProcessingErrorType.RUNNER_DISABLED, `The ${dto.language} runner is not enabled in this deployment.`);
         }
 
@@ -329,6 +336,8 @@ export class AdaptersService implements OnModuleInit {
             };
 
             const result: AdapterRunResult = await this.runner.run(adapterRef, inputFilePathName, op.outputDir, metadata);
+            
+            this.logger.log(`Test run completed with status '${result.status}' in ${result.durationMs}ms. Output files: ${result.outputFiles.join(', ')}`);
 
             return {
                 status: result.status,
@@ -448,11 +457,14 @@ export class AdaptersService implements OnModuleInit {
         }
 
         try {
+
             const stat = await fs.promises.stat(fullPath);
+
             if (!stat.isFile()) {
                 throw new BadRequestException(`Entry point '${entryPoint}' exists but is not a file`);
             }
         } catch (err) {
+            this.logger.error(`Entry point validation failed for '${entryPoint}': ${(err as Error).message}`);
             if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
                 throw new BadRequestException(`Entry point '${entryPoint}' does not exist inside the adapter script directory`);
             }

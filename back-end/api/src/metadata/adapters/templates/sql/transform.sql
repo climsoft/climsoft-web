@@ -16,11 +16,10 @@
 --   2. Transform the data
 --   3. Write the result to a file inside climsoft_output_dir using COPY ... TO
 --
--- Example: read .csv in the input directory, filter rows, write the
+-- Example: read .csv, filter rows, write the
 -- result back as a single CSV in the output directory.
 
 COPY (
     SELECT *
     FROM read_csv(getvariable('climsoft_input_file_path_name'), header = true, auto_detect = true)
-    WHERE column0 IS NOT NULL
-) TO getvariable('climsoft_output_dir') || '/output.csv' (HEADER, DELIMITER ',');
+) TO (getvariable('climsoft_output_dir') || '/output.csv') WITH (HEADER, DELIMITER ',');

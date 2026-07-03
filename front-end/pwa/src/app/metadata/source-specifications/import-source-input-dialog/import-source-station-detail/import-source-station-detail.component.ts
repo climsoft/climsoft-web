@@ -1,6 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { StationDefinition } from '../../models/import-source-tabular-params.model';
+import { IdMapping } from '../../id-mapping-table/id-mapping-table.component';
 
+// Inclusion-control rule: this step uses a checkbox because the "off" state means
+// literally nothing (no station column). Steps whose "off" state still carries
+// sub-config (default value or default id) use a radio instead.
 @Component({
   selector: 'app-import-source-station-detail',
   templateUrl: './import-source-station-detail.component.html',
@@ -24,15 +28,16 @@ export class ImportSourceStationDetailComponent {
       return;
     }
     this.stationDefinition.stationsToFetch = fetch ? [] : undefined;
-  }
-
-  protected onAddStationMapping(): void {
-    this.stationDefinition?.stationsToFetch?.push({ sourceId: '', databaseId: '' });
-  }
-
-  protected onRemoveStationMapping(index: number): void {
-    this.stationDefinition?.stationsToFetch?.splice(index, 1);
     this.stationDefinitionChange.emit(this.stationDefinition);
   }
 
+  protected onMappingsChange(mappings: IdMapping[]): void {
+    if (!this.stationDefinition) return;
+    // Station database IDs are strings.
+    this.stationDefinition.stationsToFetch = mappings.map(m => ({
+      sourceId: m.sourceId,
+      databaseId: String(m.databaseId),
+    }));
+    this.stationDefinitionChange.emit(this.stationDefinition);
+  }
 }

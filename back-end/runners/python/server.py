@@ -57,6 +57,9 @@ def health():
 def run_adapter():
     try:
         body = request.get_json()
+
+        print(f"Received request body: {body}")
+
         if not body:
             return jsonify(_error_summary('RUNTIME_ERROR', 'Request body must be JSON')), 200
 
@@ -74,6 +77,8 @@ def run_adapter():
         output_dir = body['outputDir']
         metadata_file = body['metadataFile']
         timeout_seconds = int(body['timeoutSeconds'])
+
+        print(f"Received run request for script at {script_dir} with entry point {entry_point}")
 
         # Derive paths by convention
         env_dir = os.path.join(script_dir, INSTALLED_DIR_NAME)

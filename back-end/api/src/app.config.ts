@@ -33,25 +33,25 @@ export class AppConfig {
    */
   public static readonly adapterRunners = {
     python: {
-      enabled: process.env.PYTHON_RUNNER_ENABLED === 'true',
+      enabled: AppConfig.devMode ? true: process.env.PYTHON_RUNNER_ENABLED === 'true',
       host: AppConfig.devMode ? 'localhost' : (process.env.PYTHON_RUNNER_HOST ?? 'climsoft_python_runner'),
       port: process.env.PYTHON_RUNNER_PORT ? +process.env.PYTHON_RUNNER_PORT : 5101,
       timeoutSeconds: process.env.PYTHON_RUNNER_TIMEOUT_SECONDS ? +process.env.PYTHON_RUNNER_TIMEOUT_SECONDS : 300,
     },
     r: {
-      enabled: process.env.R_RUNNER_ENABLED === 'true',
+      enabled:AppConfig.devMode ? true: process.env.R_RUNNER_ENABLED === 'true',
       host: AppConfig.devMode ? 'localhost' : (process.env.R_RUNNER_HOST ?? 'climsoft_r_runner'),
       port: process.env.R_RUNNER_PORT ? +process.env.R_RUNNER_PORT : 5102,
       timeoutSeconds: process.env.R_RUNNER_TIMEOUT_SECONDS ? +process.env.R_RUNNER_TIMEOUT_SECONDS : 300,
     },
     javascript: {
-      enabled: process.env.JAVASCRIPT_RUNNER_ENABLED === 'true',
+      enabled: AppConfig.devMode ? true: process.env.JAVASCRIPT_RUNNER_ENABLED === 'true',
       host: AppConfig.devMode ? 'localhost'  : (process.env.JAVASCRIPT_RUNNER_HOST ?? 'climsoft_javascript_runner'),
       port: process.env.JAVASCRIPT_RUNNER_PORT ? +process.env.JAVASCRIPT_RUNNER_PORT : 5103,
       timeoutSeconds: process.env.JAVASCRIPT_RUNNER_TIMEOUT_SECONDS ? +process.env.JAVASCRIPT_RUNNER_TIMEOUT_SECONDS : 300,
     },
     sql: {
-      enabled: process.env.DUCKDB_RUNNER_ENABLED === 'true',
+      enabled: AppConfig.devMode ? true: process.env.DUCKDB_RUNNER_ENABLED === 'true',
       host: AppConfig.devMode  ? 'localhost'  : (process.env.DUCKDB_RUNNER_HOST ?? 'climsoft_duckdb_runner'),
       port: process.env.DUCKDB_RUNNER_PORT ? +process.env.DUCKDB_RUNNER_PORT : 5104,
       timeoutSeconds: process.env.DUCKDB_RUNNER_TIMEOUT_SECONDS ? +process.env.DUCKDB_RUNNER_TIMEOUT_SECONDS : 300,

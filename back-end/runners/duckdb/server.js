@@ -48,6 +48,7 @@ app.get('/health', async (_req, res) => {
 
 app.post('/run', async (req, res) => {
   try {
+    console.log('Received run request with body:', req.body);
     const body = req.body;
     const required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
@@ -64,9 +65,12 @@ app.post('/run', async (req, res) => {
     const installLogFile = path.join(outputDir, 'install.log');
 
     const entryPath = path.join(scriptDir, entryPoint);
+    console.log(`Validating entry point at '${entryPath}'`);
     if (!fs.existsSync(entryPath)) {
       return res.json(errorSummary('RUNTIME_ERROR', `Entry point not found: ${entryPath}`));
     }
+
+    console.log(`Entry point '${entryPoint}' exists. Validating it's a file.`);
 
     // Read the user's SQL
     const userSql = fs.readFileSync(entryPath, 'utf8');
@@ -87,11 +91,13 @@ app.post('/run', async (req, res) => {
     try {
       const instance = await DuckDBInstance.create(':memory:');
       conn = await instance.connect();
+      console.log(`DuckDB in-memory instance created. Installing/loading extensions: ${extensions.join(', ')}`);
 
       // Step 1: install + load extensions declared in the manifest.
       // Cache binaries under <scriptDir>/.installed/ so they survive across runs.
       const installLog = await installAndLoadExtensions(conn, scriptDir, extensions);
       fs.writeFileSync(installLogFile, installLog);
+      console.log(`Extensions installed/loaded. Log written to ${installLogFile}`);
 
       // Step 2: inject the path variables the SQL script reads via getvariable().
       await conn.run(`SET VARIABLE climsoft_input_file_path_name = '${inputFilePathName.replace(/'/g, "''")}';`);
@@ -99,10 +105,16 @@ app.post('/run', async (req, res) => {
       await conn.run(`SET VARIABLE climsoft_metadata = '${metadataFile.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_warnings = '${warningsFile.replace(/'/g, "''")}';`);
 
+      console.log(`Set climsoft_input_file_path_name = '${inputFilePathName}'`);
+      console.log(`Set climsoft_output_dir = '${outputDir}'`);
+      console.log(`Set climsoft_metadata = '${metadataFile}'`);
+      console.log(`Set climsoft_warnings = '${warningsFile}'`);
+
       // Step 3: per-statement timeout so a runaway query doesn't hang the runner.
-      await conn.run(`SET statement_timeout = '${timeoutSeconds}s';`);
+      //await conn.run(`SET statement_timeout = '${timeoutSeconds}s';`);
 
       // Step 4: execute the user's SQL.
+      console.log('Executing user SQL:\n', userSql);
       await conn.run(userSql);
 
       conn.closeSync();
@@ -118,8 +130,8 @@ app.post('/run', async (req, res) => {
       const isTimeout = /timeout/i.test(stderr) || /interrupt/i.test(stderr);
       if (isTimeout) {
         return res.json({
-          status: 'timeout', 
-          durationMs, 
+          status: 'timeout',
+          durationMs,
           exitCode: 124,
           errorType: 'TIMEOUT',
           errorMessage: `SQL execution exceeded timeout of ${timeoutSeconds}s`,

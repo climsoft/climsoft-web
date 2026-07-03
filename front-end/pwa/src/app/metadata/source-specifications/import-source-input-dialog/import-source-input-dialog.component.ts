@@ -76,8 +76,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         if (source) {
             this.title = 'Edit Import Specification';
-            // TODO. Think about cloning the arrays inside the parameters. Their references are retained here
-            this.viewSource = { ...source, parameters: { ...source.parameters } };
+            this.viewSource = structuredClone(source);
+            console.log('Loaded source specification for editing:', this.viewSource.parameters);
             this.initPreviewFromSavedFile();
             // Mark all steps as visited for existing specifications
             this.wizardSteps.forEach(s => this.visitedSteps.add(s));
@@ -89,23 +89,21 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 delimiter: undefined,
                 stationDefinition: undefined,
                 elementDefinition: {
-                    hasElement: {
-                        singleColumn: {
-                            elementColumnPosition: 0,
-                        }
-                    }
+                    singleColumn: {
+                        columnPosition: 0,
+                    },
                 },
                 levelDefinition: {
-                    columnPosition: 0,
+                    inColumn: { columnPosition: 0 },
                 },
                 datetimeDefinition: {
-                    dateTimeInSingleColumn: {
+                    combinedColumn: {
                         columnPosition: 0,
                         datetimeFormat: DateTimeFormat.YMD_DASH_HM,
                     }
                 },
                 intervalDefinition: {
-                    columnPosition: 0,
+                    inColumn: { columnPosition: 0 },
                 },
                 valueDefinition: {
                     valueColumnPosition: 0,
@@ -202,7 +200,9 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 // Station is optional — no validation errors
                 break;
             case 'element':
-                if (!params.elementDefinition.hasElement && !params.elementDefinition.noElement) {
+                if (!params.elementDefinition.noElement
+                    && !params.elementDefinition.singleColumn
+                    && !params.elementDefinition.multipleColumns) {
                     errors.push('Element definition is required');
                 }
                 break;
@@ -210,11 +210,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 // Level is optional — no validation errors
                 break;
             case 'datetime':
-                if (!params.datetimeDefinition.dateTimeInSingleColumn &&
-                    !params.datetimeDefinition.dateInSingleColumn &&
-                    !params.datetimeDefinition.dateTimeInTwoColumns &&
-                    !params.datetimeDefinition.dateTimeInMultipleColumns &&
-                    !params.datetimeDefinition.dateInMultipleColumns) {
+                if (!params.datetimeDefinition.combinedColumn && !params.datetimeDefinition.separated) {
                     errors.push('Date/time definition is required');
                 }
                 break;
@@ -420,18 +416,14 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     protected onElementOrDatetimeDefChanged(): void {
         const sourceParameters = this.importSourceParams.dataStructureParameters as ImportSourceTabularParamsModel;
-        if (sourceParameters.elementDefinition.hasElement && sourceParameters.elementDefinition.hasElement.multipleColumn) {
+        // Any wide pivot — elements as columns, days as columns, or hours as columns —
+        // produces the observation value column itself, so no separate value column is needed.
+        const elementsAreWide = !!sourceParameters.elementDefinition.multipleColumns;
+        const daysAreWide = !!sourceParameters.datetimeDefinition.separated?.date.yearMonthDayColumns?.dayColumns.columnsRange;
+        const hoursAreWide = !!sourceParameters.datetimeDefinition.separated?.time.hourColumnsRange;
+
+        if (elementsAreWide || daysAreWide || hoursAreWide) {
             sourceParameters.valueDefinition = undefined;
-        } else if (sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
-            const dayColumns = sourceParameters.datetimeDefinition.dateTimeInMultipleColumns.dayColumnPosition.split('-');
-            if (dayColumns.length > 1) {
-                sourceParameters.valueDefinition = undefined;
-            }
-        } else if (sourceParameters.datetimeDefinition.dateInMultipleColumns) {
-            const dayColumns = sourceParameters.datetimeDefinition.dateInMultipleColumns.dayColumnPosition.split('-');
-            if (dayColumns.length > 1) {
-                sourceParameters.valueDefinition = undefined;
-            }
         } else {
             sourceParameters.valueDefinition = {
                 valueColumnPosition: 0,
@@ -500,7 +492,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.ok.emit();
             },
             error: (err) => {
-                console.error(err)
+                console.error('Failed to save import specification:', err);
                 this.saving = false;
                 this.pagesDataService.showToast({ title: 'Import specification', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
             }

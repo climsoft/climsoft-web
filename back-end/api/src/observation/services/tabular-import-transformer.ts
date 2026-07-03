@@ -1,4 +1,4 @@
-import { ImportSourceTabularParamsDto, DateTimeDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ImportSourceTabularParamsDto, DateTimeDefinition, DatePart, DayColumns, TimePart, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
@@ -149,73 +149,80 @@ export class TabularImportTransformer {
 
     private static buildAlterIntervalColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string[] {
         const sql: string[] = [];
-        if (source.intervalDefinition.columnPosition !== undefined) {
-            sql.push(`ALTER TABLE ${tableName} RENAME column${source.intervalDefinition.columnPosition} TO ${this.INTERVAL_PROPERTY_NAME}`);
+        const def = source.intervalDefinition;
+        if (def.inColumn) {
+            sql.push(`ALTER TABLE ${tableName} RENAME column${def.inColumn.columnPosition} TO ${this.INTERVAL_PROPERTY_NAME}`);
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} SET NOT NULL`);
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} TYPE INTEGER`);
+        } else if (def.default) {
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.INTERVAL_PROPERTY_NAME} INTEGER DEFAULT ${def.default.value}`);
         } else {
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.INTERVAL_PROPERTY_NAME} INTEGER DEFAULT ${source.intervalDefinition.defaultValue}`);
+            throw new Error('Interval definition must specify either inColumn or default');
         }
         return sql;
     }
 
     private static buildAlterLevelColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string[] {
         const sql: string[] = [];
-        if (source.levelDefinition.columnPosition !== undefined) {
-            sql.push(`ALTER TABLE ${tableName} RENAME column${source.levelDefinition.columnPosition} TO ${this.LEVEL_PROPERTY_NAME}`);
+        const def = source.levelDefinition;
+        if (def.inColumn) {
+            sql.push(`ALTER TABLE ${tableName} RENAME column${def.inColumn.columnPosition} TO ${this.LEVEL_PROPERTY_NAME}`);
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.LEVEL_PROPERTY_NAME} SET NOT NULL`);
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.LEVEL_PROPERTY_NAME} TYPE INTEGER`);
+        } else if (def.default) {
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.LEVEL_PROPERTY_NAME} INTEGER DEFAULT ${def.default.value}`);
         } else {
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.LEVEL_PROPERTY_NAME} INTEGER DEFAULT ${source.levelDefinition.defaultValue}`);
+            throw new Error('Level definition must specify either inColumn or default');
         }
         return sql;
     }
 
     static buildAlterCommentColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string[] {
-        if (source.commentColumnPosition !== undefined) {
-            return [`ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition} TO ${this.COMMENT_PROPERTY_NAME}`];
+        if (source.commentDefinition) {
+            return [`ALTER TABLE ${tableName} RENAME column${source.commentDefinition.columnPosition} TO ${this.COMMENT_PROPERTY_NAME}`];
         }
         return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY_NAME} VARCHAR DEFAULT NULL`];
     }
 
     private static buildAlterElementColumnSQL(tabularDef: ImportSourceTabularParamsDto, tableName: string): string[] {
         const sql: string[] = [];
-        if (tabularDef.elementDefinition.noElement) {
-            const noElement = tabularDef.elementDefinition.noElement;
+        const elementDef = tabularDef.elementDefinition;
 
-            // Add the element id column with the default element
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${noElement.databaseId}`);
+        if (elementDef.noElement) {
+            // Add the element id column with the default element. No SET NOT NULL / TYPE INTEGER
+            // here because the default literal is already an integer and applies to every row.
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${elementDef.noElement.databaseId}`);
 
-        } else if (tabularDef.elementDefinition.hasElement) {
-            const hasElement = tabularDef.elementDefinition.hasElement;
-            if (hasElement.singleColumn) {
-                const singleColumn = hasElement.singleColumn;
-                //--------------------------
-                // Element column
-                sql.push(`ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition} TO ${this.ELEMENT_ID_PROPERTY_NAME}`);
-                if (singleColumn.elementsToFetch) {
-                    sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true));
-                }
-                //--------------------------
-            } else if (hasElement.multipleColumn) {
-                const multipleColumn = hasElement.multipleColumn;
-                const colNames: string[] = multipleColumn.map(item => (`column${item.columnPosition}`));
-
-                // Stack the data from the multiple element columns. This will create a new table with 2 columns for elements and values
-                // Note. Nulls are included because they represent a missing value which a user may have allowed
-                sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) )`);
-
-                // Change the values of the element column
-                for (const element of multipleColumn) {
-                    sql.push(`UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = 'column${element.columnPosition}'`);
-                }
+        } else if (elementDef.singleColumn) {
+            const singleColumn = elementDef.singleColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${singleColumn.columnPosition} TO ${this.ELEMENT_ID_PROPERTY_NAME}`);
+            if (singleColumn.elementsToFetch) {
+                sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true));
             }
 
-            // Ensure there are no null elements
+            // Ensure there are no null elements and the column is integer typed.
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} SET NOT NULL`);
-
-            // Convert the element contents to integers
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER`);
+
+        } else if (elementDef.multipleColumns) {
+            const columnsMapping = elementDef.multipleColumns.columnsMapping;
+            const colNames: string[] = columnsMapping.map(item => `column${item.columnPosition}`);
+
+            // Wide UNPIVOT — the cell value becomes the `value` column and the source column name
+            // (e.g. 'column5') becomes the element id placeholder. Nulls are included because
+            // they represent a missing value which a user may have allowed.
+            sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) )`);
+
+            // Replace the column-name placeholder with the configured database element id.
+            for (const element of columnsMapping) {
+                sql.push(`UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = 'column${element.columnPosition}'`);
+            }
+
+            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} SET NOT NULL`);
+            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER`);
+
+        } else {
+            throw new Error('Element definition must specify exactly one of noElement, singleColumn, or multipleColumns');
         }
 
         return sql;
@@ -226,48 +233,30 @@ export class TabularImportTransformer {
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
 
-        if (datetimeDefinition.dateTimeInSingleColumn !== undefined) {
-            const def = datetimeDefinition.dateTimeInSingleColumn;
+        if (datetimeDefinition.combinedColumn !== undefined) {
+            const def = datetimeDefinition.combinedColumn;
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO ${this.DATE_TIME_PROPERTY_NAME}`);
             expectedDatetimeFormat = def.datetimeFormat;
 
-        } else if (datetimeDefinition.dateInSingleColumn !== undefined) {
-            const def = datetimeDefinition.dateInSingleColumn;
-            const strHour = StringUtils.addLeadingZero(def.defaultHour);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO date_col`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR DEFAULT '${strHour}:00:00'`);
+        } else if (datetimeDefinition.separated !== undefined) {
+            const { date, time } = datetimeDefinition.separated;
+
+            const datePartHasWidePivot = !!date.yearMonthDayColumns?.dayColumns.columnsRange;
+            const timePartHasWidePivot = !!time.hourColumnsRange;
+            if (datePartHasWidePivot && timePartHasWidePivot) {
+                throw new Error('At most one of day columns range and hour columns range can be used (only one wide pivot per file is supported)');
+            }
+
+            // Build the date side; populate `date_col` with the file format kept in `dateFormatStr`.
+            const dateFormatStr = this.buildDatePartSQL(sql, tableName, date);
+
+            // Build the time side; populate `time_col` with the file format kept in `timeFormatStr`.
+            const timeFormatStr = this.buildTimePartSQL(sql, tableName, time);
+
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
             sql.push(`UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col`);
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
-            expectedDatetimeFormat = `${def.dateFormat} %H:%M:%S`;
-
-        } else if (datetimeDefinition.dateTimeInTwoColumns !== undefined) {
-            const def = datetimeDefinition.dateTimeInTwoColumns;
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.dateColumnPosition} TO date_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO time_col`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
-            expectedDatetimeFormat = `${def.dateFormat} ${def.timeFormat}`;
-
-        } else if (datetimeDefinition.dateTimeInMultipleColumns !== undefined) {
-            const def = datetimeDefinition.dateTimeInMultipleColumns;
-            sql.push(...this.buildYearMonthDaySQL(tableName, def.yearColumnPosition, def.monthColumnPosition, def.dayColumnPosition));
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO time_col`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET combined_date_time_col = year_col || '-' || month_col || '-' || day_col || ' ' || time_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
-            expectedDatetimeFormat = `%Y-%m-%d ${def.timeFormat}`;
-
-        } else if (datetimeDefinition.dateInMultipleColumns !== undefined) {
-            const def = datetimeDefinition.dateInMultipleColumns;
-            const strHour = StringUtils.addLeadingZero(def.defaultHour);
-            sql.push(...this.buildYearMonthDaySQL(tableName, def.yearColumnPosition, def.monthColumnPosition, def.dayColumnPosition));
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR DEFAULT '${strHour}:00:00'`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET combined_date_time_col = year_col || '-' || month_col || '-' || day_col || ' ' || time_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
-            expectedDatetimeFormat = `%Y-%m-%d %H:%M:%S`;
+            expectedDatetimeFormat = `${dateFormatStr} ${timeFormatStr}`;
 
         } else {
             throw new Error("Date time interpretation not valid");
@@ -290,6 +279,67 @@ export class TabularImportTransformer {
         }
 
         return sql;
+    }
+
+    /**
+     * Materializes a `date_col` column on the staging table from a `DatePart`
+     * spec and returns the strftime format that `date_col` is now in.
+     */
+    private static buildDatePartSQL(sql: string[], tableName: string, date: DatePart): string {
+        if (date.singleColumn) {
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${date.singleColumn.columnPosition} TO date_col`);
+            return date.singleColumn.dateFormat;
+        }
+        if (date.yearMonthDayColumns) {
+            const { yearColumnPosition, monthColumnPosition, dayColumns } = date.yearMonthDayColumns;
+            sql.push(...this.buildYearMonthDaySQL(tableName, yearColumnPosition, monthColumnPosition, dayColumns));
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN date_col VARCHAR`);
+            // month_col is zero-padded here; day_col is already padded inside buildYearMonthDaySQL.
+            sql.push(`UPDATE ${tableName} SET date_col = year_col || '-' || lpad(month_col, 2, '0') || '-' || day_col`);
+            return '%Y-%m-%d';
+        }
+        throw new Error('Date part must define either singleColumn or yearMonthDayColumns');
+    }
+
+    /**
+     * Materializes a `time_col` column on the staging table from a `TimePart`
+     * spec and returns the strftime format that `time_col` is now in.
+     */
+    private static buildTimePartSQL(sql: string[], tableName: string, time: TimePart): string {
+        if (time.defaultHour) {
+            const strHour = StringUtils.addLeadingZero(time.defaultHour.hour);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR DEFAULT '${strHour}:00:00'`);
+            return '%H:%M:%S';
+        }
+        if (time.singleColumn) {
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${time.singleColumn.columnPosition} TO time_col`);
+            return time.singleColumn.timeFormat;
+        }
+        if (time.hourAndMinuteColumns) {
+            const { hourColumnPosition, minuteColumnPosition } = time.hourAndMinuteColumns;
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${hourColumnPosition} TO hour_col`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${minuteColumnPosition} TO minute_col`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET time_col = lpad(hour_col, 2, '0') || ':' || lpad(minute_col, 2, '0') || ':00'`);
+            return '%H:%M:%S';
+        }
+        if (time.hourColumnsRange) {
+            const { firstColumnPosition, lastColumnPosition } = time.hourColumnsRange;
+            const hourColumnNames: string[] = [];
+            for (let i = firstColumnPosition; i <= lastColumnPosition; i++) {
+                hourColumnNames.push(`column${i}`);
+            }
+            // Wide UNPIVOT — the cell value becomes the `value` column, and the
+            // source column name (e.g. 'column5') becomes `hour_col`. Nulls
+            // excluded so missing hours don't generate ghost observations.
+            sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR hour_col IN (${hourColumnNames.join(', ')}))`);
+            // Map back to hour-of-day (00..23). Hours start at 0, unlike days at 1,
+            // so the offset is `- firstColumnPosition` not `- firstColumnPosition + 1`.
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET time_col = lpad(substr(hour_col, 7)::INTEGER - ${firstColumnPosition}, 2, '0') || ':00:00'`);
+            return '%H:%M:%S';
+        }
+        throw new Error('Time part must define defaultHour, singleColumn, hourAndMinuteColumns, or hourColumnsRange');
     }
 
     private static buildAlterValueColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
@@ -357,29 +407,28 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildYearMonthDaySQL(tableName: string, yearColPos: number, monthColPos: number, dayColPos: string): string[] {
+    private static buildYearMonthDaySQL(tableName: string, yearColPos: number, monthColPos: number, dayColumns: DayColumns): string[] {
         const sql: string[] = [];
         sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${yearColPos} TO year_col`);
         sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${monthColPos} TO month_col`);
 
-        const dayColumns = dayColPos.split('-');
-        if (dayColumns.length === 1) {
-            const dayColumnPosition = parseInt(dayColumns[0], 10);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO day_col`);
+        if (dayColumns.singleColumn) {
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumns.singleColumn.columnPosition} TO day_col`);
             // Zero-pad the day values to ensure they are two digits (e.g., '1' becomes '01').
             sql.push(`UPDATE ${tableName} SET day_col = lpad(day_col, 2, '0')`);
-        } else {
-            const startCol = parseInt(dayColumns[0], 10);
-            const endCol = parseInt(dayColumns[1], 10);
+        } else if (dayColumns.columnsRange) {
+            const { firstColumnPosition, lastColumnPosition } = dayColumns.columnsRange;
             const dayColumnNames: string[] = [];
-            for (let i = startCol; i <= endCol; i++) {
+            for (let i = firstColumnPosition; i <= lastColumnPosition; i++) {
                 dayColumnNames.push(`column${i}`);
             }
             // Unpivot the day columns to create 'day_col' and a new 'value' column.
             // Nulls are excluded because they represent non-existent days (e.g. Feb 31st).
             sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}))`);
             // Extract the numeric day part from the column name (e.g. 'column5' -> 5) and zero-pad it.
-            sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${startCol} + 1, 2, '0')`);
+            sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${firstColumnPosition} + 1, 2, '0')`);
+        } else {
+            throw new Error('Day columns must define either singleColumn or columnsRange');
         }
         return sql;
     }
