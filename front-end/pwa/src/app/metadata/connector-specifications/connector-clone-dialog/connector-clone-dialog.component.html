@@ -1,0 +1,45 @@
+<ng-container *ngIf="open && connectorToClone">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: saving ? 'Cloning...' : 'Submit', color: 'primary', disable: saving, closeDialogOnClick: false}"
+        (firstButtonClick)="onSave()"
+        [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
+
+        <div class="text-muted small mb-3">
+            Cloning <strong>{{ connectorToClone.name }}</strong>. Host, schedule, and other settings are copied as-is.
+            Password verification is required.
+        </div>
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="newName" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="newDescription" />
+        </div>
+
+        <hr />
+
+        <div>
+            <div>
+                <app-text-input [type]="'password'" [label]="'Password'" [(value)]="newPassword"
+                    (valueChange)="onPasswordChange()" />
+            </div>
+            <div>
+                <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="confirmPassword"
+                    (valueChange)="onPasswordChange()" />
+            </div>
+            <div class="text-danger" *ngIf="passwordErrorMessage">{{ passwordErrorMessage }}</div>
+        </div>
+
+    </app-dialog>
+
+    <app-confirmation-dialog #dlgSaveConfirm [title]="'Clone Connector Specification'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onSaveConfirm()" [displayCannotBeUndone]="false">
+        <p>
+            Are you sure you want to clone connector specification <strong>{{ connectorToClone.name }}</strong> and save
+            it as <strong>{{ newName }}</strong>?
+        </p>
+    </app-confirmation-dialog>
+</ng-container>

@@ -60,6 +60,10 @@
             </td>
             <td>
               <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Clone export"
+                  (click)="onCloneClick(export, $event)">
+                  <i class="bi bi-files"></i>
+                </button>
                 <button type="button" class="btn btn-sm"
                   [ngClass]="export.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
                   [title]="export.disabled ? 'Enable export' : 'Disable export'"
@@ -84,6 +88,8 @@
   </div>
 
   <app-export-specification-input-dialog #dlgExportInput (ok)="onExportInput()" />
+
+  <app-export-clone-dialog #dlgClone (ok)="onExportInput()" />
 
   <!-- Delete Confirmation Dialog -->
   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedExport?.name || ''"

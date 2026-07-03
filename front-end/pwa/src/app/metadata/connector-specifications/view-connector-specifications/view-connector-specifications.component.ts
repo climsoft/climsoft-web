@@ -7,6 +7,7 @@ import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/contro
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ConnectorSpecificationInputDialogComponent } from '../connector-specification-input-dialog/connector-specification-input-dialog.component';
+import { ConnectorCloneDialogComponent } from '../connector-clone-dialog/connector-clone-dialog.component';
 
 @Component({
   selector: 'app-view-connectors',
@@ -15,6 +16,7 @@ import { ConnectorSpecificationInputDialogComponent } from '../connector-specifi
 })
 export class ViewConnectorSpecificationsComponent {
   @ViewChild('dlgConnectorInput') dlgConnectorInput!: ConnectorSpecificationInputDialogComponent;
+  @ViewChild('dlgClone') dlgClone!: ConnectorCloneDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
@@ -70,6 +72,11 @@ export class ViewConnectorSpecificationsComponent {
     event.stopPropagation();
     this.selectedConnector = connector;
     this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onCloneClick(connector: ViewConnectorSpecificationModel, event: Event): void {
+    event.stopPropagation();
+    this.dlgClone.openDialog(connector);
   }
 
   protected onDeleteConfirm(): void {

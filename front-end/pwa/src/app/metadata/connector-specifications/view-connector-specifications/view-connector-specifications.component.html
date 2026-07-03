@@ -66,6 +66,10 @@
                   <td>{{ connector.cronSchedule }}</td>
                   <td>
                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" title="Clone connector"
+                           (click)="onCloneClick(connector, $event)">
+                           <i class="bi bi-files"></i>
+                        </button>
                         <button type="button" class="btn btn-sm"
                            [ngClass]="connector.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
                            [title]="connector.disabled ? 'Enable connector' : 'Disable connector'"
@@ -91,6 +95,9 @@
 
    <!-- Connector Input Dialog -->
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
+
+   <!-- Connector Clone Dialog -->
+   <app-connector-clone-dialog #dlgClone (ok)="onConnectorInput()" />
 
    <!-- Delete Confirmation Dialog -->
    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''"

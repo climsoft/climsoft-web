@@ -33,7 +33,7 @@ export class SourceCloneDialogComponent {
 
 
   public openDialog(source: ViewSourceSpecificationModel): void {
-    this.sourceToClone = source;
+    this.sourceToClone = structuredClone(source);
     this.title = `Clone ${source.sourceType === SourceTypeEnum.IMPORT ? 'Import' : 'Form'} Specification`;
     this.newName = `${source.name} (copy)`;
     this.newDescription = source.description;
