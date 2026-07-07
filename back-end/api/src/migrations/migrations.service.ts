@@ -23,7 +23,7 @@ import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-sour
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.5'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.6'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(

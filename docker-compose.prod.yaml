@@ -1,7 +1,7 @@
 
 services:
   climsoft_nginx_proxy:
-    image: climsoftdevelopers/climsoft-nginx-proxy:preview-3.0.1
+    image: climsoftdevelopers/climsoft-nginx-proxy:preview-3.0.2
     container_name: climsoft-nginx-proxy
     restart: always
     ports: # Expose to external network
@@ -13,7 +13,7 @@ services:
       - climsoft_network
 
   climsoft_pwa:
-    image: climsoftdevelopers/climsoft-pwa:preview-3.0.1
+    image: climsoftdevelopers/climsoft-pwa:preview-3.0.2
     container_name: climsoft-pwa
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: climsoftdevelopers/climsoft-api:preview-3.0.1
+    image: climsoftdevelopers/climsoft-api:preview-3.0.2
     container_name: climsoft-api
     restart: always
     environment:
@@ -70,7 +70,7 @@ services:
       - climsoft_network
 
   climsoft_python_runner:
-    image: climsoftdevelopers/climsoft-python-runner:preview-3.0.1
+    image: climsoftdevelopers/climsoft-python-runner:preview-3.0.2
     container_name: climsoft-python-runner
     restart: always
     profiles: ["adapters-python"]
@@ -83,7 +83,7 @@ services:
       - climsoft_network
 
   climsoft_r_runner:
-    image: climsoftdevelopers/climsoft-r-runner:preview-3.0.1
+    image: climsoftdevelopers/climsoft-r-runner:preview-3.0.2
     container_name: climsoft-r-runner
     restart: always
     profiles: ["adapters-r"]
@@ -96,7 +96,7 @@ services:
       - climsoft_network
 
   climsoft_javascript_runner:
-    image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.1
+    image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.2
     container_name: climsoft-javascript-runner
     restart: always
     profiles: ["adapters-javascript"]
@@ -109,7 +109,7 @@ services:
       - climsoft_network
 
   climsoft_duckdb_runner:
-    image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.1
+    image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.2
     container_name: climsoft-duckdb-runner
     restart: always
     profiles: ["adapters-duckdb"]
