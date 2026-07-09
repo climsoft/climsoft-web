@@ -12,6 +12,7 @@ import {
     ElementColumnMappingDto,
 } from './metadata-import-preview.dto';
 import { PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from 'src/observation/dtos/import-preview.dto';
+import { FileLinesUtils } from 'src/shared/utils/file-lines.utils';
 import { StationsImportExportService } from './stations/services/stations-import-export.service';
 import { ElementsImportExportService } from './elements/services/elements-import-export.service';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
@@ -109,7 +110,9 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
 
-        return { sessionId: session.sessionId, fileName: session.fileName, previewData, skippedData };
+        const originalLines: string[] = await FileLinesUtils.readHeadLines(importFilePathName, session.rowsToSkip + this.MAX_PREVIEW_ROWS);
+
+        return { sessionId: session.sessionId, fileName: session.fileName, previewData, skippedData, originalLines };
     }
 
     // ─── Station Transform & Preview ─────────────────────────

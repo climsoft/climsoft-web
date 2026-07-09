@@ -7,6 +7,7 @@ import { FileIOService, OperationContext } from 'src/shared/services/file-io.ser
 import { AdapterRunnerService, AdapterRef, AdapterRunMetadata, AdapterRunResult } from 'src/shared/services/adapter-runner.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
 import { BaseParamsDto, PreviewForImportDto, PreviewForSourceResponse, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
+import { FileLinesUtils } from 'src/shared/utils/file-lines.utils';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBUtils, getTableNameFromUUID } from 'src/shared/utils/duckdb.utils';
@@ -224,7 +225,13 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        return { sessionId: session.sessionId, fileName: session.workingFileName, previewData, skippedData };
+        // Read the head of the **original** uploaded file (pre-adapter) so
+        // users can compare the raw bytes against DuckDB's parsed view.
+        // Not partitioned on rowsToSkip — that setting is about parsed rows.
+        const originalFilePath = path.posix.join(op.inputDir, session.originalFileName);
+        const originalLines: string[] = await FileLinesUtils.readHeadLines(originalFilePath, session.rowsToSkip + this.MAX_PREVIEW_ROWS);
+
+        return { sessionId: session.sessionId, fileName: session.workingFileName, previewData, skippedData, originalLines };
     }
 
     public async previewTransformedData(sessionId: string, sourceDef: ViewSourceSpecificationModel, stationId: string | null): Promise<TransformedPreviewResponse> {

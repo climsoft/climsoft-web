@@ -201,6 +201,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
       fileName: '',
       previewData: { columns: [], rows: [], totalRowCount: 0 },
       skippedData: { columns: [], rows: [], totalRowCount: 0 },
+      originalLines: [],
     };
 
     this.sampleFileLoading = false;
@@ -212,6 +213,7 @@ export class ImportEntryDialogComponent implements OnDestroy {
       fileName: '',
       previewData: { columns: [], rows: [], totalRowCount: 0 },
       skippedData: { columns: [], rows: [], totalRowCount: 0 },
+      originalLines: [],
     };
     this.uploadedFileTransformedPreviewResponse = {
       previewData: { columns: [], rows: [], totalRowCount: 0 },

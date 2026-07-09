@@ -1,0 +1,28 @@
+.lines-block {
+    overflow: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    background: #f8f9fa;
+}
+
+.section {
+    padding: 0.25rem 0.5rem;
+}
+
+.section-label {
+    padding-top: 0.25rem;
+    padding-bottom: 0.15rem;
+    font-weight: 500;
+}
+
+.lines {
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    white-space: pre;
+    background: #fff;
+    border: 1px solid #eef0f2;
+    border-radius: 0.2rem;
+}

@@ -45,6 +45,14 @@
           </div>
           <div class="card-body py-2 px-2">
             <div class="mb-2">
+              <div class="small text-muted mb-1">Sample Original File (text)</div>
+              <app-import-original-lines-preview [lines]="sampleFileRawPreviewResponse.originalLines"
+                [hasFile]="!!sampleFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'No sample file available for this import specification'" [maxHeight]="'15vh'"
+                [loading]="sampleFileLoading" />
+            </div>
+
+            <div class="mb-2">
               <app-import-preview-table [title]="'Sample Raw Data Skipped Rows'"
                 [columns]="sampleFileRawPreviewResponse.skippedData.columns"
                 [rows]="sampleFileRawPreviewResponse.skippedData.rows"
@@ -77,6 +85,14 @@
           </div>
           <div class="card-body py-2 px-2">
             <div>
+              <div class="small text-muted mb-1">Uploaded Original File (text)</div>
+              <app-import-original-lines-preview [lines]="uploadedFileRawPreviewResponse.originalLines"
+                [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'Upload a file to see the original text lines'" [maxHeight]="'15vh'"
+                [loading]="uploadingFile" />
+            </div>
+
+            <div class="mt-2">
               <app-import-preview-table [title]="'Uploaded Raw Data Skipped Rows'"
                 [columns]="uploadedFileRawPreviewResponse.skippedData.columns"
                 [rows]="uploadedFileRawPreviewResponse.skippedData.rows"

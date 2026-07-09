@@ -72,6 +72,13 @@ export interface RawPreviewResponse {
     fileName: string;
     previewData: PreviewTableData;
     skippedData: PreviewTableData;
+    /**
+     * Plain-text head of the **original uploaded file** (pre-adapter,
+     * pre-DuckDB). Rendered as a text pane so users can compare the raw
+     * bytes against the parsed tabular preview. Not partitioned by
+     * `rowsToSkip` — that setting applies to parsed rows, not raw lines.
+     */
+    originalLines: string[];
 }
 
 export interface TransformedPreviewResponse {

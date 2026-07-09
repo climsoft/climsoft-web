@@ -48,6 +48,7 @@ import { DelimeterSelectorComponent } from './controls/delimeter-selector/delime
 import { ConfirmationDialogComponent } from './controls/confirmation-dialog/confirmation-dialog.component';
 import { SpinnerComponent } from './controls/spinner/spinner.component';
 import { ImportPreviewTableComponent } from './controls/import-preview-table/import-preview-table.component';
+import { ImportOriginalLinesPreviewComponent } from './controls/import-original-lines-preview/import-original-lines-preview.component';
 import { LinkifyPipe } from './pipes/linkify.pipe';
 
 //--------------------------------
@@ -110,6 +111,7 @@ const controlsComponents = [
 
   SpinnerComponent,
   ImportPreviewTableComponent,
+  ImportOriginalLinesPreviewComponent,
 ];
 
 const directives = [

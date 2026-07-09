@@ -22,6 +22,8 @@ export interface RawPreviewResponse {
     fileName: string;
     previewData: PreviewTableData;
     skippedData: PreviewTableData;
+    /** Plain-text head of the original uploaded file (pre-adapter, pre-DuckDB). */
+    originalLines: string[];
 }
 
 export interface TransformedPreviewResponse {
