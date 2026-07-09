@@ -27,6 +27,14 @@ app.use(express.json());
 
 const INSTALLED_DIR_NAME = '.installed';
 const EXTENSIONS_MANIFEST = 'extensions.txt';
+// Entry point is a language convention (`transform.sql`) enforced by the API
+// at upload-preview time — hardcoded here so it doesn't need to travel in the
+// request body.
+const ENTRY_POINT = 'transform.sql';
+// Volume mount points inside this container. Hardcoded to match every
+// docker-compose profile (dev / test / prod). Callers pass only IDs.
+const ADAPTERS_ROOT = '/app/adapters';
+const OPERATIONS_ROOT = '/app/operations';
 // DuckDB extension names are lowercase alphanumeric + underscore. Validate
 // before splicing into INSTALL/LOAD statements to prevent SQL injection from
 // a malformed manifest.
@@ -50,27 +58,33 @@ app.post('/run', async (req, res) => {
   try {
     console.log('Received run request with body:', req.body);
     const body = req.body;
-    const required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds'];
+    const required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
+      console.error(`Missing required fields: ${missing.join(', ')}`);
       return res.json(errorSummary('RUNTIME_ERROR', `Missing required fields: ${missing.join(', ')}`));
     }
 
-    const { scriptDir, entryPoint, inputFilePathName, outputDir, metadataFile, timeoutSeconds } = body;
+    const { scriptDirName, operationId, inputRelPath, outputRelPath, timeoutSeconds } = body;
 
-    // Derive log paths by convention
+    // Resolve full paths from the hardcoded roots + wire-supplied IDs.
+    const scriptDir = path.join(ADAPTERS_ROOT, scriptDirName);
+    const opDir = path.join(OPERATIONS_ROOT, operationId);
+    const inputFilePathName = path.join(opDir, inputRelPath);
+    const outputDir = path.join(opDir, outputRelPath);
+
+    // Derive log paths by convention inside outputDir.
+    const metadataFile = path.join(outputDir, 'metadata.json');
     const warningsFile = path.join(outputDir, 'warnings.jsonl');
     const stdoutFile = path.join(outputDir, 'stdout.log');
     const stderrFile = path.join(outputDir, 'stderr.log');
     const installLogFile = path.join(outputDir, 'install.log');
 
-    const entryPath = path.join(scriptDir, entryPoint);
-    console.log(`Validating entry point at '${entryPath}'`);
+    const entryPath = path.join(scriptDir, ENTRY_POINT);
     if (!fs.existsSync(entryPath)) {
+      console.error(`Entry point not found: ${entryPath}`);
       return res.json(errorSummary('RUNTIME_ERROR', `Entry point not found: ${entryPath}`));
     }
-
-    console.log(`Entry point '${entryPoint}' exists. Validating it's a file.`);
 
     // Read the user's SQL
     const userSql = fs.readFileSync(entryPath, 'utf8');
@@ -79,6 +93,7 @@ app.post('/run', async (req, res) => {
     const extensions = readExtensionsManifest(scriptDir);
     const invalidName = extensions.find(e => !EXTENSION_NAME_RE.test(e));
     if (invalidName) {
+      console.error(`Invalid extension name '${invalidName}' in ${EXTENSIONS_MANIFEST}`);
       return res.json(errorSummary(
         'INSTALL_FAILED',
         `Invalid extension name '${invalidName}' in ${EXTENSIONS_MANIFEST}; allowed characters are a-z, 0-9, _`,
@@ -105,12 +120,9 @@ app.post('/run', async (req, res) => {
       await conn.run(`SET VARIABLE climsoft_metadata = '${metadataFile.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_warnings = '${warningsFile.replace(/'/g, "''")}';`);
 
-      console.log(`Set climsoft_input_file_path_name = '${inputFilePathName}'`);
-      console.log(`Set climsoft_output_dir = '${outputDir}'`);
-      console.log(`Set climsoft_metadata = '${metadataFile}'`);
-      console.log(`Set climsoft_warnings = '${warningsFile}'`);
-
-      // Step 3: per-statement timeout so a runaway query doesn't hang the runner.
+      // Step 3: TODO. per-statement timeout so a runaway query doesn't hang the runner.
+      // TODO. DuckDB does not have a native SQL configuration option (like a SET statement_timeout) to limit total query execution time so find a way of enforcing a timeout. 
+      // The node-api has a `statement_timeout` option on the connection, but it is not exposed via SQL. The following line is commented out because it does not work:
       //await conn.run(`SET statement_timeout = '${timeoutSeconds}s';`);
 
       // Step 4: execute the user's SQL.
@@ -119,6 +131,7 @@ app.post('/run', async (req, res) => {
 
       conn.closeSync();
     } catch (err) {
+      console.error('SQL execution error:', err);
       if (conn) {
         try { conn.closeSync(); } catch { /* ignore */ }
       }

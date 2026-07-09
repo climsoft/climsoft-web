@@ -10,10 +10,11 @@ import { AdapterLanguageEnum } from '../../models/adapter-language.enum';
  * Works in two modes:
  *   - **Saved adapter**: uses `POST /adapters/:id/test-run` (needs `adapterId > 0`)
  *   - **Unsaved adapter**: uses `POST /adapters/test-run-preview` (needs
- *     `scriptDirName` + `language` + `entryPoint` from the upload-preview step)
+ *     `scriptDirName` + `language` from the upload-preview step)
  *
- * The pane is enabled as soon as the script is uploaded and the entry point
- * is set — saving the adapter first is no longer required.
+ * The pane is enabled as soon as the script is uploaded — saving the adapter
+ * first is no longer required. The entry point is derived from `language` by
+ * the API (canonical convention), so it is not an input here.
  */
 @Component({
   selector: 'app-adapter-test-run-pane',
@@ -27,9 +28,6 @@ export class AdapterTestRunPaneComponent {
 
   /** The UUID directory from upload-preview — needed for the preview endpoint. */
   @Input() public scriptDirName: string = '';
-
-  /** The entry point path — needed for the preview endpoint. */
-  @Input() public entryPoint: string = '';
 
   protected pendingSampleFile: File | null = null;
   protected running: boolean = false;
@@ -47,10 +45,15 @@ export class AdapterTestRunPaneComponent {
     this.errorMessage = '';
   }
 
+  protected onDownloadOutput(): void {
+    if (!this.result?.operationId) return;
+    window.open(this.adaptersService.getTestRunOutputDownloadUrl(this.result.operationId), '_blank');
+  }
+
   protected canRun(): boolean {
     if (this.running || !this.pendingSampleFile) return false;
 
-    return !!this.scriptDirName && !!this.language && !!this.entryPoint;
+    return !!this.scriptDirName && !!this.language;
   }
 
   protected onRunClick(): void {
@@ -61,7 +64,7 @@ export class AdapterTestRunPaneComponent {
 
     const observable = this.adaptersService.testRunPreview(
       this.pendingSampleFile,
-      { language: this.language, scriptDirName: this.scriptDirName, entryPoint: this.entryPoint },
+      { language: this.language, scriptDirName: this.scriptDirName },
     );
 
     observable.pipe(take(1)).subscribe({

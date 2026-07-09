@@ -69,14 +69,14 @@ export class DuckDBUtils {
 
         // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", or "column00", "column01", etc. based on the column positions.
         const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
-
+   
         await conn.run(createSQL);
 
         if (!header) {
             // If headers are not to be recognised then
             // Rename columns to normalized names (column0, column1, ...)
-            const renameSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
-            await conn.run(renameSQLs.join('; '));
+            const renameSQLs: string[] = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
+            await conn.run(renameSQLs.join(';\n') + ';');
         }
 
     }
@@ -114,7 +114,7 @@ export class DuckDBUtils {
 
         const sql: string[] = [];
 
-        // Delete any record that is not supposed to be fetched .
+        // Delete any record that is not supposed to be fetched
         if (includeNullDeletes) {
             sql.push(`DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${quotedValsToFetch.map(item => (item.sourceId)).join(', ')} )`);
         } else {

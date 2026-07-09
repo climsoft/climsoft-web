@@ -45,7 +45,7 @@ export class AdapterSpecificationSelectorSingleComponent implements OnChanges {
   }
 
   protected optionDisplayFunction(option: ViewAdapterSpecificationModel): string {
-    return `${option.id} - ${option.name}`;
+    return `${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: ViewAdapterSpecificationModel | null) {

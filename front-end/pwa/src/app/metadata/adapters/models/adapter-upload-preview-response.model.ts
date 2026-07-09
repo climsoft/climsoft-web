@@ -11,10 +11,14 @@ export interface FileTreeEntry {
 /**
  * Mirrors `AdapterUploadPreviewResponseDto`. Returned by
  * `POST /adapters/upload-preview`.
+ *
+ * Both `manifestError` and `entryPointError` are optional: absence means
+ * "valid". The UI checks for their presence to decide whether the upload
+ * can be saved.
  */
 export interface AdapterUploadPreviewResponseModel {
     scriptDirName: string;
     fileTree: FileTreeEntry[];
-    manifestFound: boolean;
     manifestError?: string;
+    entryPointError?: string;
 }

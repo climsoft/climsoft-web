@@ -28,21 +28,31 @@
                 <span class="badge" [ngClass]="statusBadgeClass">{{ statusLabel }}</span>
                 <span class="text-muted ms-2 small">{{ result.durationMs }} ms</span>
             </div>
-            <div *ngIf="result.outputFileName" class="text-success small">
-                <i class="bi bi-file-earmark-check"></i>
-                Output: <code>{{ result.outputFileName }}</code>
+            <div *ngIf="result.outputFiles.length > 0" class="text-success small d-flex align-items-center gap-2">
+                <span>
+                    <i class="bi bi-file-earmark-check"></i>
+                    Output:
+                    <ng-container *ngIf="result.outputFiles.length === 1; else multipleFiles">
+                        <code>{{ result.outputFiles[0] }}</code>
+                    </ng-container>
+                    <ng-template #multipleFiles>
+                        <code>{{ result.outputFiles.length }} files</code>
+                    </ng-template>
+                </span>
+                <button *ngIf="result.operationId" type="button" class="btn btn-link small p-0"
+                    (click)="onDownloadOutput()">
+                    <i class="bi bi-download"></i> Download
+                </button>
             </div>
         </div>
 
-        <!-- Errors -->
-        <div *ngIf="result.errors.length > 0" class="mt-2">
-            <div class="fw-bold small text-danger">Errors</div>
-            <ul class="small mb-0">
-                <li *ngFor="let err of result.errors">
-                    <span class="badge bg-danger me-1">{{ err.type }}</span>
-                    {{ err.message }}
-                </li>
-            </ul>
+        <!-- Error -->
+        <div *ngIf="result.error" class="mt-2">
+            <div class="fw-bold small text-danger">Error</div>
+            <div class="small">
+                <span class="badge bg-danger me-1">{{ result.error.type }}</span>
+                {{ result.error.message }}
+            </div>
         </div>
 
         <!-- Warnings -->

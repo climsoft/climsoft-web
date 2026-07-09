@@ -15,7 +15,8 @@ import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import AdmZip from 'adm-zip';
+import { ZipUtils } from 'src/shared/utils/zip.utils';
+import { StreamableFileUtils } from 'src/shared/utils/streamable-file.utils';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
 import { DisseminationServiceEnum } from 'src/metadata/export-specifications/enums/dissemination-service.enum';
 import { DisseminationExportParametersDto } from 'src/metadata/export-specifications/dtos/dissemination-export-parameters.dto';
@@ -90,30 +91,13 @@ export class ObservationsExportService {
         } else {
             fileName = zipFileName;
             filePath = path.posix.join(op.outputDir, fileName);
-            const zip = new AdmZip();
-            for (const f of sourceFiles) {
-                zip.addLocalFile(path.posix.join(op.outputDir, f), '', f);
-            }
-            zip.writeZip(filePath);
+            const buffer = ZipUtils.buildZipBufferFromFiles(
+                sourceFiles.map(f => ({ fullPath: path.posix.join(op.outputDir, f), nameInZip: f })),
+            );
+            await fs.promises.writeFile(filePath, buffer);
         }
 
-        return new StreamableFile(fs.createReadStream(filePath), {
-            type: this.getContentTypeForFile(fileName),
-            disposition: `attachment; filename="${fileName}"`,
-        });
-    }
-
-    private getContentTypeForFile(fileName: string): string {
-        const ext = path.extname(fileName).toLowerCase();
-        switch (ext) {
-            case '.csv':
-                return 'text/csv';
-            case '.zip':
-                return 'application/zip';
-            default:
-                // e.g .bufr4 and .bufr
-                return 'application/octet-stream';
-        }
+        return StreamableFileUtils.asAttachment(fs.createReadStream(filePath), fileName);
     }
 
     private validateAndRedefineExportFiltersBasedOnUserQueryRequest(
@@ -305,7 +289,6 @@ export class ObservationsExportService {
             name: adapter.name,
             language: adapter.language,
             scriptDirName: adapter.scriptDirName,
-            entryPoint: adapter.entryPoint,
         };
 
         const metadata: AdapterRunMetadata = {

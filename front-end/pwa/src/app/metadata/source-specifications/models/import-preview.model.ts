@@ -29,3 +29,9 @@ export interface TransformedPreviewResponse {
     error?: PreviewError;
 }
 
+/** Combined response from the source-scoped preview endpoints. */
+export interface PreviewForSourceResponse {
+    raw: RawPreviewResponse;
+    transformed: TransformedPreviewResponse;
+}
+

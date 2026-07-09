@@ -87,7 +87,19 @@ export class TabularImportTransformer {
                     return [
                         `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId || 'NULL'}`,
                         `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId || 'NULL'}`,
-                        TabularImportTransformer.buildRemoveDuplicatesSQL(tableName),
+
+                        // Remove duplicates based on the composite primary key (station_id, element_id, level, date_time, interval, source_id)
+                        // Keep the last occurrence by using row_number() ordered by rowid in descending order
+                        // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids
+                        `DELETE FROM ${tableName} WHERE rowid IN ( 
+                            SELECT rowid FROM ( 
+                                SELECT rowid, ROW_NUMBER() OVER ( 
+                                    PARTITION BY ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}
+                                    ORDER BY rowid DESC 
+                                ) as rn FROM ${tableName} 
+                            ) WHERE rn > 1 
+                        )`,
+
                         // Select only the final columns we need, discarding unmapped CSV columns 
                         `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${TabularImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,
                     ];
@@ -98,9 +110,9 @@ export class TabularImportTransformer {
         for (const step of steps) {
             try {
                 // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
-                const sqls = step.buildSql();
+                const sqls: string[] = step.buildSql();
                 if (sqls.length > 0) {
-                    await conn.run(sqls.join('; '));
+                    await conn.run(sqls.join(';\n') + ';');
                 }
             } catch (error) {
                 // Stop processing — later steps may depend on this one.
@@ -198,6 +210,9 @@ export class TabularImportTransformer {
             sql.push(`ALTER TABLE ${tableName} RENAME column${singleColumn.columnPosition} TO ${this.ELEMENT_ID_PROPERTY_NAME}`);
             if (singleColumn.elementsToFetch) {
                 sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true));
+                // As of 09/07/2026 DuckDB ALTER COLUMN fails if values of conflicting types have occurred in the table at any point, even if they have been deleted
+                // as a workaround they the create or replace table statement has to be executed to remove the history of conflicting types before altering the column type.
+                sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName}`);
             }
 
             // Ensure there are no null elements and the column is integer typed.
@@ -267,6 +282,10 @@ export class TabularImportTransformer {
         sql.push(`UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = try_strptime(${this.DATE_TIME_PROPERTY_NAME}, '${expectedDatetimeFormat}')`);
         sql.push(`DELETE FROM ${tableName} WHERE ${this.DATE_TIME_PROPERTY_NAME} IS NULL`);
         sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL`);
+
+        // As of 09/07/2026 DuckDB ALTER COLUMN fails if values of conflicting types have occurred in the table at any point, even if they have been deleted
+        // as a workaround they the create or replace table statement has to be executed to remove the history of conflicting types before altering the column type.
+        sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName}`);
         sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '%Y-%m-%d %H:%M:%S')`);
 
         // If date times are not in UTC then convert them to utc
@@ -397,6 +416,10 @@ export class TabularImportTransformer {
             sql.push(`DELETE FROM ${tableName} WHERE ${missingValueCondition}`);
         }
 
+        // As of 09/07/2026 DuckDB ALTER COLUMN fails if values of conflicting types have occurred in the table at any point, even if they have been deleted
+        // as a workaround they the create or replace table statement has to be executed to remove the history of conflicting types before altering the column type.
+        sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName}`);
+
         // Convert the flag column to integer
         sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG_PROPERTY_NAME} TYPE INTEGER`);
 
@@ -433,18 +456,5 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildRemoveDuplicatesSQL(tableName: string): string {
-        // Remove duplicates based on the composite primary key (station_id, element_id, level, date_time, interval, source_id)
-        // Keep the last occurrence by using row_number() ordered by rowid in descending order
-        // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids
-        return `DELETE FROM ${tableName} WHERE rowid IN (
-            SELECT rowid FROM (
-                SELECT rowid, ROW_NUMBER() OVER (
-                    PARTITION BY ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}
-                    ORDER BY rowid DESC
-                ) as rn
-                FROM ${tableName}
-            ) WHERE rn > 1
-        );`;
-    }
+
 }

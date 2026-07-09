@@ -8,11 +8,10 @@ Contract:
 
     POST /run
     {
-        "scriptDir":      "/app/adapters/<uuid>",
-        "entryPoint":     "main.py",
-        "inputFilePathName":       "/app/operations/<uuid>/input/<filename>",
-        "outputDir":      "/app/operations/<uuid>/output",
-        "metadataFile":   "/app/operations/<uuid>/output/metadata.json",
+        "scriptDirName":  "<adapter-uuid>",
+        "operationId":    "<operation-uuid>",
+        "inputRelPath":   "input/<filename>",
+        "outputRelPath":  "output",
         "timeoutSeconds": 300
     }
 
@@ -24,8 +23,18 @@ Contract:
         "errorMessage":     "..."              (only on failure)
     }
 
-Dependencies are installed into <scriptDir>/.installed/ on first run.
-The runner derives all log file paths from outputDir by convention.
+Path model: the runner and the API share the adapters/operations volumes
+but mount them at potentially different paths (in dev the API runs on the
+host while the runner runs in Docker). The wire therefore carries only IDs
+and operation-relative paths; the runner splices them onto its own
+ADAPTERS_ROOT and OPERATIONS_ROOT to obtain absolute paths.
+
+The entry point filename is not part of the request either — this runner
+hardcodes `main.py` because the API enforces the convention at
+upload-preview time.
+
+Log file names (metadata.json, warnings.jsonl, stdout.log, stderr.log,
+install.log) are conventions inside the output directory.
 
 The script is invoked with the following environment variables:
 
@@ -47,6 +56,11 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 INSTALLED_DIR_NAME = '.installed'
+ENTRY_POINT = 'main.py'
+# Volume mount points inside this container. Hardcoded to match every
+# docker-compose profile (dev / test / prod).
+ADAPTERS_ROOT = '/app/adapters'
+OPERATIONS_ROOT = '/app/operations'
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -63,7 +77,7 @@ def run_adapter():
         if not body:
             return jsonify(_error_summary('RUNTIME_ERROR', 'Request body must be JSON')), 200
 
-        required = ['scriptDir', 'entryPoint', 'inputFilePathName', 'outputDir', 'metadataFile', 'timeoutSeconds']
+        required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds']
         missing = [k for k in required if k not in body]
         if missing:
             return jsonify(_error_summary(
@@ -71,23 +85,23 @@ def run_adapter():
                 f'Missing required fields: {", ".join(missing)}',
             )), 200
 
-        script_dir = body['scriptDir']
-        entry_point = body['entryPoint']
-        input_file_path_name = body['inputFilePathName']
-        output_dir = body['outputDir']
-        metadata_file = body['metadataFile']
+        script_dir = os.path.join(ADAPTERS_ROOT, body['scriptDirName'])
+        op_dir = os.path.join(OPERATIONS_ROOT, body['operationId'])
+        input_file_path_name = os.path.join(op_dir, body['inputRelPath'])
+        output_dir = os.path.join(op_dir, body['outputRelPath'])
         timeout_seconds = int(body['timeoutSeconds'])
 
-        print(f"Received run request for script at {script_dir} with entry point {entry_point}")
+        print(f"Received run request for script at {script_dir} with entry point {ENTRY_POINT}")
 
         # Derive paths by convention
         env_dir = os.path.join(script_dir, INSTALLED_DIR_NAME)
+        metadata_file = os.path.join(output_dir, 'metadata.json')
         warnings_file = os.path.join(output_dir, 'warnings.jsonl')
         stdout_file = os.path.join(output_dir, 'stdout.log')
         stderr_file = os.path.join(output_dir, 'stderr.log')
         install_log_file = os.path.join(output_dir, 'install.log')
 
-        entry_path = os.path.join(script_dir, entry_point)
+        entry_path = os.path.join(script_dir, ENTRY_POINT)
         if not os.path.isfile(entry_path):
             return jsonify(_error_summary(
                 'RUNTIME_ERROR',

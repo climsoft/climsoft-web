@@ -33,10 +33,14 @@ export interface AdapterError {
 export interface AdapterTestRunResponseModel {
     status: 'success' | 'failure' | 'timeout';
     durationMs: number;
-    outputFileName: string | null;
+    /** Basenames of files the adapter produced; empty when nothing was written. */
+    outputFiles: string[];
+    /** UUID of the on-disk operation dir, or null when there is nothing to download. */
+    operationId: string | null;
     stdout: string;
     stderr: string;
     installLog: string | null;
     warnings: AdapterWarning[];
-    errors: AdapterError[];
+    /** Single structured error surfaced by the runner (mirrors backend `error?: FileProcessingError`). */
+    error?: AdapterError;
 }

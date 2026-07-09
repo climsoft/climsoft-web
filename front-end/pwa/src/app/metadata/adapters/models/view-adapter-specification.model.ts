@@ -6,7 +6,6 @@ export interface ViewAdapterSpecificationModel {
     description: string;
     language: AdapterLanguageEnum;
     scriptDirName: string;
-    entryPoint: string;
     disabled: boolean;
     comment: string | null;
 }

@@ -2,11 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
-import { BaseParamsDto, RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
+import { BaseParamsDto, PreviewForSourceResponse, RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
 import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
 
 @Injectable({ providedIn: 'root' })
-export class ImportPreviewHttpService {
+export class ImportPreviewService {
     private endPointUrl: string;
 
     constructor(
@@ -49,8 +49,31 @@ export class ImportPreviewHttpService {
         });
     }
 
-    public confirmImport(sessionId: string, sourceId: number, stationId?: string | null): Observable<any> {
-        return this.http.post(`${this.endPointUrl}/confirm-import/${sessionId}`, {
+    /**
+ * Source-scoped view-only preview of the spec's saved sample file.
+ * Returns `null` when the spec has no sample on record.
+ */
+    public previewSampleForSource(sourceId: number): Observable<PreviewForSourceResponse | null> {
+        return this.http.post<PreviewForSourceResponse | null>(`${this.endPointUrl}/sample-for-source/${sourceId}`, {});
+    }
+
+    /**
+     * Source-scoped upload used by the import-entry dialog. The saved
+     * spec's base params (adapter, rowsToSkip, delimiter) are applied
+     * server-side and both raw + transformed previews come back in one
+     * round trip.
+     */
+    public uploadForSource(file: File, sourceId: number, stationId?: string | null): Observable<PreviewForSourceResponse> {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        if (stationId !== null && stationId !== undefined) {
+            formData.append('stationId', stationId);
+        }
+        return this.http.post<PreviewForSourceResponse>(`${this.endPointUrl}/upload-for-source/${sourceId}`, formData);
+    }
+
+    public confirmImportForSource(sessionId: string, sourceId: number, stationId?: string | null): Observable<any> {
+        return this.http.post(`${this.endPointUrl}/import-for-source/${sessionId}`, {
             sourceId,
             stationId,
         });

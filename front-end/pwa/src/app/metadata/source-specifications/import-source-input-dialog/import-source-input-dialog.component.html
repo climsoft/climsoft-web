@@ -62,23 +62,21 @@
 
                         <hr />
 
-                        <div>
-                            <app-adapter-specification-selector-single [label]="'Pre-Import Adapter (optional)'"
-                                [placeholder]="'No adapter'" [selectedId]="viewSource.adapterId"
-                                (selectedItemChange)="onAdapterSelected($event)" [displayCancelOption]="true" />
-                            <div class="form-text text-muted">
-                                If set, the adapter script will process the uploaded file before the import pipeline
-                                runs.
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <div [title]="'A sample file is required for import specifications. It is stored alongside the source and used for future preview operations.'">
+                        <div
+                            [title]="'A sample file is required for import specifications. It is stored alongside the source and used for future preview operations.'">
                             <app-file-input [label]="'Sample File'"
                                 [buttonLabel]="viewSource.sampleFileName? 'Change Sample File': 'Upload Sample File'"
                                 [disabled]="!canUploadFile" [fileName]="selectedFileName"
                                 (fileSelected)="onSampleFileSelected($event)" />
+                        </div>
+
+                        <hr />
+
+                        <div
+                            [title]="'If set, the adapter script will process the uploaded file before the import pipeline runs.'">
+                            <app-adapter-specification-selector-single [label]="'Pre-Import Adapter (optional)'"
+                                [placeholder]="'No adapter'" [selectedId]="viewSource.adapterId"
+                                (selectedItemChange)="onAdapterSelected($event)" [displayCancelOption]="true" />
                         </div>
 
                         <hr />
@@ -197,8 +195,9 @@
                                         <td class="text-muted review-label">Level</td>
                                         <td>
                                             {{ tabularImportParams.levelDefinition.default
-                                              ? tabularImportParams.levelDefinition.default.value
-                                              : 'Column ' + tabularImportParams.levelDefinition.inColumn?.columnPosition }}
+                                            ? tabularImportParams.levelDefinition.default.value
+                                            : 'Column ' + tabularImportParams.levelDefinition.inColumn?.columnPosition
+                                            }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -209,8 +208,9 @@
                                         <td class="text-muted review-label">Interval</td>
                                         <td>
                                             {{ tabularImportParams.intervalDefinition.default
-                                              ? tabularImportParams.intervalDefinition.default.value
-                                              : 'Column ' + tabularImportParams.intervalDefinition.inColumn?.columnPosition }}
+                                            ? tabularImportParams.intervalDefinition.default.value
+                                            : 'Column ' +
+                                            tabularImportParams.intervalDefinition.inColumn?.columnPosition }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -225,8 +225,8 @@
                                         <td class="text-muted review-label">Comment</td>
                                         <td>
                                             {{ tabularImportParams.commentDefinition
-                                              ? 'Column ' + tabularImportParams.commentDefinition.columnPosition
-                                              : 'Not specified' }}
+                                            ? 'Column ' + tabularImportParams.commentDefinition.columnPosition
+                                            : 'Not specified' }}
                                         </td>
                                     </tr>
                                     <tr>

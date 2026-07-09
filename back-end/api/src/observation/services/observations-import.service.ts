@@ -90,11 +90,14 @@ export class ObservationImportService {
             throw new Error('Import source is disabled');
         }
 
+        this.logger.log(`Processing file import ${inputFilePathName} to dir ${outputDir} for source ${sourceDef.name} (id: ${sourceDef.id})`);
         // Determine which directory DuckDB should read from
         // let duckDbInputFilePathName: string = path.posix.join(op.inputDir, inputFileName);
         let duckDbInputFilePathName: string = inputFilePathName;
 
         if (sourceDef.adapterId) {
+            console.log('processFileForImport inputFilePathName: ', inputFilePathName);
+            console.log('processFileForImport outputDir: ', outputDir);
             const result: AdapterRunResult = await this.runImportAdapter(sourceDef, inputFilePathName, intermediateDir, userId, stationId);
             if (result.status === 'failure') {
                 return result.error;
@@ -103,7 +106,7 @@ export class ObservationImportService {
             duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0]);
         }
 
-        const importSourceDef = sourceDef.parameters as ImportSourceDto;
+        const importSourceDef : ImportSourceDto = sourceDef.parameters as ImportSourceDto;
 
         if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
             return await this.processTabularSource(sourceDef, duckDbInputFilePathName, outputDir, userId, stationId);
@@ -130,7 +133,6 @@ export class ObservationImportService {
             name: adapter.name,
             language: adapter.language,
             scriptDirName: adapter.scriptDirName,
-            entryPoint: adapter.entryPoint,
         };
 
         const metadata: AdapterRunMetadata = {
@@ -144,11 +146,7 @@ export class ObservationImportService {
             testRun: false,
         };
 
-        const result: AdapterRunResult = await this.adapterRunnerService.run(
-            adapterRef,
-            inputFilePathName,
-            outputDir,
-            metadata);
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata);
 
         return result;
     }

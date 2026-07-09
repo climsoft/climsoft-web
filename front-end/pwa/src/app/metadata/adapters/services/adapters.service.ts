@@ -82,6 +82,14 @@ export class AdaptersService {
         return `${this.endPointUrl}/templates/${language}`;
     }
 
+    public getAdapterDownloadUrl(id: number): string {
+        return `${this.endPointUrl}/${id}/download`;
+    }
+
+    public getTestRunOutputDownloadUrl(operationId: string): string {
+        return `${this.endPointUrl}/test-run-preview/output/${operationId}`;
+    }
+
     /**
      * Runs a test against an unsaved adapter using the scriptDirName from
      * a prior `uploadPreview()` call. Lets sysadmins verify scripts before saving.

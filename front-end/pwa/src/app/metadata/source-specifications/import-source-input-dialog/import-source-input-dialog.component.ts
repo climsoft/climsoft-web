@@ -7,7 +7,7 @@ import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specificat
 import { CreateSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/create-source-specification.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { SourcesCacheService } from '../services/source-cache.service';
-import { ImportPreviewHttpService } from '../services/import-preview.service';
+import { ImportPreviewService } from '../services/import-preview.service';
 import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import-preview.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewAdapterSpecificationModel } from 'src/app/metadata/adapters/models/view-adapter-specification.model';
@@ -58,7 +58,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     constructor(
         private pagesDataService: PagesDataService,
         private sourcesCacheService: SourcesCacheService,
-        private importPreviewService: ImportPreviewHttpService,
+        private importPreviewService: ImportPreviewService,
     ) {
         // Reset all state
         this.resetSamplePreview();
@@ -308,6 +308,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             }),
         ).subscribe({
             next: (transformedResponse: TransformedPreviewResponse) => {
+                this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
                 this.transformedPreviewResponse = transformedResponse;
             },
@@ -361,6 +362,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             }),
         ).subscribe({
             next: (transformedResponse: TransformedPreviewResponse) => {
+                this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
                 this.transformedPreviewResponse = transformedResponse;
             },

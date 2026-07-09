@@ -1,9 +1,8 @@
-import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, HttpCode, MaxFileSizeValidator, NotFoundException, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Req, Res, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, HttpCode, MaxFileSizeValidator, NotFoundException, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
-import AdmZip from 'adm-zip';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { AppConfig } from 'src/app.config';
@@ -12,6 +11,8 @@ import { AdaptersService } from '../services/adapters.service';
 import { CreateAdapterSpecificationDto } from '../dtos/create-adapter-specification.dto';
 import { UpdateAdapterSpecificationDto } from '../dtos/update-adapter-specification.dto';
 import { AdapterTestRunPreviewDto } from '../dtos/adapter-test-run-preview.dto';
+import { ZipUtils } from 'src/shared/utils/zip.utils';
+import { StreamableFileUtils } from 'src/shared/utils/streamable-file.utils';
 
 /**
  * Adapter endpoints follow an upload-then-save pattern (same as import specs):
@@ -35,7 +36,6 @@ export class AdaptersController {
     @Get('templates/:language')
     public downloadTemplate(
         @Param('language') language: string,
-        @Res({ passthrough: true }) res: Response,
     ): StreamableFile {
         if (!Object.values(AdapterLanguageEnum).includes(language as AdapterLanguageEnum)) {
             throw new NotFoundException(`No template available for language '${language}'`);
@@ -47,25 +47,37 @@ export class AdaptersController {
             throw new NotFoundException(`Template directory not found for '${language}'`);
         }
 
-        const zip = new AdmZip();
-        const addDirRecursive = (dirPath: string, zipPath: string) => {
-            for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
-                const fullPath = path.join(dirPath, entry.name);
-                if (entry.isDirectory()) {
-                    addDirRecursive(fullPath, path.join(zipPath, entry.name));
-                } else {
-                    zip.addLocalFile(fullPath, zipPath === '' ? undefined : zipPath);
-                }
-            }
-        };
-        addDirRecursive(templateDir, '');
+        const buffer = ZipUtils.buildZipBufferFromDir(templateDir);
+        return StreamableFileUtils.asAttachment(buffer, `adapter-template-${language}.zip`);
+    }
 
-        const buffer = zip.toBuffer();
-        res.set({
-            'Content-Type': 'application/zip',
-            'Content-Disposition': `attachment; filename="adapter-template-${language}.zip"`,
-        });
-        return new StreamableFile(buffer);
+    /**
+     * Downloads a saved adapter's script directory as a zip so a sysadmin
+     * can edit locally and re-upload via `upload-preview`. Excludes the
+     * runner-managed `.installed/` cache.
+     */
+    @Admin()
+    @Get(':id/download')
+    public async downloadScripts(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<StreamableFile> {
+        const { buffer, filename } = await this.adaptersService.buildDownloadZip(id);
+        return StreamableFileUtils.asAttachment(buffer, filename);
+    }
+
+    /**
+     * Downloads the full test-run output directory (including log files) as
+     * a zip. Called by the dialog's test-run pane after a successful run.
+     * The operation directory lives on disk until the file-cleanup scheduler
+     * sweeps it — a 404 here means it has already been aged out.
+     */
+    @Admin()
+    @Get('test-run-preview/output/:operationId')
+    public async downloadTestRunOutput(
+        @Param('operationId') operationId: string,
+    ): Promise<StreamableFile> {
+        const { buffer, filename } = await this.adaptersService.getTestRunOutputZip(operationId);
+        return StreamableFileUtils.asAttachment(buffer, filename);
     }
 
     @Get(':id')

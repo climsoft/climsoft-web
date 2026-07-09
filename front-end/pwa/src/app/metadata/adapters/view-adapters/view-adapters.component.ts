@@ -121,7 +121,7 @@ export class ViewAdaptersComponent {
     if (!this.selectedAdapter) return;
     const newDisabledState = !this.selectedAdapter.disabled;
     // Destructure to exclude 'id' and 'languageLabel' since API does not expect them
-    const { id, languageLabel, language, ...updateDto } = this.selectedAdapter;
+    const { id, languageLabel, ...updateDto } = this.selectedAdapter;
     this.adaptersService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
       take(1)
     ).subscribe({
