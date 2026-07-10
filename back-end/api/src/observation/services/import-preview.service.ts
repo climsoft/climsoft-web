@@ -261,8 +261,18 @@ export class ImportPreviewService implements OnModuleDestroy {
     public async importData(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
         const session = this.getSession(sessionId);
         const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
-        const inputFilePathName = path.posix.join(op.inputDir, session.workingFileName);
-        await this.observationImportService.processFileForImport(dto.sourceId, inputFilePathName, op.intermediateDir, op.outputDir, userId, dto.stationId ?? null);
+        // Working file lives in the input dir when no adapter was applied,
+        // or the intermediate dir when the preview upload already ran the adapter.
+        const workingDir: string = session.fileLocation === 'input' ? op.inputDir : op.intermediateDir;
+        const inputFilePathName: string = path.posix.join(workingDir, session.workingFileName);
+
+        // Skip the adapter step: it already ran during the preview upload.
+        // Running it again here would either fail (adapter can't parse its
+        // own output) or silently produce wrong data.
+        const error: FileProcessingError | void = await this.observationImportService.transformForImport(dto.sourceId, inputFilePathName, op.outputDir, userId, dto.stationId ?? null);
+        if (error) {
+            throw new BadRequestException(error.message);
+        }
 
         // Import to database from the operation's output directory
         const outputFiles = await fs.promises.readdir(op.outputDir);
