@@ -15,6 +15,14 @@ const app = express();
 app.use(express.json());
 
 const INSTALLED_DIR_NAME = '.installed';
+// Entry point is a language convention (`index.js`) enforced by the API at
+// upload-preview time — hardcoded here so it doesn't need to travel in the
+// request body.
+const ENTRY_POINT = 'index.js';
+// Volume mount points inside this container. Hardcoded to match every
+// docker-compose profile (dev / test / prod). Callers pass only IDs.
+const ADAPTERS_ROOT = '/app/adapters';
+const OPERATIONS_ROOT = '/app/operations';
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', runtime: 'javascript', version: process.version });
@@ -23,22 +31,29 @@ app.get('/health', (_req, res) => {
 app.post('/run', async (req, res) => {
   try {
     const body = req.body;
-    const required = ['scriptDir', 'entryPoint', 'inputDir', 'outputDir', 'metadataFile', 'timeoutSeconds'];
+    const required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
       return res.json(errorSummary('RUNTIME_ERROR', `Missing required fields: ${missing.join(', ')}`));
     }
 
-    const { scriptDir, entryPoint, inputDir, outputDir, metadataFile, timeoutSeconds } = body;
+    const { scriptDirName, operationId, inputRelPath, outputRelPath, timeoutSeconds } = body;
 
-    // Derive paths by convention
+    // Resolve full paths from the hardcoded roots + wire-supplied IDs.
+    const scriptDir = path.join(ADAPTERS_ROOT, scriptDirName);
+    const opDir = path.join(OPERATIONS_ROOT, operationId);
+    const inputFilePathName = path.join(opDir, inputRelPath);
+    const outputDir = path.join(opDir, outputRelPath);
+
+    // Derive paths by convention inside outputDir.
     const envDir = path.join(scriptDir, INSTALLED_DIR_NAME);
+    const metadataFile = path.join(outputDir, 'metadata.json');
     const warningsFile = path.join(outputDir, 'warnings.jsonl');
     const stdoutFile = path.join(outputDir, 'stdout.log');
     const stderrFile = path.join(outputDir, 'stderr.log');
     const installLogFile = path.join(outputDir, 'install.log');
 
-    const entryPath = path.join(scriptDir, entryPoint);
+    const entryPath = path.join(scriptDir, ENTRY_POINT);
     if (!fs.existsSync(entryPath)) {
       // TODO. Return the correct http status code?
       return res.json(errorSummary('RUNTIME_ERROR', `Entry point not found: ${entryPath}`));
@@ -78,7 +93,7 @@ app.post('/run', async (req, res) => {
     // Step 2: run the script
     const env = {
       ...process.env,
-      CLIMSOFT_INPUT_DIR: inputDir,
+      CLIMSOFT_INPUT_FILE_PATH_NAME: inputFilePathName,
       CLIMSOFT_OUTPUT_DIR: outputDir,
       CLIMSOFT_METADATA_FILE: metadataFile,
       CLIMSOFT_WARNINGS_FILE: warningsFile,

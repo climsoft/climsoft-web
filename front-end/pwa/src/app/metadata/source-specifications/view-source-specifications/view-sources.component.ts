@@ -11,6 +11,7 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { FormSourceInputDialogComponent } from '../form-source-input-dialog/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from '../import-source-input-dialog/import-source-input-dialog.component';
+import { SourceCloneDialogComponent } from '../source-clone-dialog/source-clone-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 interface View extends ViewSourceSpecificationModel {
@@ -31,6 +32,7 @@ export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
   @ViewChild('dlgFormEdit') dlgFormEdit!: FormSourceInputDialogComponent;
   @ViewChild('dlgImportEdit') dlgImportEdit!: ImportSourceInputDialogComponent;
+  @ViewChild('dlgClone') dlgClone!: SourceCloneDialogComponent;
 
   protected sources: View[] = [];
   protected selectedSource: View | null = null;
@@ -158,6 +160,11 @@ export class ViewSourcesComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Source Specification', message: err.error?.message || `Something bad happened`, type: ToastEventTypeEnum.ERROR });
       }
     });
+  }
+
+  protected onCloneClick(source: View, event: Event): void {
+    event.stopPropagation();
+    this.dlgClone.openDialog(source);
   }
 
   protected onToggleDisabledClick(source: View, event: Event): void {

@@ -31,7 +31,6 @@ import { AdapterLanguageEnum } from "../enums/adapter-language.enum";
 @Entity("adapter_specifications")
 @Check("CHK_adapter_specifications_name_not_empty", `"name" <> ''`)
 @Check("CHK_adapter_specifications_script_dir_name_not_empty", `"script_dir_name" <> ''`)
-@Check("CHK_adapter_specifications_entry_point_not_empty", `"entry_point" <> ''`)
 export class AdapterSpecificationEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id!: number;
@@ -56,14 +55,6 @@ export class AdapterSpecificationEntity extends AppBaseEntity {
      */
     @Column({ name: "script_dir_name", type: "varchar", unique: true })
     scriptDirName!: string;
-
-    /**
-     * Path inside the unzipped script tree to the entry-point file the runner
-     * should execute (e.g. `main.py`, `main.R`, `index.js`, `transform.sql`).
-     * Required so the runner does not have to guess.
-     */
-    @Column({ name: "entry_point", type: "varchar" })
-    entryPoint!: string;
 
     @Column({ type: "boolean", default: false })
     @Index()

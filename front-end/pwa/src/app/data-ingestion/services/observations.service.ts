@@ -291,10 +291,7 @@ export class ObservationsService {
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.patch<number>(`${this.endPointUrl}/restore`, observations)
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    return this.http.patch<number>(`${this.endPointUrl}/restore`, observations);
   }
 
   public delete(observations: DeleteObservationModel[]): Observable<number> {
@@ -302,10 +299,7 @@ export class ObservationsService {
   }
 
   public permanentDelete(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.delete<number>(`${this.endPointUrl}/permanent-delete`, { body: observations })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    return this.http.delete<number>(`${this.endPointUrl}/permanent-delete`, { body: observations });
   }
 
   public findStationsObservationStatus(query: StationStatusQueryModel): Observable<string[]> {
@@ -357,20 +351,15 @@ export class ObservationsService {
       );
   }
 
-  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<string> {
-    return this.http.get<string>(
-      `${this.endPointUrl}/generate-export/${exportTemplateId}`,
-      {
-        params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery),
-        responseType: 'text' as 'json'
-      })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+  public generateExport(exportSpecificationId: number, viewObsQuery: ViewObservationQueryModel): Observable<{ downloadId: string }> {
+    return this.http.get<{ downloadId: string }>(
+      `${this.endPointUrl}/generate-export/${exportSpecificationId}`, {
+      params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery),
+    });
   }
 
-  public getDownloadExportLink(uniqueDownloadId: string): string {
-    return `${this.endPointUrl}/download-export/${uniqueDownloadId}`;
+  public getDownloadExportLink(downloadId: string): string {
+    return `${this.endPointUrl}/download-export/${downloadId}`;
   }
 
 }

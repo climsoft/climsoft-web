@@ -1,11 +1,14 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 import { AdapterLanguageEnum } from '../enums/adapter-language.enum';
-import { DefaultNull } from 'src/shared/decorators/default-null.decorator';
 
 /**
  * DTO for creating a new adapter specification. The zip file has already
  * been uploaded and extracted via `POST /adapters/upload-preview`, which
  * returned the `scriptDirName` (UUID) the client sends here.
+ *
+ * The entry point is NOT sent by the client — it is a language-level
+ * convention (see `CANONICAL_ENTRY_POINT`) that the API enforces at
+ * upload-preview time.
  */
 export class CreateAdapterSpecificationDto {
     @IsString()
@@ -27,19 +30,10 @@ export class CreateAdapterSpecificationDto {
     @IsNotEmpty()
     scriptDirName!: string;
 
-    /**
-     * Path inside the unzipped script tree to the entry-point file, e.g.
-     * `main.py`. Validated by the service to actually exist inside the
-     * already-extracted directory.
-     */
-    @IsString()
-    @IsNotEmpty()
-    entryPoint!: string;
-
     @IsBoolean()
     disabled!: boolean;
 
-    @DefaultNull()
+    @ValidateIf((_o, v) => v !== null)
     @IsString()
     @IsNotEmpty()
     comment!: string | null;

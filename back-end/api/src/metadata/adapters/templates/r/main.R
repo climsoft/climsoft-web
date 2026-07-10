@@ -2,14 +2,14 @@
 ## Climsoft adapter starter template (R).
 ##
 ## Environment variables set by the runner:
-##   CLIMSOFT_INPUT_FILE    - path to the input file to process
-##   CLIMSOFT_OUTPUT_FILE   - path where the output file must be written
+##   CLIMSOFT_INPUT_FILE_PATH_NAME    - input file to process
+##   CLIMSOFT_OUTPUT_DIR   - path where the output file(s) must be written
 ##   CLIMSOFT_METADATA_FILE - path to a JSON sidecar with context metadata
 ##   CLIMSOFT_WARNINGS_FILE - path to write structured warnings (JSON Lines)
 ##
 
-input_file    <- Sys.getenv("CLIMSOFT_INPUT_FILE")
-output_file   <- Sys.getenv("CLIMSOFT_OUTPUT_FILE")
+input_file    <- Sys.getenv("CLIMSOFT_INPUT_FILE_PATH_NAME")
+output_file   <- Sys.getenv("CLIMSOFT_OUTPUT_DIR")
 metadata_file <- Sys.getenv("CLIMSOFT_METADATA_FILE")
 warnings_file <- Sys.getenv("CLIMSOFT_WARNINGS_FILE")
 

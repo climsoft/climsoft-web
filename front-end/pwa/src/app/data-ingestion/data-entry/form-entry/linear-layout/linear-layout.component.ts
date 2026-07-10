@@ -1,9 +1,9 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition';
+import { FieldEntryDefinition, FormEntryDefinition } from '../form-entry.definition';
 import { ValueFlagInputComponent } from '../../../value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { ViewObservationModel } from '../../../models/view-observation.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { ObservationEntry } from 'src/app/data-ingestion/models/observation-entry.model';
@@ -199,12 +199,12 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
   }
 
   public setFocusToFirstVF(): void {
-    // For some reason focus is not set on the first value flag control 
+    // For some reason focus is not set on the first value flag control
     // when the below code is called immediately after refreshing this layout
     setTimeout(() => {
-      if (this.vfComponents && this.vfComponents.length > 0) {
-        this.vfComponents.first.focus();
-      }
+      if (!this.vfComponents || this.vfComponents.length === 0) return;
+      const firstEnabled = this.vfComponents.find(c => !c.disableValueFlagEntry);
+      if (firstEnabled) firstEnabled.focus();
     }, 0);
   }
 

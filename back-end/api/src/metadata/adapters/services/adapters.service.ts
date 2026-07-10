@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import AdmZip from 'adm-zip';
 
+import { ZipUtils } from 'src/shared/utils/zip.utils';
 import { AdapterSpecificationEntity } from '../entities/adapter-specification.entity';
 import { CreateAdapterSpecificationDto } from '../dtos/create-adapter-specification.dto';
 import { UpdateAdapterSpecificationDto } from '../dtos/update-adapter-specification.dto';
@@ -18,20 +19,7 @@ import { AdapterRef, AdapterRunMetadata, AdapterRunnerService, AdapterRunResult 
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 import { AdapterTestRunPreviewDto } from '../dtos/adapter-test-run-preview.dto';
 import { FileProcessingErrorType } from 'src/metadata/file-processing-error.model';
-
-/**
- * Manifest filenames required at the root of an uploaded zip, one per
- * supported language. The validator only checks for existence — detailed
- * dependency parsing is the runner's job at first-run time.
- *
- * For R we accept either `renv.lock` (preferred) or `DESCRIPTION`.
- */
-const MANIFEST_FILENAMES: Record<AdapterLanguageEnum, string[]> = {
-    [AdapterLanguageEnum.PYTHON]: ['requirements.txt'],
-    [AdapterLanguageEnum.R]: ['renv.lock', 'DESCRIPTION'],
-    [AdapterLanguageEnum.JAVASCRIPT]: ['package.json', 'package-lock.json'],
-    [AdapterLanguageEnum.SQL]: ['extensions.txt'],
-};
+import { CANONICAL_ENTRY_POINT, MANIFEST_FILENAMES } from '../adapter-language-conventions';
 
 @Injectable()
 export class AdaptersService implements OnModuleInit {
@@ -73,6 +61,7 @@ export class AdaptersService implements OnModuleInit {
 
     public find(id: number): ViewAdapterSpecificationDto {
         const dto = this.cache.getById(id);
+        
         if (!dto) {
             throw new NotFoundException(`Adapter #${id} not found`);
         }
@@ -80,7 +69,7 @@ export class AdaptersService implements OnModuleInit {
     }
 
     /**
-     * Returns the file tree and manifest validation for an already-saved
+     * Returns the file tree and root-level validation for an already-saved
      * adapter's script directory. Used by the dialog when opening an
      * existing adapter in edit mode.
      */
@@ -93,13 +82,12 @@ export class AdaptersService implements OnModuleInit {
         );
 
         const fileTree = await this.buildFileTree(scriptDir);
-        const { manifestFound, manifestError } = this.checkManifestInTree(fileTree, entity.language);
 
         return {
             scriptDirName: entity.scriptDirName,
             fileTree,
-            manifestFound,
-            manifestError,
+            manifestError: this.checkManifestAtRoot(fileTree, entity.language),
+            entryPointError: this.checkEntryPointAtRoot(fileTree, entity.language),
         };
     }
 
@@ -124,13 +112,12 @@ export class AdaptersService implements OnModuleInit {
         const scriptDir = await this.unzipToScriptDir(zipFile, scriptDirName);
 
         const fileTree: FileTreeEntry[] = await this.buildFileTree(scriptDir);
-        const { manifestFound, manifestError } = this.checkManifestInTree(fileTree, language);
 
         return {
             scriptDirName,
             fileTree,
-            manifestFound,
-            manifestError,
+            manifestError: this.checkManifestAtRoot(fileTree, language),
+            entryPointError: this.checkEntryPointAtRoot(fileTree, language),
         };
     }
 
@@ -170,17 +157,35 @@ export class AdaptersService implements OnModuleInit {
     }
 
     /**
-     * Checks whether the file tree contains at least one accepted manifest
-     * file for the given language. Uses the in-memory tree rather than
-     * hitting the filesystem again.
+     * Returns an error message if none of the accepted manifest filenames for
+     * the language are present at the ROOT of the tree (top-level files only,
+     * no directory prefix). Returns `undefined` if a valid manifest is present.
+     *
+     * Root-only enforcement is intentional: runners execute from the extracted
+     * script directory and expect the manifest at that same level. A zip whose
+     * files are nested inside a wrapper folder (a common user mistake) must
+     * fail here rather than at runtime.
      */
-    private checkManifestInTree(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): { manifestFound: boolean; manifestError?: string } {
+    private checkManifestAtRoot(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): string | undefined {
         const acceptedNames = MANIFEST_FILENAMES[language];
-        const manifestFound = acceptedNames.some(name =>
+        const found = acceptedNames.some(name =>
             fileTree.some(e => !e.isDirectory && e.path === name),
         );
-        const manifestError = manifestFound ? undefined : `Missing manifest file for '${language}'. Expected one of: ${acceptedNames.join(', ')} at the root of the archive.`;
-        return { manifestFound, manifestError };
+        if (found) return undefined;
+        return `Missing manifest file for '${language}'. Expected one of: ${acceptedNames.join(', ')} at the root of the archive.`;
+    }
+
+    /**
+     * Returns an error message if the language's canonical entry-point file is
+     * not present at the ROOT of the tree. Users don't choose the entry-point
+     * name — it's a language convention (`main.py`, `main.R`, `index.js`,
+     * `transform.sql`) enforced here so the runner never has to guess.
+     */
+    private checkEntryPointAtRoot(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): string | undefined {
+        const expected = CANONICAL_ENTRY_POINT[language];
+        const found = fileTree.some(e => !e.isDirectory && e.path === expected);
+        if (found) return undefined;
+        return `Missing entry-point file '${expected}' at the root of the archive for language '${language}'.`;
     }
 
     //--------------------------------------------------------------------
@@ -203,12 +208,11 @@ export class AdaptersService implements OnModuleInit {
     /**
      * Creates a new adapter specification. The zip has already been uploaded
      * and extracted via `uploadPreview()` — `dto.scriptDirName` is the UUID
-     * of the directory on disk. This method validates the entry point exists
-     * inside that directory, then inserts the DB row.
+     * of the directory on disk.
      *
-     * Manifest validation is NOT repeated here — it was already checked
-     * during `uploadPreview()`, and the frontend disables save unless
-     * `manifestFound === true`. The zip contents haven't changed since.
+     * Manifest and entry-point validation are NOT repeated here — they were
+     * already checked during `uploadPreview()`, and the frontend disables save
+     * unless both errors are absent. The zip contents haven't changed since.
      */
     public async create(
         dto: CreateAdapterSpecificationDto,
@@ -224,14 +228,11 @@ export class AdaptersService implements OnModuleInit {
             `Script directory '${dto.scriptDirName}' not found. Please upload the zip file first.`,
         );
 
-        await this.validateEntryPoint(scriptDir, dto.entryPoint);
-
         const entity = this.adapterRepo.create({
             name: dto.name,
             description: dto.description ?? null,
             language: dto.language,
             scriptDirName: dto.scriptDirName,
-            entryPoint: dto.entryPoint,
             disabled: dto.disabled,
             comment: dto.comment ?? null,
             entryUserId: userId,
@@ -252,7 +253,8 @@ export class AdaptersService implements OnModuleInit {
      * point to a new directory from a recent `uploadPreview()` call — the
      * old directory stays on disk for forensics.
      *
-     * Manifest validation is NOT repeated — same reasoning as `create()`.
+     * Manifest and entry-point validation are NOT repeated — same reasoning
+     * as `create()`.
      */
     public async update(id: number, dto: UpdateAdapterSpecificationDto, userId: number): Promise<ViewAdapterSpecificationDto> {
         const entity = await this.findEntity(id);
@@ -266,9 +268,6 @@ export class AdaptersService implements OnModuleInit {
         const scriptDir = this.fileIO.getAdapterScriptDir(dto.scriptDirName);
         await this.assertDirExists(scriptDir, `Script directory '${dto.scriptDirName}' not found. Please upload the zip file first.`);
         entity.scriptDirName = dto.scriptDirName;
-
-        await this.validateEntryPoint(scriptDir, dto.entryPoint);
-        entity.entryPoint = dto.entryPoint;
 
         await this.adapterRepo.save(entity);
         await this.cache.invalidate();
@@ -291,6 +290,7 @@ export class AdaptersService implements OnModuleInit {
      */
     public async testRunPreview(dto: AdapterTestRunPreviewDto, sampleFile: Express.Multer.File, userId: number): Promise<AdapterTestRunResponseDto> {
         if (!this.runner.isRunnerEnabled(dto.language)) {
+            console.warn(`Test run failed: runner for language '${dto.language}' is not enabled`);
             return this.toTestRunFailure(FileProcessingErrorType.RUNNER_DISABLED, `The ${dto.language} runner is not enabled in this deployment.`);
         }
 
@@ -301,61 +301,126 @@ export class AdaptersService implements OnModuleInit {
             return this.toTestRunFailure(FileProcessingErrorType.RUNTIME_ERROR, `Script directory '${dto.scriptDirName}' not found. Please upload the zip file first.`);
         }
 
-        await this.validateEntryPoint(scriptDir, dto.entryPoint);
-
         const op = await this.fileIO.createOperation();
 
-        try {
-            const inputFilePathName: string = path.posix.join(op.inputDir, sampleFile.originalname);
-            await fs.promises.writeFile(inputFilePathName, sampleFile.buffer);
+        const inputFilePathName: string = path.posix.join(op.inputDir, sampleFile.originalname);
+        await fs.promises.writeFile(inputFilePathName, sampleFile.buffer);
 
-            const adapterRef: AdapterRef = {
-                id: 0,
-                name: '(unsaved adapter)',
-                language: dto.language,
-                scriptDirName: dto.scriptDirName,
-                entryPoint: dto.entryPoint,
-            };
+        this.logger.log(`Starting test run for adapter '${dto.scriptDirName}' with sample file '${sampleFile.originalname}' written to '${inputFilePathName}'`);
 
-            const metadata: AdapterRunMetadata = {
-                initiatedByUserId: userId,
-                initiatedAt: new Date().toISOString(),
-                sourceSpecId: null,
-                sourceSpecName: null,
-                stationId: null,
-                utcOffset: null,
-                specParameters: null,
-                testRun: true,
-            };
+        const adapterRef: AdapterRef = {
+            id: 0,
+            name: '(unsaved adapter)',
+            language: dto.language,
+            scriptDirName: dto.scriptDirName,
+        };
 
-            const result: AdapterRunResult = await this.runner.run(adapterRef, inputFilePathName, op.outputDir, metadata);
+        const metadata: AdapterRunMetadata = {
+            initiatedByUserId: userId,
+            initiatedAt: new Date().toISOString(),
+            sourceSpecId: null,
+            sourceSpecName: null,
+            stationId: null,
+            utcOffset: null,
+            specParameters: null,
+            testRun: true,
+        };
 
-            return {
-                status: result.status,
-                durationMs: result.durationMs,
-                outputFileName: result.outputFiles.length > 0 ? path.posix.basename(result.outputFiles[0]) : null,
-                stdout: result.stdout,
-                stderr: result.stderr,
-                installLog: result.installLog,
-                warnings: result.warnings,
-                error: result.error,
-            };
-        } finally {
-            await this.fileIO.deleteOperation(op.operationId);
-        }
+        const result: AdapterRunResult = await this.runner.run(adapterRef, inputFilePathName, op.outputDir, metadata);
+
+        this.logger.log(`Test run completed with status '${result.status}' in ${result.durationMs}ms. Output files: ${result.outputFiles.map(f => f.name).join(', ')}`);
+
+        // The operation directory is intentionally NOT deleted here — the
+        // dialog needs it available so the sysadmin can download the output
+        // (including log files) as a zip. `CleanupSchedulerService` sweeps
+        // orphaned op dirs based on the configured `daysOld` TTL.
+        return {
+            status: result.status,
+            durationMs: result.durationMs,
+            outputFiles: result.outputFiles,
+            logFiles: result.logFiles,
+            operationId: result.outputFiles.length > 0 ? op.operationId : null,
+            error: result.error,
+        };
     }
 
     private toTestRunFailure(type: FileProcessingErrorType, message: string): AdapterTestRunResponseDto {
         return {
             status: 'failure',
             durationMs: 0,
-            outputFileName: null,
-            stdout: '',
-            stderr: '',
-            installLog: null,
-            warnings: [],
+            outputFiles: [],
+            logFiles: [],
+            operationId: null,
             error: { type, message },
         };
+    }
+
+    //--------------------------------------------------------------------
+    // Download
+    //--------------------------------------------------------------------
+
+    /**
+     * Builds an in-memory zip of a saved adapter's script directory so a
+     * sysadmin can download it, edit locally, and re-upload. Excludes the
+     * runner-managed `.installed/` directory — users only care about the
+     * source files, and installed dependencies can be many megabytes.
+     *
+     * Returns the zip buffer and a filesystem-safe filename derived from
+     * the adapter name.
+     */
+    public async buildDownloadZip(id: number): Promise<{ buffer: Buffer; filename: string }> {
+        const entity = await this.findEntity(id);
+        const scriptDir = this.fileIO.getAdapterScriptDir(entity.scriptDirName);
+
+        await this.assertDirExists(scriptDir,
+            `Script directory '${entity.scriptDirName}' not found on disk for adapter #${id}`,
+        );
+
+        return {
+            buffer: ZipUtils.buildZipBufferFromDir(scriptDir, new Set([AdaptersService.INSTALLED_DIR_NAME])),
+            filename: `${AdaptersService.sanitiseZipFilename(entity.name, id)}.zip`,
+        };
+    }
+
+    /**
+     * Builds an in-memory zip of a test run's operation output directory,
+     * including any log files. Called after a successful `testRunPreview`
+     * so the sysadmin can inspect what the adapter actually produced.
+     *
+     * Throws `NotFoundException` if the operation dir was already swept by
+     * the file-cleanup scheduler.
+     */
+    public async getTestRunOutputZip(operationId: string): Promise<{ buffer: Buffer; filename: string }> {
+        const op = this.fileIO.getOperationContext(operationId as crypto.UUID);
+
+        try {
+            await this.assertDirExists(op.outputDir, `Test-run output directory not found for operation '${operationId}'.`);
+        } catch (err) {
+            throw new NotFoundException((err as Error).message);
+        }
+
+        const entries = await fs.promises.readdir(op.outputDir);
+        if (entries.length === 0) {
+            throw new NotFoundException(`Test-run output directory is empty for operation '${operationId}'.`);
+        }
+
+        return {
+            buffer: ZipUtils.buildZipBufferFromDir(op.outputDir),
+            filename: `test-run-${operationId}.zip`,
+        };
+    }
+
+    /**
+     * Reduces an adapter name to a safe filename component: alphanumerics,
+     * dot, dash, and underscore; whitespace collapsed to underscore. Falls
+     * back to `adapter-<id>` for empty results so we never emit a bare `.zip`
+     * or a filename that could confuse the browser's Content-Disposition parser.
+     */
+    private static sanitiseZipFilename(name: string, id: number): string {
+        const sanitised = name
+            .replace(/\s+/g, '_')
+            .replace(/[^A-Za-z0-9._-]/g, '');
+        return sanitised.length > 0 ? sanitised : `adapter-${id}`;
     }
 
     //--------------------------------------------------------------------
@@ -395,7 +460,6 @@ export class AdaptersService implements OnModuleInit {
             description: entity.description ?? '',
             language: entity.language,
             scriptDirName: entity.scriptDirName,
-            entryPoint: entity.entryPoint,
             disabled: entity.disabled,
             comment: entity.comment ?? '',
         };
@@ -429,35 +493,6 @@ export class AdaptersService implements OnModuleInit {
         }
 
         return scriptDir;
-    }
-
-    /**
-     * Verifies the entry point path points at an actual file inside the
-     * script directory. Also guards against zip-slip-style paths that
-     * try to escape the directory.
-     */
-    private async validateEntryPoint(scriptDir: string, entryPoint: string): Promise<void> {
-        const normalised = path.posix.normalize(entryPoint.replaceAll('\\', '/'));
-        if (path.posix.isAbsolute(normalised) || normalised.startsWith('..')) {
-            throw new BadRequestException(`Entry point '${entryPoint}' must be a relative path inside the zip`);
-        }
-
-        const fullPath = path.posix.join(scriptDir, normalised);
-        if (!fullPath.startsWith(scriptDir + path.posix.sep) && fullPath !== scriptDir) {
-            throw new BadRequestException(`Entry point '${entryPoint}' escapes the adapter directory`);
-        }
-
-        try {
-            const stat = await fs.promises.stat(fullPath);
-            if (!stat.isFile()) {
-                throw new BadRequestException(`Entry point '${entryPoint}' exists but is not a file`);
-            }
-        } catch (err) {
-            if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-                throw new BadRequestException(`Entry point '${entryPoint}' does not exist inside the adapter script directory`);
-            }
-            throw err;
-        }
     }
 
     /**

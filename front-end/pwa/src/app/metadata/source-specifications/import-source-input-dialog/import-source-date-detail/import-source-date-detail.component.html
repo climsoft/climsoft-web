@@ -1,111 +1,175 @@
 <div *ngIf="datetimeDefinition">
-    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateDefinition'" [groupItems]="[
-        { label:'Date Time in Single Column', checked: datetimeDefinition.dateTimeInSingleColumn !== undefined},
-        { label:'Date in Single Column', checked: datetimeDefinition.dateInSingleColumn !== undefined},
-        { label:'Date Time in Two Columns', checked: datetimeDefinition.dateTimeInTwoColumns !== undefined},
-        { label:'Date Time in Multiple Columns', checked: datetimeDefinition.dateTimeInMultipleColumns !== undefined},
-        { label:'Date in Multiple Columns', checked: datetimeDefinition.dateInMultipleColumns !== undefined}]"
-        (checkedValueChange)="onDatetimeSelection($event)" />
 
-    <div class="ms-4">
+    <!-- Top-level: combined column vs separated date and time -->
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateTimeMode'" [groupItems]="[
+            { label:'Combined Column', checked: datetimeDefinition.combinedColumn !== undefined },
+            { label:'Separated Columns', checked: datetimeDefinition.separated !== undefined }]"
+        (checkedValueChange)="onDateTimeModeSelection($event)" />
 
-        <div *ngIf="datetimeDefinition.dateTimeInSingleColumn !== undefined">
+    <div class="ms-2 mt-2">
+
+        <!-- Combined: one column carries both date and time -->
+        <div *ngIf="datetimeDefinition.combinedColumn !== undefined">
             <div class="mb-2">
-                <app-number-input [id]="'date_time_single_col_pos'" [label]="'Column Position'"
-                    [(numValue)]="datetimeDefinition.dateTimeInSingleColumn.columnPosition" />
+                <app-number-input [id]="'combined_col_pos'" [label]="'Column Position'"
+                    [(numValue)]="datetimeDefinition.combinedColumn.columnPosition" />
             </div>
             <div>
-                <app-datetime-format-selector-single [id]="'date_time_single_time_format'" [label]="'Date time format'"
-                    [(selectedId)]="datetimeDefinition.dateTimeInSingleColumn.datetimeFormat" />
+                <app-datetime-format-selector-single [id]="'combined_datetime_format'" [label]="'Date time format'"
+                    [(selectedId)]="datetimeDefinition.combinedColumn.datetimeFormat" />
             </div>
         </div>
 
-        <div *ngIf="datetimeDefinition.dateInSingleColumn !== undefined">
-            <div class="mb-2">
-                <app-number-input [id]="'date_single_col_pos'" [label]="'Column Position'"
-                    [(numValue)]="datetimeDefinition.dateInSingleColumn.columnPosition" />
+        <!-- Separated: date panel and time panel side by side -->
+        <div *ngIf="datetimeDefinition.separated !== undefined" class="row g-2">
+
+            <!-- Date panel -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header py-1 fw-bold">Date</div>
+                    <div class="card-body">
+
+                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateMode'" [groupItems]="[
+                                { label:'Single Column', checked: datetimeDefinition.separated.date.singleColumn !== undefined },
+                                { label:'Year, Month and Day Columns', checked: datetimeDefinition.separated.date.yearMonthDayColumns !== undefined }]"
+                            (checkedValueChange)="onDateModeSelection($event)" />
+
+                        <div class="ms-2 mt-3">
+
+                            <!-- Date: single column with format -->
+                            <div *ngIf="datetimeDefinition.separated.date.singleColumn !== undefined">
+                                <div class="mb-2">
+                                    <app-number-input [id]="'date_single_col_pos'" [label]="'Column Position'"
+                                        [(numValue)]="datetimeDefinition.separated.date.singleColumn.columnPosition" />
+                                </div>
+                                <div>
+                                    <app-date-format-selector-single [id]="'date_single_format'" [label]="'Date format'"
+                                        [(selectedId)]="datetimeDefinition.separated.date.singleColumn.dateFormat" />
+                                </div>
+                            </div>
+
+                            <!-- Date: year/month/day columns -->
+                            <div *ngIf="datetimeDefinition.separated.date.yearMonthDayColumns !== undefined">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'ymd_year_col_pos'" [label]="'Year Column Position'"
+                                            [(numValue)]="datetimeDefinition.separated.date.yearMonthDayColumns.yearColumnPosition" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'ymd_month_col_pos'" [label]="'Month Column Position'"
+                                            [(numValue)]="datetimeDefinition.separated.date.yearMonthDayColumns.monthColumnPosition" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <div><label class="form-label mb-1 fw-bold">Day Columns: </label></div>
+                                    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dayMode'"
+                                        [groupItems]="dayModeItems"
+                                        (checkedValueChange)="onDayModeSelection($event)" />
+                                    <div *ngIf="dayColumnsRangeBlocked" class="form-text text-warning small">
+                                        Days as Columns (wide) is hidden because the time side already uses an hour-range. Only one wide pivot is supported per file.
+                                    </div>
+                                </div>
+
+                                <div class="ms-2">
+                                    <div *ngIf="datetimeDefinition.separated.date.yearMonthDayColumns.dayColumns.singleColumn !== undefined">
+                                        <app-number-input [id]="'day_single_col_pos'" [label]="'Day Column Position'"
+                                            [(numValue)]="datetimeDefinition.separated.date.yearMonthDayColumns.dayColumns.singleColumn.columnPosition" />
+                                    </div>
+
+                                    <div *ngIf="datetimeDefinition.separated.date.yearMonthDayColumns.dayColumns.columnsRange !== undefined">
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <app-number-input [id]="'day_range_first'" [label]="'First Day Column'"
+                                                    [(numValue)]="datetimeDefinition.separated.date.yearMonthDayColumns.dayColumns.columnsRange.firstColumnPosition" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <app-number-input [id]="'day_range_last'" [label]="'Last Day Column'"
+                                                    [(numValue)]="datetimeDefinition.separated.date.yearMonthDayColumns.dayColumns.columnsRange.lastColumnPosition" />
+                                            </div>
+                                        </div>
+                                        <div class="form-text text-muted small">
+                                            Each column in the range holds the observation value for one day of the month. The observation value column is derived from this pivot.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-2">
-                <app-date-format-selector-single [id]="'date_single_date_format'" [label]="'Date format'"
-                    [(selectedId)]="datetimeDefinition.dateInSingleColumn.dateFormat" />
-            </div>
-            <div>
-                <app-hour-single-input [id]="'date_single_default_hour'" [label]="'Default Hour'"
-                    [selectedId]="datetimeDefinition.dateInSingleColumn.defaultHour"
-                    (selectedIdChange)="datetimeDefinition.dateInSingleColumn.defaultHour = $event ?? 0" />
+
+            <!-- Time panel -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header py-1 fw-semibold">Time</div>
+                    <div class="card-body">
+
+                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'timeMode'"
+                            [groupItems]="timeModeItems"
+                            (checkedValueChange)="onTimeModeSelection($event)" />
+                        <div *ngIf="hourColumnsRangeBlocked" class="form-text text-warning small">
+                            Hours as Columns (wide) is hidden because the date side already uses a day-range. Only one wide pivot is supported per file.
+                        </div>
+
+                        <div class="ms-2 mt-3">
+
+                            <!-- Time: default hour (no time in file) -->
+                            <div *ngIf="datetimeDefinition.separated.time.defaultHour !== undefined">
+                                <app-hour-single-input [id]="'time_default_hour'" [label]="'Default Hour'"
+                                    [selectedId]="datetimeDefinition.separated.time.defaultHour.hour"
+                                    (selectedIdChange)="datetimeDefinition.separated.time.defaultHour.hour = $event ?? 0; emit()" />
+                            </div>
+
+                            <!-- Time: single column with format -->
+                            <div *ngIf="datetimeDefinition.separated.time.singleColumn !== undefined">
+                                <div class="mb-2">
+                                    <app-number-input [id]="'time_single_col_pos'" [label]="'Column Position'"
+                                        [(numValue)]="datetimeDefinition.separated.time.singleColumn.columnPosition" />
+                                </div>
+                                <div>
+                                    <app-time-format-selector-single [id]="'time_single_format'" [label]="'Time format'"
+                                        [(selectedId)]="datetimeDefinition.separated.time.singleColumn.timeFormat" />
+                                </div>
+                            </div>
+
+                            <!-- Time: hour and minute columns -->
+                            <div *ngIf="datetimeDefinition.separated.time.hourAndMinuteColumns !== undefined">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'time_hm_hour_col'" [label]="'Hour Column Position'"
+                                            [(numValue)]="datetimeDefinition.separated.time.hourAndMinuteColumns.hourColumnPosition" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'time_hm_minute_col'" [label]="'Minute Column Position'"
+                                            [(numValue)]="datetimeDefinition.separated.time.hourAndMinuteColumns.minuteColumnPosition" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Time: hours as columns (wide) -->
+                            <div *ngIf="datetimeDefinition.separated.time.hourColumnsRange !== undefined">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'time_hr_first'" [label]="'First Hour Column'"
+                                            [(numValue)]="datetimeDefinition.separated.time.hourColumnsRange.firstColumnPosition" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <app-number-input [id]="'time_hr_last'" [label]="'Last Hour Column'"
+                                            [(numValue)]="datetimeDefinition.separated.time.hourColumnsRange.lastColumnPosition" />
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted small">
+                                    Each column in the range holds the observation value for one hour-of-day. The observation value column is derived from this pivot.
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div *ngIf="datetimeDefinition.dateTimeInTwoColumns !== undefined">
-            <div class="mb-3">
-                <div class="mb-2">
-                    <app-number-input [id]="'date_time_two_date_col_pos'" [label]="'Date Column Position'"
-                        [(numValue)]="datetimeDefinition.dateTimeInTwoColumns.dateColumnPosition" />
-                </div>
-                <div>
-                    <app-date-format-selector-single [id]="'date_time_two_date_format'" [label]="'Date format'"
-                        [(selectedId)]="datetimeDefinition.dateTimeInTwoColumns.dateFormat" />
-                </div>
-            </div>
-            <div>
-                <div class="mb-2">
-                    <app-number-input [id]="'date_time_two_time_col_pos'" [label]="'Time Column Position'"
-                        [(numValue)]="datetimeDefinition.dateTimeInTwoColumns.timeColumnPosition" />
-                </div>
-                <div>
-                    <app-time-format-selector-single [id]="'date_time_two_time_format'" [label]="'Time format'"
-                        [(selectedId)]="datetimeDefinition.dateTimeInTwoColumns.timeFormat" />
-                </div>
-            </div>
-        </div>
-
-        <div *ngIf="datetimeDefinition.dateTimeInMultipleColumns !== undefined">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <app-number-input [id]="'date_time_multiple_year_col_pos'" [label]="'Year Column Position'"
-                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.yearColumnPosition" />
-                </div>
-                <div class="col-md-4 mb-2">
-                    <app-number-input [id]="'date_time_multiple_month_col_pos'" [label]="'Month Column Position'"
-                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.monthColumnPosition" />
-                </div>
-                <div class="col-md-4 mb-2">
-                    <app-text-input [id]="'date_time_multiple_day_col_pos'" [label]="'Day Column Position'"
-                        [(value)]="datetimeDefinition.dateTimeInMultipleColumns.dayColumnPosition" />
-                </div>
-            </div>
-            <div class="mb-2">
-                <app-number-input [id]="'date_time_multiple_time_col_pos'" [label]="'Time Column Position'"
-                    [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.timeColumnPosition" />
-            </div>
-            <div>
-                <app-time-format-selector-single [id]="'date_time_multiple_time_format'" [label]="'Time format'"
-                    [(selectedId)]="datetimeDefinition.dateTimeInMultipleColumns.timeFormat" />
-            </div>
-        </div>
-
-        <div *ngIf="datetimeDefinition.dateInMultipleColumns !== undefined">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <app-number-input [id]="'date_multiple_year_col_pos'" [label]="'Year Column Position'"
-                        [(numValue)]="datetimeDefinition.dateInMultipleColumns.yearColumnPosition" />
-                </div>
-                <div class="col-md-4 mb-2">
-                    <app-number-input [id]="'date_multiple_month_col_pos'" [label]="'Month Column Position'"
-                        [(numValue)]="datetimeDefinition.dateInMultipleColumns.monthColumnPosition" />
-                </div>
-                <div class="col-md-4 mb-2">
-                    <app-text-input [id]="'date_multiple_day_col_pos'" [label]="'Day Column Position'"
-                        [(value)]="datetimeDefinition.dateInMultipleColumns.dayColumnPosition" />
-                </div>
-            </div>
-            <div>
-                <app-hour-single-input [id]="'date_multiple_default_hour'" [label]="'Default Hour'"
-                    [selectedId]="datetimeDefinition.dateInMultipleColumns.defaultHour"
-                    (selectedIdChange)="datetimeDefinition.dateInMultipleColumns.defaultHour = $event ?? 0" />
-            </div>
-        </div>
-
     </div>
 
 </div>

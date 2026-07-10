@@ -80,6 +80,7 @@ services:
       context: ./back-end/runners/python
       dockerfile: Dockerfile
     container_name: climsoft-python-runner
+    profiles: ["adapters-python"]
     expose:
       - 5101
     volumes:
@@ -87,14 +88,13 @@ services:
       - climsoft_test_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 256m
-    cpus: 0.5
 
   climsoft_r_runner:
     build:
       context: ./back-end/runners/r
       dockerfile: Dockerfile
     container_name: climsoft-r-runner
+    profiles: ["adapters-r"]
     expose:
       - 5102
     volumes:
@@ -102,14 +102,13 @@ services:
       - climsoft_test_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 256m
-    cpus: 0.5
 
   climsoft_javascript_runner:
     build:
       context: ./back-end/runners/javascript
       dockerfile: Dockerfile
     container_name: climsoft-javascript-runner
+    profiles: ["adapters-javascript"]
     expose:
       - 5103
     volumes:
@@ -117,14 +116,13 @@ services:
       - climsoft_test_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 256m
-    cpus: 0.5
 
   climsoft_duckdb_runner:
     build:
       context: ./back-end/runners/duckdb
       dockerfile: Dockerfile
     container_name: climsoft-duckdb-runner
+    profiles: ["adapters-duckdb"]
     expose:
       - 5104
     volumes:
@@ -132,8 +130,6 @@ services:
       - climsoft_test_operations:/app/operations
     networks:
       - climsoft_network
-    mem_limit: 256m
-    cpus: 0.5
 
   climsoft_db:
     image: postgis/postgis:17-3.5

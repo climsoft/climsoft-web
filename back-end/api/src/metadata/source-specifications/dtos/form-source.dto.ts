@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, Min } from "class-validator";
+import { ArrayMinSize, IsArray, IsEnum, IsInt, IsOptional, Min, ValidateIf, ValidateNested } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export enum SelectorFieldControlType {
@@ -11,6 +11,23 @@ export enum SelectorFieldControlType {
 export enum LayoutType {
   LINEAR = 'LINEAR',
   GRID = 'GRID'
+}
+
+/**
+ * Per-element configuration on a form.
+ *
+ * `hours: null` means the element inherits the form's `hours` (enabled at every form hour).
+ * A non-empty array must be a subset of `FormSourceDTO.hours`. Empty arrays are rejected.
+ */
+export class FormElementMetadataDto {
+  @IsInt()
+  elementId!: number;
+
+  @ValidateIf((_o, v) => v !== null && v !== undefined)
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Element hours must be null (inherit) or a non-empty subset of the form hours' })
+  @IsInt({ each: true })
+  hours!: number[] | null;
 }
 
 export class FormSourceDTO {
@@ -26,10 +43,12 @@ export class FormSourceDTO {
   @IsEnum(LayoutType, { message: 'Layout must be either LINEAR or GRID' })
   layout: LayoutType;
 
-  /** Elements ids allowed to be recorded by the form */
-  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
-  @IsInt({ each: true })
-  elementIds: number[];
+  /** Per-element configuration for elements allowed on the form. */
+  @IsArray()
+  @ArrayMinSize(1, { message: 'At least one element is required' })
+  @ValidateNested({ each: true })
+  @Type(() => FormElementMetadataDto)
+  elementsMetadata: FormElementMetadataDto[];
 
   /** Hours allowed to be recorded by the form */
   @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])

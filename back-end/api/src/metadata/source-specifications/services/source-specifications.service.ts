@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { ViewSourceSpecificationModel } from '../dtos/view-source-specification.model';
-import { CreateSourceSpecificationDto } from '../dtos/create-source-specification.dto';
+import { CreateSourceSpecificationDto, SourceParameters } from '../dtos/create-source-specification.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { SourceSpecificationEntity } from '../entities/source-specification.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
@@ -13,6 +13,7 @@ import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { ImportSourceDto } from '../dtos/import-source.dto';
 
 @Injectable()
 export class SourceSpecificationsService implements OnModuleInit {
@@ -114,7 +115,7 @@ export class SourceSpecificationsService implements OnModuleInit {
         entity.allowMissingValue = dto.allowMissingValue;
         entity.scaleValues = dto.scaleValues;
 
-           // Copy the sample file from the operation's input directory to the persistent samples directory.
+        // Copy the sample file from the operation's input directory to the persistent samples directory.
         entity.sampleFileName = await this.persistSampleFile(entity.sampleFileName, dto.sampleFileOperationId);
 
         entity.disabled = dto.disabled;
@@ -140,10 +141,10 @@ export class SourceSpecificationsService implements OnModuleInit {
             throw new NotFoundException(`Sample file not found`);
         }
 
-        const sampleFileName: string = path.basename(inputFiles[0]);
+        const sampleFileName: string = path.posix.basename(inputFiles[0]);
 
         if (previousSampleFileName === sampleFileName) {
-            this.logger.warn('Sample file not changed.  Same sample file retained.');
+            this.logger.warn('Sample file not changed. Same sample file retained.');
             return previousSampleFileName;
         }
 
@@ -157,6 +158,42 @@ export class SourceSpecificationsService implements OnModuleInit {
         }
 
         return sampleFileName;
+    }
+
+    /**
+     * Bulk-update only the `parameters` JSON of multiple sources in one round-trip.
+     * Persists all rows, invalidates the cache once, and emits a single
+     * `source.bulk-updated` event for the whole batch.
+     *
+     * Intended for data migrations and other administrative bulk operations
+     * where firing per-row `source.updated` events would be wasteful.
+     */
+    public async bulkUpdateParameters(
+        updates: { id: number; parameters: SourceParameters }[],
+        userId: number,
+    ): Promise<number> {
+        if (updates.length === 0) return 0;
+
+        const ids = updates.map(u => u.id);
+        const entities = await this.sourceRepo.find({ where: { id: In(ids) } });
+        const byId = new Map(entities.map(e => [e.id, e]));
+
+        const toSave: SourceSpecificationEntity[] = [];
+        for (const { id, parameters } of updates) {
+            const entity = byId.get(id);
+            if (!entity) continue;
+            entity.parameters = parameters;
+            entity.entryUserId = userId;
+            toSave.push(entity);
+        }
+
+        if (toSave.length === 0) return 0;
+
+        await this.sourceRepo.save(toSave);
+        await this.cache.invalidate();
+        this.eventEmitter.emit('source.bulk-updated', { ids: toSave.map(e => e.id) });
+
+        return toSave.length;
     }
 
     public async delete(id: number): Promise<number> {

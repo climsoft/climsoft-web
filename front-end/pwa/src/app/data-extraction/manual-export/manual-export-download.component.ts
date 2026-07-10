@@ -1,7 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ExportPermissionsModel } from 'src/app/admin/users/models/permissions/user-permission.model';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
@@ -96,9 +98,9 @@ export class ManualExportDownloadComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const exportTemplateId = this.route.snapshot.params['id'];
+    const exportSpecificationId = this.route.snapshot.params['id'];
     // TODO. handle errors where the export is not found for the given id
-    this.exportTemplateService.findOne(+exportTemplateId).pipe(
+    this.exportTemplateService.findOne(+exportSpecificationId).pipe(
       take(1)
     ).subscribe((data) => {
       this.viewExportTemplate = data;
@@ -153,14 +155,14 @@ export class ManualExportDownloadComponent implements OnInit {
     this.observationService.generateExport(this.viewExportTemplate.id, observationFilter).pipe(
       take(1)
     ).subscribe({
-      next: (uniqueDownloadId) => {
+      next: (res) => {
         this.hidePreparingExport = true;
-        this.uniqueDownloadId = uniqueDownloadId;
+        this.uniqueDownloadId = res.downloadId;
         this.hideDownloadButton = false;
       },
-      error: err => {
-        this.pagesDataService.showToast({ title: `Error in Generating Export`, message: err, type: ToastEventTypeEnum.ERROR });
-        this.hidePreparingExport = false;
+      error: (err) => {
+        this.hidePreparingExport = true;
+        this.handleError(err);
       }
     });
   }
@@ -170,6 +172,19 @@ export class ManualExportDownloadComponent implements OnInit {
     const url = this.observationService.getDownloadExportLink(this.uniqueDownloadId);
     window.open(url, '_blank');
     this.hideDownloadButton = true;
+  }
+
+  private handleError(err: HttpErrorResponse): void {
+    console.error(err); // Log the error for tracing purposes
+    if (AppAuthInterceptor.isKnownNetworkError(err)) {
+      // If there is network error then save observations as unsynchronised and no need to send data to server
+      this.pagesDataService.showToast({ title: 'Data Export', message: `Application is offline`, type: ToastEventTypeEnum.WARNING });
+    } else if (err.status === 400) {
+      // If there is a bad request error then show the server message
+      this.pagesDataService.showToast({ title: 'Data Export', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR });
+    } else {
+      this.pagesDataService.showToast({ title: 'Data Export', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
+    }
   }
 
 }

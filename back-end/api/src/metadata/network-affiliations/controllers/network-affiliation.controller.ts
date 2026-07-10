@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
-import { Admin } from 'src/user/decorators/admin.decorator'; 
+import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
-import { AuthUtil } from 'src/user/services/auth.util'; 
+import { AuthUtil } from 'src/user/services/auth.util';
 import { NetworkAffiliationsService } from '../services/network-affiliations.service';
 import { ViewNetworkAffiliationQueryDTO } from '../dtos/view-network-affiliation-query.dto';
 import { CreateUpdateNetworkAffiliationDto } from '../dtos/create-update-network-affiliation.dto';
@@ -19,12 +19,12 @@ export class NetworkAffiliationsController {
   }
 
   @Get('id/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) : ViewNetworkAffiliationDto {
+  findOne(@Param('id', ParseIntPipe) id: number): ViewNetworkAffiliationDto {
     return this.networkAffiliationsService.findOne(id);
   }
 
   @Get('count')
-  count(@Query() viewRegionQueryDto: ViewNetworkAffiliationQueryDTO) : number {
+  count(@Query() viewRegionQueryDto: ViewNetworkAffiliationQueryDTO): number {
     return this.networkAffiliationsService.count(viewRegionQueryDto);
   }
 
@@ -49,6 +49,13 @@ export class NetworkAffiliationsController {
   @Delete()
   async deleteAll() {
     return this.networkAffiliationsService.deleteAll();
+  }
+
+  @Admin()
+  @Delete(':id')
+  async delete(
+    @Param('id', ParseIntPipe) id: number): Promise<number> {
+    return this.networkAffiliationsService.delete(id);
   }
 
 }

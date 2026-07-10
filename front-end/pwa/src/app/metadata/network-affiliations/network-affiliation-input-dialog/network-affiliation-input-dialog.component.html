@@ -1,5 +1,10 @@
 <ng-container *ngIf="open && viewNetworkAffiliations">
-    <app-dialog [(open)]="open" [title]="title" [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}" (firstButtonClick)="onSaveClick()" [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
+    <app-dialog [(open)]="open" [title]="title"
+        [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+        (firstButtonClick)="onSaveClick()"
+        [secondButtonOptions]="title === 'Edit Network Affiliation' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        (secondButtonClick)="onDelete()"
+        [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewNetworkAffiliations.name" />
@@ -11,6 +16,8 @@
             <app-text-input [label]="'Description'" [(value)]="viewNetworkAffiliations.description" />
         </div>
 
+        <hr />
+
         <div>
             <app-text-input [label]="'Comment'" [(value)]="viewNetworkAffiliations.comment" />
         </div>
@@ -21,6 +28,11 @@
                 {{ errorMessage }}
             </div>
         </div>
-
     </app-dialog>
+    <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Network Affiliation'" [okButtonLabel]="'Yes'"
+        [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+        <p>
+            Are you sure you want to delete the network affiliation <strong>{{ viewNetworkAffiliations.name }}</strong>?
+        </p>
+    </app-confirmation-dialog>
 </ng-container>

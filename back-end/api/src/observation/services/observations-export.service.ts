@@ -15,7 +15,8 @@ import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import AdmZip from 'adm-zip';
+import { ZipUtils } from 'src/shared/utils/zip.utils';
+import { StreamableFileUtils } from 'src/shared/utils/streamable-file.utils';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
 import { DisseminationServiceEnum } from 'src/metadata/export-specifications/enums/dissemination-service.enum';
 import { DisseminationExportParametersDto } from 'src/metadata/export-specifications/dtos/dissemination-export-parameters.dto';
@@ -90,30 +91,13 @@ export class ObservationsExportService {
         } else {
             fileName = zipFileName;
             filePath = path.posix.join(op.outputDir, fileName);
-            const zip = new AdmZip();
-            for (const f of sourceFiles) {
-                zip.addLocalFile(path.posix.join(op.outputDir, f), '', f);
-            }
-            zip.writeZip(filePath);
+            const buffer = ZipUtils.buildZipBufferFromFiles(
+                sourceFiles.map(f => ({ fullPath: path.posix.join(op.outputDir, f), nameInZip: f })),
+            );
+            await fs.promises.writeFile(filePath, buffer);
         }
 
-        return new StreamableFile(fs.createReadStream(filePath), {
-            type: this.getContentTypeForFile(fileName),
-            disposition: `attachment; filename="${fileName}"`,
-        });
-    }
-
-    private getContentTypeForFile(fileName: string): string {
-        const ext = path.extname(fileName).toLowerCase();
-        switch (ext) {
-            case '.csv':
-                return 'text/csv';
-            case '.zip':
-                return 'application/zip';
-            default:
-                // e.g .bufr4 and .bufr
-                return 'application/octet-stream';
-        }
+        return StreamableFileUtils.asAttachment(fs.createReadStream(filePath), fileName);
     }
 
     private validateAndRedefineExportFiltersBasedOnUserQueryRequest(
@@ -242,7 +226,7 @@ export class ObservationsExportService {
         const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
 
         if (viewExportDto.disabled) {
-            throw new Error('Export is disabled');
+            throw new BadRequestException('Export is disabled');
         }
 
         const hasAdapter: boolean = !!viewExportDto.adapterId;
@@ -251,8 +235,9 @@ export class ObservationsExportService {
             case ExportTypeEnum.RAW:
                 if (hasAdapter) {
                     // Postgres -> inputDir, then adapter -> outputDir
-                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
-                    await this.runExportAdapter(viewExportDto, op);
+                    const fileName = await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
+                    const inputFilePathName = path.posix.join(op.inputDir, fileName);
+                    await this.runExportAdapter(viewExportDto, inputFilePathName, op.outputDir);
                 } else {
                     // Postgres -> outputDir directly
                     await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir);
@@ -264,7 +249,7 @@ export class ObservationsExportService {
                 await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
                 break;
             default:
-                throw new Error('Export type not supported');
+                throw new BadRequestException('Export type not supported');
         }
     }
 
@@ -289,7 +274,10 @@ export class ObservationsExportService {
     /**
      * Runs the post-export adapter. Reads from op.inputDir, writes to op.outputDir.
      */
-    private async runExportAdapter(exportSpec: ViewSpecificationExportModel, op: OperationContext): Promise<void> {
+    private async runExportAdapter(
+        exportSpec: ViewSpecificationExportModel,
+        inputFilePathName: string,
+        outputDir: string,): Promise<void> {
         const adapter = this.adaptersService.find(exportSpec.adapterId!);
 
         if (adapter.disabled) {
@@ -301,7 +289,6 @@ export class ObservationsExportService {
             name: adapter.name,
             language: adapter.language,
             scriptDirName: adapter.scriptDirName,
-            entryPoint: adapter.entryPoint,
         };
 
         const metadata: AdapterRunMetadata = {
@@ -317,7 +304,10 @@ export class ObservationsExportService {
             testRun: false,
         };
 
-        const result = await this.adapterRunnerService.run(adapterRef, op.inputDir, op.outputDir, metadata);
+        // The operation's outputDir becomes user-visible via
+        // `manualDownloadExport`, which zips every file it finds. Delete
+        // the runner's log files so they don't leak into the download.
+        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
 
         if (result.status !== 'success') {
             throw new Error(`Export adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
@@ -358,7 +348,7 @@ export class ObservationsExportService {
         exportParams: RawExportParametersDto,
         exportQuery: ExportQueryModel,
         dbDestDir: string,
-    ): Promise<void> {
+    ): Promise<string> {
 
         const conditions: string[] = this.buildBaseObservationConditions(exportQuery);
 
@@ -472,23 +462,39 @@ export class ObservationsExportService {
 
         }
 
+        const fromAndWhere: string = `
+            FROM observations ob
+            INNER JOIN stations st on ob.station_id = st.id
+            INNER JOIN elements el on ob.element_id = el.id
+            INNER JOIN source_templates so on ob.source_id = so.id
+            INNER JOIN users us on ob.entry_user_id = us.id
+            WHERE ${sqlCondition}
+        `;
+
+        // Short-circuit if no observations match. EXISTS stops at the first
+        // matching row, so we bail before writing a header-only CSV.
+        const existsResult: { has_data: boolean }[] = await this.dataSource.manager.query(
+            `SELECT EXISTS (SELECT 1 ${fromAndWhere}) AS has_data`,
+        );
+        if (!existsResult[0]?.has_data) {
+            throw new BadRequestException('No observations matched the export filters');
+        }
+
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
-        const dbFilePathName = path.posix.join(dbDestDir, `${timestamp}.csv`);
+        const fileName = `${timestamp}.csv`;
+        const dbFilePathName = path.posix.join(dbDestDir, fileName);
         const sql: string = `
             COPY (
                 SELECT
                 ${columnSelections.join(',')}
-                FROM observations ob
-                INNER JOIN stations st on ob.station_id = st.id
-                INNER JOIN elements el on ob.element_id = el.id
-                INNER JOIN source_templates so on ob.source_id = so.id
-                INNER JOIN users us on ob.entry_user_id = us.id
-                WHERE ${sqlCondition}
+                ${fromAndWhere}
                 ORDER BY ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
         await this.dataSource.manager.query(sql);
+
+        return fileName;
     }
 
     private async generateWis2BoxExport(
@@ -547,6 +553,24 @@ export class ObservationsExportService {
             'ob.value AS value',
         ];
 
+        const fromAndWhere: string = `
+            FROM observations ob
+            INNER JOIN stations st on ob.station_id = st.id
+            INNER JOIN elements el on ob.element_id = el.id
+            WHERE ${sqlCondition}
+        `;
+
+        // Short-circuit if no observations match. EXISTS stops the planner at
+        // the first matching row instead of scanning all of them, then we bail
+        // before writing an empty CSV (which would otherwise produce a useless
+        // header-only WIS2BOX file downstream).
+        const existsResult: { has_data: boolean }[] = await this.dataSource.manager.query(
+            `SELECT EXISTS (SELECT 1 ${fromAndWhere}) AS has_data`,
+        );
+        if (!existsResult[0]?.has_data) {
+            throw new BadRequestException('No observations matched the export filters');
+        }
+
         // Postgres COPY TO -> op.inputDir; the WIS2BOX transformer reads from there.
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
         const rawFileName = `${timestamp}.csv`;
@@ -557,10 +581,7 @@ export class ObservationsExportService {
             COPY (
                 SELECT
                     ${columnSelections.join(',\n                        ')}
-                FROM observations ob
-                INNER JOIN stations st on ob.station_id = st.id
-                INNER JOIN elements el on ob.element_id = el.id
-                WHERE ${sqlCondition}
+                ${fromAndWhere}
                 ORDER BY
                     ob.date_time ASC
             ) TO '${dbFilePathName}' WITH CSV HEADER;

@@ -1,15 +1,14 @@
 <div *ngIf="levelDefinition">
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'level_status'" [groupItems]="[
-        { label:'Includes Level', checked: levelDefinition.columnPosition !== undefined},
-        { label:'Does Not Include Level', checked: levelDefinition.defaultValue !== undefined}
+        { label:'Includes Level', checked: levelDefinition.inColumn !== undefined},
+        { label:'Does Not Include Level', checked: levelDefinition.default !== undefined}
         ]" (checkedValueChange)="onLevelStatusSelection($event)" />
 
     <div class="ms-4">
-        <app-number-input *ngIf="levelDefinition.columnPosition !== undefined" [label]="'Column Position'"
-            [(numValue)]="levelDefinition.columnPosition" />
+        <app-number-input *ngIf="levelDefinition.inColumn !== undefined" [label]="'Column Position'"
+            [(numValue)]="levelDefinition.inColumn.columnPosition" />
 
-        <app-number-input *ngIf="levelDefinition.defaultValue !== undefined" [label]="'Default Level'"
-            [(numValue)]="levelDefinition.defaultValue" />
-
+        <app-number-input *ngIf="levelDefinition.default !== undefined" [label]="'Default Level'"
+            [(numValue)]="levelDefinition.default.value" />
     </div>
 </div>

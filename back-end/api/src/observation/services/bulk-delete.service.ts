@@ -18,6 +18,7 @@ import { BulkFilterUtils } from './bulk-filter.utils';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
+import { StreamableFileUtils } from 'src/shared/utils/streamable-file.utils';
 
 interface BulkDeleteSession {
     sessionId: string;
@@ -159,11 +160,7 @@ export class BulkDeleteService implements OnModuleDestroy {
         }
 
         const csvPath = path.posix.join(op.outputDir, csvFiles[0]);
-        const fileName = path.basename(csvPath);
-        return new StreamableFile(fs.createReadStream(csvPath), {
-            type: 'text/csv',
-            disposition: `attachment; filename="${fileName}"`,
-        });
+        return StreamableFileUtils.asAttachment(fs.createReadStream(csvPath), path.basename(csvPath));
     }
 
     public async destroySession(sessionId: string): Promise<void> {

@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { take } from 'rxjs';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-element-input-dialog',
@@ -11,18 +12,19 @@ import { ElementsCacheService } from '../services/elements-cache.service';
   styleUrls: ['./element-input-dialog.component.scss']
 })
 export class ElementInputDialogComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
   @Output() public ok = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
   protected open!: boolean;
-  protected title: string = '';
+  protected title: 'Edit Element' | 'New Element' = 'New Element';
   protected element!: CreateViewElementModel;
 
   constructor(
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService) { }
 
-  public showDialog(elementId?: number): void {
+  public openDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
       this.elementsCacheService.findOne(elementId).pipe(
@@ -75,22 +77,18 @@ export class ElementInputDialogComponent {
       this.pagesDataService.showToast({ title: 'Element Details', message: 'Element name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
-    if (!this.element.typeId) {
-      this.pagesDataService.showToast({ title: 'Element Details', message: 'Element type required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
 
     const updatedElement: UpdateElementModel = {
       name: this.element.name,
       abbreviation: this.element.abbreviation,
       description: this.element.description || undefined,
       units: this.element.units || undefined,
-      typeId: this.element.typeId ?? undefined,
+      typeId: this.element.typeId || undefined,
       entryScaleFactor: this.element.entryScaleFactor ?? undefined,
       comment: this.element.comment || undefined
     }
 
-    if (this.element.id === 0) {
+    if (this.title === 'New Element') {
       this.elementsCacheService.add({ ...updatedElement, id: this.element.id }).pipe(
         take(1)
       ).subscribe({
@@ -100,6 +98,7 @@ export class ElementInputDialogComponent {
           this.open = false;
         },
         error: (err) => {
+          console.error('Failed to create element:', err);
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
         }
       });
@@ -113,11 +112,32 @@ export class ElementInputDialogComponent {
           this.open = false;
         },
         error: (err) => {
+          console.error('Failed to update element:', err);
           this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Failed to save changes', type: ToastEventTypeEnum.ERROR });
         }
       });
     }
 
+  }
+
+  protected onDelete(): void {
+    this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.elementsCacheService.delete(this.element.id).pipe(
+      take(1),
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Element Details', message: 'Element deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();     
+      },
+      error: (err) => {
+        console.error('Failed to delete element:', err);
+        this.pagesDataService.showToast({ title: 'Element Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
   }
 
   protected onCancelClick(): void {

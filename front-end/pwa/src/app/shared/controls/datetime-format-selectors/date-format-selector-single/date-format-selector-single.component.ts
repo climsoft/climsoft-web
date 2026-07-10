@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { DateFormatTypes } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
+import { DateFormat } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-date-format-selector-single',
@@ -11,51 +11,46 @@ export class DateFormatSelectorSingleComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public errorMessage!: string;
   @Input() public displayCancelOption!: boolean;
-  @Input() public selectedId!: DateFormatTypes | null;
-  @Output() public selectedIdChange = new EventEmitter<DateFormatTypes>();
+  @Input() public selectedId!: DateFormat | null;
+  @Output() public selectedIdChange = new EventEmitter<DateFormat>();
 
-  protected options!: DateFormatTypes[];
-  protected selectedOption!: DateFormatTypes | null;
-
-  constructor() {
-    this.options = [
-      '%Y-%m-%d',
-      '%d-%m-%Y',
-      '%Y/%m/%d',
-      '%d/%m/%Y',
-    ];
-  }
+  protected options: DateFormat[] = Object.values(DateFormat);
+  protected selectedOption!: DateFormat | null;
 
   ngOnChanges(changes: SimpleChanges): void {
-
     // Only react to changes if selectedId actually changes and is not the first change
     if (changes['selectedId'] && this.selectedId) {
       const found = this.options.find(item => item === this.selectedId);
       if (found && found !== this.selectedOption) {
         this.selectedOption = found;
       }
-
     }
-
   }
 
-  private readonly displayLabels: Record<DateFormatTypes, string> = {
-    '%Y-%m-%d': '2024-01-15 (%Y-%m-%d)',
-    '%d-%m-%Y': '15-01-2024 (%d-%m-%Y)',
-    '%Y/%m/%d': '2024/01/15 (%Y/%m/%d)',
-    '%d/%m/%Y': '15/01/2024 (%d/%m/%Y)',
+  private readonly displayLabels: Record<DateFormat, string> = {
+    [DateFormat.YMD_DASH]: '2024-01-15 (%Y-%m-%d)',
+    [DateFormat.DMY_DASH]: '15-01-2024 (%d-%m-%Y)',
+    [DateFormat.MDY_DASH]: '01-15-2024 (%m-%d-%Y)',
+    [DateFormat.YMD_SLASH]: '2024/01/15 (%Y/%m/%d)',
+    [DateFormat.DMY_SLASH]: '15/01/2024 (%d/%m/%Y)',
+    [DateFormat.MDY_SLASH]: '01/15/2024 (%m/%d/%Y)',
+    [DateFormat.YMD_DOT]: '2024.01.15 (%Y.%m.%d)',
+    [DateFormat.DMY_DOT]: '15.01.2024 (%d.%m.%Y)',
+    [DateFormat.YMD_COMPACT]: '20240115 (%Y%m%d)',
+    [DateFormat.D_MON_Y_DASH]: '15-Jan-2024 (%d-%b-%Y)',
+    [DateFormat.D_MON_Y_SPACE]: '15 Jan 2024 (%d %b %Y)',
+    [DateFormat.Y_J_DASH]: '2024-015 (%Y-%j, year + day of year)',
+    [DateFormat.YJ_COMPACT]: '2024015 (%Y%j, basic Julian)',
   };
 
-  protected optionDisplayFunction = (option: DateFormatTypes): string => {
+  protected optionDisplayFunction = (option: DateFormat): string => {
     return this.displayLabels[option] ?? option;
   }
 
-  protected onSelectedOptionChange(selectedOption: DateFormatTypes | null) {
-    //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
+  protected onSelectedOptionChange(selectedOption: DateFormat | null) {
     if (selectedOption) {
       this.selectedId = selectedOption;
       this.selectedIdChange.emit(selectedOption);
     }
-
   }
 }

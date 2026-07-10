@@ -68,15 +68,55 @@ export class ObservationImportService {
     }
 
     /**
-     * Processes a file for import. If the source has an adapter, the adapter
-     * writes to `op.intermediateDir` and DuckDB reads from there. Otherwise
-     * DuckDB reads directly from `op.inputDir`. The processed CSV is written
-     * to `op.outputDir`.
+     * Full end-to-end pipeline for files whose adapter has **not** been
+     * applied yet: runs the spec's pre-import adapter (if any), then applies
+     * the DuckDB transformation. Preview flows that already ran the adapter
+     * during upload must call `transformForImport` directly to avoid a
+     * double adapter run.
+     *
+     * Used by the connector-import processor and the (legacy) manual upload
+     * endpoint. Both receive a freshly landed file that needs the full pipeline.
      */
     public async processFileForImport(
         sourceId: number,
         inputFilePathName: string,
         intermediateDir: string,
+        outputDir: string,
+        userId: number,
+        stationId: string | null): Promise<FileProcessingError | void> {
+        const sourceDef = this.sourcesService.find(sourceId);
+
+        this.logger.log(`Processing file import ${inputFilePathName} to dir ${outputDir} for source ${sourceDef.name} (id: ${sourceDef.id})`);
+
+        let duckDbInputFilePathName: string = inputFilePathName;
+
+        if (sourceDef.adapterId) {
+            const result: AdapterRunResult = await this.runImportAdapter(sourceDef, inputFilePathName, intermediateDir, userId, stationId);
+            // Anything short of a clean success with at least one output file
+            // is a hard stop. The adapter runner populates `error` for both
+            // failure/timeout and the OUTPUT_MISSING-on-success case.
+            if (result.status !== 'success' || result.outputFiles.length === 0) {
+                return result.error;
+            }
+            duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0].name);
+        }
+
+        return this.transformForImport(sourceId, duckDbInputFilePathName, outputDir, userId, stationId);
+    }
+
+    /**
+     * Applies only the spec's DuckDB transformation to a file that has
+     * already been adapter-processed (or belongs to a spec with no adapter).
+     * Reads `inputFilePathName`, applies the tabular transform, writes the
+     * processed CSV to `outputDir`.
+     *
+     * Called directly by the preview-import flow, where the adapter already
+     * ran during the upload session. The full-pipeline callers reach this
+     * via `processFileForImport`.
+     */
+    public async transformForImport(
+        sourceId: number,
+        inputFilePathName: string,
         outputDir: string,
         userId: number,
         stationId: string | null): Promise<FileProcessingError | void> {
@@ -90,23 +130,10 @@ export class ObservationImportService {
             throw new Error('Import source is disabled');
         }
 
-        // Determine which directory DuckDB should read from
-        // let duckDbInputFilePathName: string = path.posix.join(op.inputDir, inputFileName);
-        let duckDbInputFilePathName: string = inputFilePathName;
-
-        if (sourceDef.adapterId) {
-            const result: AdapterRunResult = await this.runImportAdapter(sourceDef, inputFilePathName, intermediateDir, userId, stationId);
-            if (result.status === 'failure') {
-                return result.error;
-            }
-
-            duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0]);
-        }
-
-        const importSourceDef = sourceDef.parameters as ImportSourceDto;
+        const importSourceDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
 
         if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-            return await this.processTabularSource(sourceDef, duckDbInputFilePathName, outputDir, userId, stationId);
+            return await this.processTabularSource(sourceDef, inputFilePathName, outputDir, userId, stationId);
         } else {
             throw new Error('Source structure not supported yet');
         }
@@ -130,11 +157,9 @@ export class ObservationImportService {
             name: adapter.name,
             language: adapter.language,
             scriptDirName: adapter.scriptDirName,
-            entryPoint: adapter.entryPoint,
         };
 
         const metadata: AdapterRunMetadata = {
-            //originalFileName: inputFileName,
             initiatedByUserId: userId,
             initiatedAt: new Date().toISOString(),
             sourceSpecId: sourceDef.id,
@@ -145,11 +170,9 @@ export class ObservationImportService {
             testRun: false,
         };
 
-        const result: AdapterRunResult = await this.adapterRunnerService.run(
-            adapterRef,
-            inputFilePathName,
-            outputDir,
-            metadata);
+        // Production import: the operation directory is torn down at the end
+        // of the flow, so log files add no value — delete them right away.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
 
         return result;
     }

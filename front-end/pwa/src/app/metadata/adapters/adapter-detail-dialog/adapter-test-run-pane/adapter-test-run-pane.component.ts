@@ -10,10 +10,15 @@ import { AdapterLanguageEnum } from '../../models/adapter-language.enum';
  * Works in two modes:
  *   - **Saved adapter**: uses `POST /adapters/:id/test-run` (needs `adapterId > 0`)
  *   - **Unsaved adapter**: uses `POST /adapters/test-run-preview` (needs
- *     `scriptDirName` + `language` + `entryPoint` from the upload-preview step)
+ *     `scriptDirName` + `language` from the upload-preview step)
  *
- * The pane is enabled as soon as the script is uploaded and the entry point
- * is set — saving the adapter first is no longer required.
+ * The pane is enabled as soon as the script is uploaded — saving the adapter
+ * first is no longer required. The entry point is derived from `language` by
+ * the API (canonical convention), so it is not an input here.
+ *
+ * After a run, the pane lists every file the runner produced (output +
+ * runner sidecars) with their sizes. To inspect contents, the user
+ * downloads the whole operation directory as a zip.
  */
 @Component({
   selector: 'app-adapter-test-run-pane',
@@ -28,17 +33,10 @@ export class AdapterTestRunPaneComponent {
   /** The UUID directory from upload-preview — needed for the preview endpoint. */
   @Input() public scriptDirName: string = '';
 
-  /** The entry point path — needed for the preview endpoint. */
-  @Input() public entryPoint: string = '';
-
   protected pendingSampleFile: File | null = null;
   protected running: boolean = false;
   protected result: AdapterTestRunResponseModel | null = null;
   protected errorMessage: string = '';
-
-  protected stdoutOpen: boolean = true;
-  protected stderrOpen: boolean = false;
-  protected installOpen: boolean = false;
 
   constructor(private readonly adaptersService: AdaptersService) { }
 
@@ -47,10 +45,15 @@ export class AdapterTestRunPaneComponent {
     this.errorMessage = '';
   }
 
+  protected onDownloadOutput(): void {
+    if (!this.result?.operationId) return;
+    window.open(this.adaptersService.getTestRunOutputDownloadUrl(this.result.operationId), '_blank');
+  }
+
   protected canRun(): boolean {
     if (this.running || !this.pendingSampleFile) return false;
 
-    return !!this.scriptDirName && !!this.language && !!this.entryPoint;
+    return !!this.scriptDirName && !!this.language;
   }
 
   protected onRunClick(): void {
@@ -61,17 +64,16 @@ export class AdapterTestRunPaneComponent {
 
     const observable = this.adaptersService.testRunPreview(
       this.pendingSampleFile,
-      { language: this.language, scriptDirName: this.scriptDirName, entryPoint: this.entryPoint },
+      { language: this.language, scriptDirName: this.scriptDirName },
     );
 
     observable.pipe(take(1)).subscribe({
       next: (res) => {
         this.result = res;
         this.running = false;
-        this.stderrOpen = res.status !== 'success';
-        this.installOpen = res.installLog !== null && res.installLog.trim().length > 0;
       },
       error: (err) => {
+        console.error('Test run failed:', err);
         this.running = false;
         const serverMessage = err.error?.message;
         this.errorMessage = Array.isArray(serverMessage) ? serverMessage.join(', ') : (serverMessage ?? err.message);
@@ -97,5 +99,13 @@ export class AdapterTestRunPaneComponent {
       case 'failure': return 'Failure';
       default: return this.result.status;
     }
+  }
+
+  /** Human-readable byte size ("1.2 KB", "356 B", "4.8 MB"). */
+  protected formatSize(sizeBytes: number): string {
+    if (sizeBytes < 1024) return `${sizeBytes} B`;
+    if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    if (sizeBytes < 1024 * 1024 * 1024) return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(sizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 }

@@ -131,7 +131,7 @@ export class MetadataDefaults {
         { id: 4, abbreviation: 'G', name: 'Generated', description: 'Generated/calculated value', comment: null },
         { id: 5, abbreviation: 'C', name: 'Cumulative', description: 'Cumulative measurement', comment: null },
         { id: 6, abbreviation: 'T', name: 'Trace', description: 'Trace amount detected', comment: null },
-        { id: 7, abbreviation: '/', name: 'Obscured', description: 'Observation obscured', comment: null },
-        { id: 8, abbreviation: 'V', name: 'Variable', description: 'Variable observation', comment: null },
+        { id: 7, abbreviation: 'V', name: 'Variable', description: 'Variable observation', comment: null },
+        { id: 8, abbreviation: '/', name: 'Obscured', description: 'Observation obscured', comment: null },
     ];
 }

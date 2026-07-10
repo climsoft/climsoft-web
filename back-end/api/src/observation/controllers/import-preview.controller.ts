@@ -2,7 +2,7 @@ import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Para
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ImportPreviewService } from '../services/import-preview.service';
-import { BaseParamsDto, ProcessPreviewDto as PreviewForStepDto, PreviewForImportDto } from '../dtos/import-preview.dto';
+import { BaseParamsDto, PreviewForStepDto, PreviewForImportDto, PreviewForSourceDto } from '../dtos/import-preview.dto';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 
@@ -62,7 +62,42 @@ export class ImportPreviewController {
         return this.importPreviewService.previewTransformedData(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId ?? null);
     }
 
-    @Post('confirm-import/:sessionId')
+    /**
+     * Source-scoped view-only preview of the spec's stored sample file.
+     * Returns raw + transformed previews with the session already torn
+     * down (so `raw.sessionId` is empty). Returns `null` when the spec
+     * has no sample file on record.
+     */
+    @Post('sample-for-source/:sourceId')
+    public async previewSampleForSource(
+        @Param('sourceId', ParseIntPipe) sourceId: number,
+    ) {
+        return this.importPreviewService.previewSampleForSource(sourceId);
+    }
+
+    /**
+     * Source-scoped upload used by the import-entry dialog. The saved
+     * spec's base params (adapter, rowsToSkip, delimiter) are applied
+     * server-side, and both the raw and transformed previews are returned
+     * in a single round trip.
+     */
+    @Post('upload-for-source/:sourceId')
+    @UseInterceptors(FileInterceptor('file'))
+    public async uploadForSource(
+        @Param('sourceId', ParseIntPipe) sourceId: number,
+        @UploadedFile(new ParseFilePipe({
+            validators: [
+                new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
+                new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
+            ]
+        })) file: Express.Multer.File,
+        @Body() dto: PreviewForSourceDto, // TODO. Validate that the user has import rights for the source and station
+    ) {
+        return this.importPreviewService.previewForSource(file, sourceId, dto.stationId ?? null);
+    }
+
+
+    @Post('import-for-source/:sessionId')
     public async confirmImport(
         @Req() request: Request,
         @Param('sessionId') sessionId: string,

@@ -8,10 +8,11 @@
       <div class="row mb-2 " *ngFor="let fieldDef of chunkArray;">
         <div class="p-1">
           <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
-            [labelSuperScript]="fieldDef.nameSuperScript" [borderSize]="userFormSettings.fieldsBorderSize"
+            [labelSuperScript]="fieldDef.nameSuperScript ?? ''" [borderSize]="userFormSettings.fieldsBorderSize"
             [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [applyEntryScaleFactor]="true"
             [observationEntry]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
-            [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
+            [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true"
+            [disableValueFlagEntry]="getObservationDefByFieldDef(fieldDef).enabled === false" />
         </div>
       </div>
 
@@ -33,11 +34,12 @@
   <!-- For small screens, just use a column flex container -->
   <div *ngIf="!largeScreen" class="d-flex flex-column">
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let firstIndex = index"
-      [id]="fieldDef.name" [label]="fieldDef.name" [labelSuperScript]="fieldDef.nameSuperScript"
+      [id]="fieldDef.name" [label]="fieldDef.name" [labelSuperScript]="fieldDef.nameSuperScript ?? ''"
       [borderSize]="userFormSettings.fieldsBorderSize"
       [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [applyEntryScaleFactor]="true"
       [observationEntry]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
-      [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
+      [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true"
+      [disableValueFlagEntry]="getObservationDefByIndex(firstIndex).enabled === false" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
       <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"

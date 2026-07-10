@@ -192,7 +192,7 @@ export class ClimsoftV4WebSyncSetUpService {
             return false;
         }
 
-        const currentV5Elements: CreateViewElementDto[] = await this.elementsService.find();
+        const currentV5Elements: CreateViewElementDto[] = this.elementsService.find();
         const v4Elements: V4ElementModel[] = await this.getV4Elements();
         const v5Dtos: CreateViewElementDto[] = [];
         for (let i = 0; i < v4Elements.length; i++) {

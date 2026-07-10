@@ -15,14 +15,15 @@ import { QCSpecificationsService } from 'src/metadata/qc-specifications/services
 import { QCTestTypeEnum } from 'src/metadata/qc-specifications/entities/qc-test-type.enum';
 import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-specifications/dtos/qc-test-parameters/range-qc-test-params.dto';
 import { GeneralSettingParameters } from 'src/settings/dtos/update-general-setting-params.dto';
-import { ViewGeneralSettingModel } from 'src/settings/dtos/view-general-setting.model';
 import { FlagsService } from 'src/metadata/flags/services/flags.service';
-import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DataSource } from 'typeorm';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
+import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.4'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.6'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -36,8 +37,8 @@ export class MigrationsService {
     private stationObsFocusesService: StationObsFocusesService,
     private generalSettingsService: GeneralSettingsService,
     private flagsService: FlagsService,
-    private elementsService: ElementsService,
     private qcSpecsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
+    private sourcesService: SourceSpecificationsService,
 
   ) { }
 
@@ -73,6 +74,10 @@ export class MigrationsService {
 
     // TODO. Temporary solution for preview 1 to 2.0.3 installations. Once all met services have preview 2.0.5 remove this
     await this.changeUpperAndLowerLimitQCStructure();
+
+    // TODO. Temporary solution for preview 1 to 3.0.1 installations. Once all met services have preview 3.0.1 remove this
+    // Migrate FORM source parameters from flat elementIds[] to per-element elementsMetadata[]
+    await this.migrateFormElementIdsToElementsMetadata();
 
     // After successful migrations, then add the new database version
     const newDBVersion = this.dbVersionRepo.create({
@@ -239,7 +244,7 @@ export class MigrationsService {
     }
   }
 
-   // TODO. Temporary function to upgrade preview 2.0.4 and below releases
+  // TODO. Temporary function to upgrade preview 2.0.4 and below releases
   private async changeUpperAndLowerLimitQCStructure() {
     const rangeQcs = this.qcSpecsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
 
@@ -257,6 +262,46 @@ export class MigrationsService {
 
         this.logger.log(`Range threshold updated -  ${qc.id} - ${qc.name}`)
       }
+    }
+  }
+
+  /**
+   * Migrate FORM source parameters from `elementIds: number[]` to
+   * `elementsMetadata: { elementId, hours }[]`. Each existing element id is
+   * carried over with `hours: null` so behavior is preserved (every element
+   * enabled at every form hour). Idempotent — rows that already have
+   * `elementsMetadata` are skipped.
+   */
+  private async migrateFormElementIdsToElementsMetadata(): Promise<void> {
+    try {
+      const sources = this.sourcesService.findAll();
+
+      const updates: { id: number; parameters: FormSourceDTO }[] = [];
+      for (const source of sources) {
+        if (source.sourceType !== SourceTypeEnum.FORM) continue;
+        const params = source.parameters as FormSourceDTO & { elementIds?: number[] };
+        if (params.elementsMetadata) continue;        // already migrated
+        if (!Array.isArray(params.elementIds)) continue;
+
+        const { elementIds, ...rest } = params;
+        const newParams: FormSourceDTO = {
+          ...rest,
+          elementsMetadata: elementIds.map(id => ({ elementId: id, hours: null })),
+        };
+
+        updates.push({ id: source.id, parameters: newParams });
+      }
+
+      const migrated = await this.sourcesService.bulkUpdateParameters(updates, 1);
+
+      if (migrated > 0) {
+        this.logger.log(`Migrated ${migrated} FORM source(s) from elementIds to elementsMetadata`);
+      } else {
+        this.logger.log('No FORM sources needed elementIds → elementsMetadata migration');
+      }
+    } catch (error) {
+      this.logger.error('Error migrating FORM elementIds to elementsMetadata', error);
+      throw error;
     }
   }
 

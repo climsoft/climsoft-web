@@ -64,11 +64,11 @@ export class PerformQCDialogComponent {
     this.qcAssessmentsService.performQC(this.qcSelection).pipe(
       take(1),
     ).subscribe({
-      next: data => {
+      next: () => {
         this.open = false;
         this.ok.emit();
       },
-      error: err => {
+      error: (err) => {
         this.open = false;
         this.pagesDataService.showToast({ title: "QC Tests", message:  err.error?.message || `Error in performing qc test`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }

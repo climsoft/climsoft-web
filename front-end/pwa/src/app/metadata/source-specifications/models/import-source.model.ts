@@ -3,7 +3,6 @@ import { ImportSourceTabularParamsModel } from "./import-source-tabular-params.m
 export enum DataStructureTypeEnum {
     TABULAR = "tabular",
     KEY_VALUE = "key_value",
-    BUFR = "bufr",
 }
 
 export interface ImportSourceModel  {

@@ -13,16 +13,19 @@ export interface FileTreeEntry {
 
 /**
  * Response returned by `POST /adapters/upload-preview`. Contains everything
- * the dialog needs to show the extracted contents, validate the manifest,
- * and let the user pick an entry point before saving.
+ * the dialog needs to show the extracted contents and validate root-level
+ * conventions before saving.
+ *
+ * Both `manifestError` and `entryPointError` are optional: absence means
+ * "valid". The frontend surfaces each error string directly.
  */
 export class AdapterUploadPreviewResponseDto {
     /** The UUID directory name where the zip was extracted. */
     scriptDirName!: string;
     /** Flat list of files and folders in the zip, depth-first order. */
     fileTree!: FileTreeEntry[];
-    /** Whether the required manifest file for the language was found. */
-    manifestFound!: boolean;
-    /** If manifest is missing, describes what was expected. */
+    /** Populated when no accepted manifest file is present at the zip root. */
     manifestError?: string;
+    /** Populated when the language's canonical entry point is not at the zip root. */
+    entryPointError?: string;
 }

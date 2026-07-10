@@ -45,8 +45,9 @@ export class PasswordChangeComponent {
     this.userService.changeUserPassword({ userId: this.userId, password: this.newPassword }).pipe(
       take(1)
     ).subscribe({
-      next: data => {
+      next: (data) => {
         this.pagesDataService.showToast({ title: "Password Change", message: `Password for ${this.userEmail} changed`, type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
        },
        error: err =>{
         this.pagesDataService.showToast({ title: "Password Change", message: err, type: ToastEventTypeEnum.ERROR });

@@ -1,20 +1,19 @@
 <div class="test-run-pane">
     <div>
-          <app-file-input [id]="'test_run_sample_file'" [label]="'Sample Input File'" [buttonLabel]="'Choose File'" [disabled]="running" 
-                        (fileSelected)="onSampleFileSelected($event)"  />
+        <app-file-input [id]="'test_run_sample_file'" [label]="'Sample Input File'" [buttonLabel]="'Choose File'"
+            [disabled]="running" (fileSelected)="onSampleFileSelected($event)" />
 
         <div class="form-text text-muted">
-            The file your adapter will receive at <code>CLIMSOFT_INPUT_FILE</code>.
+            The file your adapter will receive at <code>CLIMSOFT_INPUT_FILE_PATH_NAME</code>.
         </div>
     </div>
 
-    <div class="mt-2">
+    <div class="mt-2 d-flex justify-content-between align-items-center">
         <button type="button" class="btn btn-sm btn-primary" [disabled]="!canRun()" (click)="onRunClick()">
-            <app-spinner  *ngIf="running" />
-            <span *ngIf="running" class="spinner-border spinner-border-sm me-1" role="status"></span>
             <i *ngIf="!running" class="bi bi-play-fill"></i>
             {{ running ? 'Running…' : 'Run' }}
         </button>
+        <app-spinner *ngIf="running" />
     </div>
 
     <div *ngIf="errorMessage" class="alert alert-danger py-2 small mt-2">
@@ -28,54 +27,41 @@
                 <span class="badge" [ngClass]="statusBadgeClass">{{ statusLabel }}</span>
                 <span class="text-muted ms-2 small">{{ result.durationMs }} ms</span>
             </div>
-            <div *ngIf="result.outputFileName" class="text-success small">
-                <i class="bi bi-file-earmark-check"></i>
-                Output: <code>{{ result.outputFileName }}</code>
+            <button *ngIf="result.operationId" type="button" class="btn btn-sm btn-outline-primary"
+                (click)="onDownloadOutput()">
+                <i class="bi bi-download"></i> Download
+            </button>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="result.error" class="mt-2">
+            <div class="fw-bold small text-danger">Error</div>
+            <div class="small">
+                <span class="badge bg-danger me-1">{{ result.error.type }}</span>
+                {{ result.error.message }}
             </div>
         </div>
 
-        <!-- Errors -->
-        <div *ngIf="result.errors.length > 0" class="mt-2">
-            <div class="fw-bold small text-danger">Errors</div>
-            <ul class="small mb-0">
-                <li *ngFor="let err of result.errors">
-                    <span class="badge bg-danger me-1">{{ err.type }}</span>
-                    {{ err.message }}
+        <!-- Output files -->
+        <div *ngIf="result.outputFiles.length > 0" class="mt-2">
+            <div class="fw-bold small">Output files ({{ result.outputFiles.length }})</div>
+            <ul class="list-unstyled small mb-0">
+                <li *ngFor="let f of result.outputFiles" class="d-flex justify-content-between">
+                    <code>{{ f.name }}</code>
+                    <span class="text-muted">{{ formatSize(f.sizeBytes) }}</span>
                 </li>
             </ul>
         </div>
 
-        <!-- Warnings -->
-        <div *ngIf="result.warnings.length > 0" class="mt-2">
-            <div class="fw-bold small text-warning">Warnings ({{ result.warnings.length }})</div>
-            <ul class="small mb-0">
-                <li *ngFor="let w of result.warnings">{{ w.message }}</li>
+        <!-- Log files -->
+        <div *ngIf="result.logFiles.length > 0" class="mt-2">
+            <div class="fw-bold small text-muted">Logs ({{ result.logFiles.length }})</div>
+            <ul class="list-unstyled small mb-0">
+                <li *ngFor="let f of result.logFiles" class="d-flex justify-content-between">
+                    <code>{{ f.name }}</code>
+                    <span class="text-muted">{{ formatSize(f.sizeBytes) }}</span>
+                </li>
             </ul>
-        </div>
-
-        <!-- Log sections -->
-        <div *ngIf="result.stdout" class="mt-2">
-            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="stdoutOpen = !stdoutOpen">
-                <i class="bi" [ngClass]="stdoutOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-                stdout
-            </button>
-            <pre *ngIf="stdoutOpen" class="log-block">{{ result.stdout }}</pre>
-        </div>
-
-        <div *ngIf="result.stderr" class="mt-2">
-            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="stderrOpen = !stderrOpen">
-                <i class="bi" [ngClass]="stderrOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-                stderr
-            </button>
-            <pre *ngIf="stderrOpen" class="log-block">{{ result.stderr }}</pre>
-        </div>
-
-        <div *ngIf="result.installLog" class="mt-2">
-            <button type="button" class="btn btn-sm btn-link p-0 small" (click)="installOpen = !installOpen">
-                <i class="bi" [ngClass]="installOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-                install.log
-            </button>
-            <pre *ngIf="installOpen" class="log-block">{{ result.installLog }}</pre>
         </div>
     </div>
 </div>

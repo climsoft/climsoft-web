@@ -1,12 +1,12 @@
-import { FormSourceModel, SelectorFieldControlType } from "src/app/metadata/source-specifications/models/form-source.model";
+import { FormElementMetadata, FormSourceModel, SelectorFieldControlType } from "src/app/metadata/source-specifications/models/form-source.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ViewSourceSpecificationModel } from "src/app/metadata/source-specifications/models/view-source-specification.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
-import { EntryFormObservationQueryModel } from "../../../models/entry-form-observation-query.model";
+import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
-import { ViewObservationModel } from "../../../models/view-observation.model";
-import { QCStatusEnum } from "../../../models/qc-status.enum";
+import { ViewObservationModel } from "../../models/view-observation.model";
+import { QCStatusEnum } from "../../models/qc-status.enum";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { ObservationEntry } from "src/app/data-ingestion/models/observation-entry.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
@@ -44,7 +44,11 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationEntry[] = [];
     private _obsDefsForGridLayout: ObservationEntry[][] = [];
 
+    /** Cached list of element ids that this form accepts. Derived from `formMetadata.elementsMetadata`. */
+    private _elementIds: number[] = [];
 
+    /** Lookup of element id → its allowed hours (null = inherit form hours). */
+    private _elementMetadataById: Map<number, FormElementMetadata> = new Map();
 
     private cachedMetadataSearchService: CachedMetadataService;
 
@@ -58,8 +62,13 @@ export class FormEntryDefinition {
         this.formMetadata = source.parameters as FormSourceModel;
         this.cachedMetadataSearchService = newCachedMetadataSearchService;
 
+        for (const meta of this.formMetadata.elementsMetadata) {
+            this._elementIds.push(meta.elementId);
+            this._elementMetadataById.set(meta.elementId, meta);
+        }
+
         // Set the selectors values based on defined selectors in the form metadata
-        this.elementSelectorValue = this.formMetadata.selectors.includes(SelectorFieldControlType.ELEMENT) ? this.formMetadata.elementIds[0] : null;
+        this.elementSelectorValue = this.formMetadata.selectors.includes(SelectorFieldControlType.ELEMENT) ? this._elementIds[0] : null;
         const todayDate: Date = new Date();
         this.yearSelectorValue = todayDate.getFullYear();
         this.monthSelectorValue = todayDate.getMonth() + 1;
@@ -78,6 +87,22 @@ export class FormEntryDefinition {
             }
         }
 
+    }
+
+    /** All element ids accepted by this form, in declaration order. */
+    public get elementIds(): number[] {
+        return this._elementIds;
+    }
+
+    /**
+     * Whether `elementId` is enabled at the given hour-of-day under the form's per-element rules.
+     * Elements with `hours: null` inherit the form's `hours` list.
+     */
+    public isElementEnabledAtHour(elementId: number, hour: number): boolean {
+        const meta = this._elementMetadataById.get(elementId);
+        if (!meta) return false;
+        const allowed = meta.hours ?? this.formMetadata.hours;
+        return allowed.includes(hour);
     }
 
     public getAllObsEntries(): ObservationEntry[] {
@@ -101,7 +126,7 @@ export class FormEntryDefinition {
         //get the data based on the selection filter
         const observationQuery: EntryFormObservationQueryModel = {
             stationId: this.station.id,
-            elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
+            elementIds: this.elementSelectorValue === null ? this._elementIds : [this.elementSelectorValue],
             level: 0,
             interval: (this.source.parameters as FormSourceModel).interval,
             sourceId: this.source.id,
@@ -192,12 +217,14 @@ export class FormEntryDefinition {
 
             newObs.datetime = this.getObsDatetime(datetimeVars);
 
-            //Find the equivalent observation from the database. 
+            //Find the equivalent observation from the database.
             //If it exists use it to create the observation definition
             const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
+            const observation: ViewObservationModel = dbObs ? dbObs : newObs;
 
             obsDefinitions.push({
-                observation: dbObs ? dbObs : newObs,
+                observation: observation,
+                enabled: this.isElementEnabledAtHour(observation.elementId, datetimeVars[3]),
                 confirmAsCorrect: false,
                 delete: false,
                 change: 'no_change',
@@ -270,11 +297,13 @@ export class FormEntryDefinition {
 
                 newObs.datetime = this.getObsDatetime(datetimeVars);
 
-                //Find the equivalent observation from the database. 
+                //Find the equivalent observation from the database.
                 //If it exists use it to create the observation definition
                 const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
+                const observation: ViewObservationModel = dbObs ? dbObs : newObs;
                 subArrEntryObservations.push({
-                    observation: dbObs ? dbObs : newObs,
+                    observation: observation,
+                    enabled: this.isElementEnabledAtHour(observation.elementId, datetimeVars[3]),
                     confirmAsCorrect: false,
                     delete: false,
                     change: 'no_change',
@@ -300,7 +329,7 @@ export class FormEntryDefinition {
             case 'ELEMENT':
                 entryFieldDefs = [];
                 //create field definitions for the selected elements only
-                for (const elementId of this.formMetadata.elementIds) {
+                for (const elementId of this._elementIds) {
                     const element = this.cachedMetadataSearchService.getElement(elementId);
                     if (element) {
                         entryFieldDefs.push({ id: element.id, name: element.abbreviation, nameSuperScript: element.units });

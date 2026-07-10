@@ -12,7 +12,7 @@ interface Hour {
   styleUrls: ['./hour-multiple-input.component.scss']
 })
 export class HourMultipleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Hour';
+  @Input() public label!: string;
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds: number[] = [];//important to be defined by default
   @Input() public selectedIds: number[] = [];//important to be defined by default

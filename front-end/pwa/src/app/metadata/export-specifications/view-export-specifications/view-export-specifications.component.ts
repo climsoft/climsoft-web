@@ -6,6 +6,7 @@ import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/contro
 import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { ViewExportSpecificationModel } from '../models/view-export-specification.model';
 import { ExportSpecificationInputDialogComponent } from '../export-specification-input-dialog/export-specification-input-dialog.component';
+import { ExportCloneDialogComponent } from '../export-clone-dialog/export-clone-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 @Component({
@@ -18,6 +19,7 @@ export class ViewExportSpecificationsComponent {
   @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
   @ViewChild('dlgExportInput') dlgExportInput!: ExportSpecificationInputDialogComponent;
+  @ViewChild('dlgClone') dlgClone!: ExportCloneDialogComponent;
 
   protected exports: ViewExportSpecificationModel[] = [];
   protected selectedExport: ViewExportSpecificationModel | null = null;
@@ -77,6 +79,11 @@ export class ViewExportSpecificationsComponent {
     event.stopPropagation();
     this.selectedExport = exportSpec;
     this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onCloneClick(exportSpec: ViewExportSpecificationModel, event: Event): void {
+    event.stopPropagation();
+    this.dlgClone.openDialog(exportSpec);
   }
 
   protected onDeleteConfirm(): void {

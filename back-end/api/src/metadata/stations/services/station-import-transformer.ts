@@ -214,7 +214,8 @@ export class StationImportTransformer {
      * Builds SQL to transform a single date column using DateTimeDefinition.
      * Follows the same try_strptime pattern as TabularImportTransformer.buildAlterDateTimeColumnSQL,
      * but station dates are optional so NULLs are kept (no DELETE WHERE NULL, no SET NOT NULL),
-     * no UTC offset conversion, and no UNPIVOT for day columns (single day column only).
+     * no UTC offset conversion, and no wide UNPIVOTs (a station has one establishment date,
+     * not a row per day or per hour).
      */
     private static buildAlterDateColumnSQL(tableName: string, propertyName: string, definition?: DateTimeDefinition): string[] {
         if (!definition) {
@@ -224,62 +225,66 @@ export class StationImportTransformer {
         const sql: string[] = [];
         let expectedDatetimeFormat: string;
 
-        if (definition.dateTimeInSingleColumn !== undefined) {
-            const dateTimeDef = definition.dateTimeInSingleColumn;
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition} TO ${propertyName}`);
-            expectedDatetimeFormat = dateTimeDef.datetimeFormat;
+        if (definition.combinedColumn !== undefined) {
+            const def = definition.combinedColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO ${propertyName}`);
+            expectedDatetimeFormat = def.datetimeFormat;
 
-        } else if (definition.dateInSingleColumn !== undefined) {
-            const def = definition.dateInSingleColumn;
-            const dateCol = `${propertyName}_date_col`;
-            const strHour = StringUtils.addLeadingZero(def.defaultHour);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO ${dateCol}`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${dateCol} || ' ' || '${strHour}:00:00'`);
-            expectedDatetimeFormat = `${def.dateFormat} %H:%M:%S`;
-
-        } else if (definition.dateTimeInTwoColumns !== undefined) {
-            const def = definition.dateTimeInTwoColumns;
+        } else if (definition.separated !== undefined) {
+            const { date, time } = definition.separated;
             const dateCol = `${propertyName}_date_col`;
             const timeCol = `${propertyName}_time_col`;
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.dateColumnPosition} TO ${dateCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO ${timeCol}`);
+
+            // ── Date side ──
+            let dateFormatStr: string;
+            if (date.singleColumn) {
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${date.singleColumn.columnPosition} TO ${dateCol}`);
+                dateFormatStr = date.singleColumn.dateFormat;
+            } else if (date.yearMonthDayColumns) {
+                const { yearColumnPosition, monthColumnPosition, dayColumns } = date.yearMonthDayColumns;
+                if (!dayColumns.singleColumn) {
+                    // Station dates are scalar per row; days-as-columns would multiply rows.
+                    throw new Error('Station date must use a single day column (wide day-range is not supported for station dates)');
+                }
+                const yearCol = `${propertyName}_year_col`;
+                const monthCol = `${propertyName}_month_col`;
+                const dayCol = `${propertyName}_day_col`;
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${yearColumnPosition} TO ${yearCol}`);
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${monthColumnPosition} TO ${monthCol}`);
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumns.singleColumn.columnPosition} TO ${dayCol}`);
+                sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${dateCol} VARCHAR`);
+                sql.push(`UPDATE ${tableName} SET ${dateCol} = ${yearCol} || '-' || lpad(${monthCol}, 2, '0') || '-' || ${dayCol}`);
+                dateFormatStr = '%Y-%m-%d';
+            } else {
+                throw new Error('Date part must define either singleColumn or yearMonthDayColumns');
+            }
+
+            // ── Time side ──
+            let timeFormatStr: string;
+            if (time.defaultHour) {
+                const strHour = StringUtils.addLeadingZero(time.defaultHour.hour);
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${timeCol} VARCHAR DEFAULT '${strHour}:00:00'`);
+                timeFormatStr = '%H:%M:%S';
+            } else if (time.singleColumn) {
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${time.singleColumn.columnPosition} TO ${timeCol}`);
+                timeFormatStr = time.singleColumn.timeFormat;
+            } else if (time.hourAndMinuteColumns) {
+                const hourCol = `${propertyName}_hour_col`;
+                const minuteCol = `${propertyName}_minute_col`;
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${time.hourAndMinuteColumns.hourColumnPosition} TO ${hourCol}`);
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${time.hourAndMinuteColumns.minuteColumnPosition} TO ${minuteCol}`);
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${timeCol} VARCHAR`);
+                sql.push(`UPDATE ${tableName} SET ${timeCol} = lpad(${hourCol}, 2, '0') || ':' || lpad(${minuteCol}, 2, '0') || ':00'`);
+                timeFormatStr = '%H:%M:%S';
+            } else {
+                // hourColumnsRange is intentionally rejected — station dates are scalar.
+                throw new Error('Station date time must be a default hour, single column, or hour and minute columns (wide hour-range is not supported for station dates)');
+            }
+
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
             sql.push(`UPDATE ${tableName} SET ${propertyName} = ${dateCol} || ' ' || ${timeCol}`);
-            expectedDatetimeFormat = `${def.dateFormat} ${def.timeFormat}`;
-
-        } else if (definition.dateTimeInMultipleColumns !== undefined) {
-            const def = definition.dateTimeInMultipleColumns;
-            const yearCol = `${propertyName}_year_col`;
-            const monthCol = `${propertyName}_month_col`;
-            const dayCol = `${propertyName}_day_col`;
-            const timeCol = `${propertyName}_time_col`;
-            // Single day column only (no UNPIVOT for station dates)
-            const dayColumnPosition = parseInt(def.dayColumnPosition, 10);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.yearColumnPosition} TO ${yearCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.monthColumnPosition} TO ${monthCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO ${dayCol}`);
-            sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO ${timeCol}`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${yearCol} || '-' || ${monthCol} || '-' || ${dayCol} || ' ' || ${timeCol}`);
-            expectedDatetimeFormat = `%Y-%m-%d ${def.timeFormat}`;
-
-        } else if (definition.dateInMultipleColumns !== undefined) {
-            const def = definition.dateInMultipleColumns;
-            const yearCol = `${propertyName}_year_col`;
-            const monthCol = `${propertyName}_month_col`;
-            const dayCol = `${propertyName}_day_col`;
-            const strHour = StringUtils.addLeadingZero(def.defaultHour);
-            // Single day column only (no UNPIVOT for station dates)
-            const dayColumnPosition = parseInt(def.dayColumnPosition, 10);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.yearColumnPosition} TO ${yearCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.monthColumnPosition} TO ${monthCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO ${dayCol}`);
-            sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${yearCol} || '-' || ${monthCol} || '-' || ${dayCol} || ' ' || '${strHour}:00:00'`);
-            expectedDatetimeFormat = `%Y-%m-%d %H:%M:%S`;
+            expectedDatetimeFormat = `${dateFormatStr} ${timeFormatStr}`;
 
         } else {
             throw new Error("Date time interpretation not valid");

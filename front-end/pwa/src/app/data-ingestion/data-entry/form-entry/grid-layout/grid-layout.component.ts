@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList } from '@angular/core';
-import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition'; 
+import { FieldEntryDefinition, FormEntryDefinition } from '../form-entry.definition'; 
 import { ValueFlagInputComponent } from '../../../value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { ViewObservationModel } from '../../../models/view-observation.model';
@@ -222,12 +222,12 @@ export class GridLayoutComponent implements OnChanges {
   }
 
   public setFocusToFirstVF(): void {
-    // For some reason focus is not set on the first value flag control 
+    // For some reason focus is not set on the first value flag control
     // when the below code is called immediately after refreshing this layout
     setTimeout(() => {
-      if (this.vfComponents && this.vfComponents.length > 0) {
-        this.vfComponents.first.focus();
-      }
+      if (!this.vfComponents || this.vfComponents.length === 0) return;
+      const firstEnabled = this.vfComponents.find(c => !c.disableValueFlagEntry);
+      if (firstEnabled) firstEnabled.focus();
     }, 0);
 
   }

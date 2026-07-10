@@ -9,7 +9,8 @@
                (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
          </div>
          <div>
-            <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadConnectorSpecifications()" />
+            <app-page-input [pageInputDefinition]="pageInputDefinition"
+               (pageInputDefinitionChange)="loadConnectorSpecifications()" />
          </div>
       </div>
    </div>
@@ -20,10 +21,10 @@
             <colgroup>
                <col style="width: 2%;" />
                <col style="width: 14%;" />
+               <col style="width: 40%;" />
                <col style="width: 7%;" />
                <col style="width: 12%;" />
                <col style="width: 15%;" />
-               <col style="width: 40%;" />
                <col style="width: 10%;" />
             </colgroup>
             <thead>
@@ -33,12 +34,12 @@
                      (sort)="onSort($event)">Name</th>
                   <th appSortableHeader="connectorType" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
                      (sort)="onSort($event)">Type</th>
+                  <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                     (sort)="onSort($event)">Description</th>
                   <th appSortableHeader="hostName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
                      (sort)="onSort($event)">Host</th>
                   <th appSortableHeader="cronSchedule" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
                      (sort)="onSort($event)">Schedule</th>
-                  <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
-                     (sort)="onSort($event)">Description</th>
                   <th>Actions</th>
                </tr>
             </thead>
@@ -54,8 +55,6 @@
                         {{ connector.connectorType }}
                      </span>
                   </td>
-                  <td>{{ connector.hostName }}</td>
-                  <td>{{ connector.cronSchedule }}</td>
                   <td>
                      <ng-container *ngFor="let seg of connector.description | linkify">
                         <a *ngIf="seg.isLink; else plainText" [href]="seg.href" target="_blank"
@@ -63,8 +62,14 @@
                         <ng-template #plainText>{{ seg.content }}</ng-template>
                      </ng-container>
                   </td>
+                  <td>{{ connector.hostName }}</td>
+                  <td>{{ connector.cronSchedule }}</td>
                   <td>
                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" title="Clone connector"
+                           (click)="onCloneClick(connector, $event)">
+                           <i class="bi bi-files"></i>
+                        </button>
                         <button type="button" class="btn btn-sm"
                            [ngClass]="connector.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
                            [title]="connector.disabled ? 'Enable connector' : 'Disable connector'"
@@ -78,6 +83,11 @@
                      </div>
                   </td>
                </tr>
+               <tr *ngIf="pageItems.length === 0">
+                  <td colspan="7" class="text-center text-muted py-4">
+                     No connectors yet. Click "Add" to create one.
+                  </td>
+               </tr>
             </tbody>
          </table>
       </div>
@@ -85,6 +95,9 @@
 
    <!-- Connector Input Dialog -->
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
+
+   <!-- Connector Clone Dialog -->
+   <app-connector-clone-dialog #dlgClone (ok)="onConnectorInput()" />
 
    <!-- Delete Confirmation Dialog -->
    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''"

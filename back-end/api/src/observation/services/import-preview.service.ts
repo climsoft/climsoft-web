@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -6,7 +6,8 @@ import crypto from 'node:crypto';
 import { FileIOService, OperationContext } from 'src/shared/services/file-io.service';
 import { AdapterRunnerService, AdapterRef, AdapterRunMetadata, AdapterRunResult } from 'src/shared/services/adapter-runner.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
-import { BaseParamsDto, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
+import { BaseParamsDto, PreviewForImportDto, PreviewForSourceResponse, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
+import { FileLinesUtils } from 'src/shared/utils/file-lines.utils';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBUtils, getTableNameFromUUID } from 'src/shared/utils/duckdb.utils';
@@ -17,6 +18,9 @@ import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
 import { ViewAdapterSpecificationDto } from 'src/metadata/adapters/dtos/view-adapter-specification.dto';
 import { FileProcessingError } from 'src/metadata/file-processing-error.model';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
+import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 
 interface PreviewSession {
     sessionId: string;
@@ -53,6 +57,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         private elementsService: ElementsService,
         private flagsService: FlagsService,
         private adaptersService: AdaptersService,
+        private sourcesService: SourceSpecificationsService,
     ) { }
 
     public async onModuleDestroy() {
@@ -93,9 +98,10 @@ export class ImportPreviewService implements OnModuleDestroy {
             await fs.promises.copyFile(samplesPath, path.posix.join(op.inputDir, fileName));
         } else {
             // New upload — save from memory to the operation's input directory
-            // For uploads, always use the new operation id as the original name because new "sample file" uploads need to be logged as changes
+            // For uploads, always use the new operation id as the original name because new "sample file" uploads need to be logged as changes.
+            // The original file's extension is preserved so downstream readers (DuckDB sniffer, persisted sample file in /app/samples) see a real file type.
             // Note. Auto import doesn't need this because the downloaded file names will never be used as sample file names in that operation
-            fileName = op.operationId;
+            fileName = op.operationId + path.extname(fileOrFileName.originalname);
             this.logger.log(`writing uploaded file ${fileOrFileName.originalname} from memory to file: ${fileName}`);
             await fs.promises.writeFile(path.posix.join(op.inputDir, fileName), fileOrFileName.buffer);
         }
@@ -135,6 +141,60 @@ export class ImportPreviewService implements OnModuleDestroy {
         return this.previewRawData(session);
     }
 
+    /**
+     * View-only preview of a spec's saved sample file. The session is torn
+     * down server-side because the sample file is never confirmed for
+     * import, so there is nothing for the client to retain.
+     */
+    public async previewSampleForSource(sourceId: number): Promise<PreviewForSourceResponse | null> {
+        const sourceDef: ViewSourceSpecificationModel = this.sourcesService.find(sourceId);
+        if (!sourceDef.sampleFileName) {
+            return null;
+        }
+        // For sample previews we pass a placeholder station id when the spec
+        // has no station column, matching the input-dialog's behavior.
+        const importSource = sourceDef.parameters as ImportSourceDto;
+        const tabular = importSource.dataStructureParameters as ImportSourceTabularParamsDto;
+        const stationId: string | null = tabular.stationDefinition ? null : 'PREVIEW_STATION';
+
+        const result: PreviewForSourceResponse = await this.previewForSource(sourceDef.sampleFileName, sourceId, stationId);
+        // The sample session is view-only — clean it up so the client does not have to.
+        await this.destroySession(result.raw.sessionId);
+        result.raw.sessionId = '';
+        return result;
+    }
+
+    /**
+     * Source-scoped preview used by the import-entry flow. The base params
+     * (adapter, rowsToSkip, delimiter) are read from the saved source spec
+     * server-side rather than trusted from the client. Returns both the raw
+     * and transformed previews in one round trip.
+     *
+     * `fileOrFileName` is either a freshly uploaded file (multipart) or the
+     * basename of the spec's saved sample file.
+     */
+    public async previewForSource(
+        fileOrFileName: string | Express.Multer.File,
+        sourceId: number,
+        stationId: string | null,
+    ): Promise<PreviewForSourceResponse> {
+        const sourceDef: ViewSourceSpecificationModel = this.sourcesService.find(sourceId);
+        const baseParams: BaseParamsDto = this.extractBaseParams(sourceDef);
+        const raw: RawPreviewResponse = await this.initAndPreviewRawData(fileOrFileName, baseParams);
+        const transformed: TransformedPreviewResponse = await this.previewTransformedData(raw.sessionId, sourceDef, stationId);
+        return { raw, transformed };
+    }
+
+    private extractBaseParams(sourceDef: ViewSourceSpecificationModel): BaseParamsDto {
+        const importSource = sourceDef.parameters as ImportSourceDto;
+        const tabular = importSource.dataStructureParameters as ImportSourceTabularParamsDto;
+        return {
+            importAdapterId: sourceDef.adapterId,
+            rowsToSkip: tabular.rowsToSkip,
+            delimiter: tabular.delimiter ?? null,
+        };
+    }
+
     private async applyAdapter(session: PreviewSession, importAdapterId: number | null): Promise<void> {
         if (importAdapterId) {
             const adapterOutputFileName = await this.runAdapterForPreview(session, importAdapterId, 0);
@@ -165,7 +225,13 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        return { sessionId: session.sessionId, fileName: session.workingFileName, previewData, skippedData };
+        // Read the head of the **original** uploaded file (pre-adapter) so
+        // users can compare the raw bytes against DuckDB's parsed view.
+        // Not partitioned on rowsToSkip — that setting is about parsed rows.
+        const originalFilePath = path.posix.join(op.inputDir, session.originalFileName);
+        const originalLines: string[] = await FileLinesUtils.readHeadLines(originalFilePath, session.rowsToSkip + this.MAX_PREVIEW_ROWS);
+
+        return { sessionId: session.sessionId, fileName: session.workingFileName, previewData, skippedData, originalLines };
     }
 
     public async previewTransformedData(sessionId: string, sourceDef: ViewSourceSpecificationModel, stationId: string | null): Promise<TransformedPreviewResponse> {
@@ -195,13 +261,23 @@ export class ImportPreviewService implements OnModuleDestroy {
     public async importData(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
         const session = this.getSession(sessionId);
         const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
-        const inputFilePathName = path.posix.join(op.inputDir, session.workingFileName);
-        await this.observationImportService.processFileForImport(dto.sourceId, inputFilePathName, op.intermediateDir, op.outputDir, userId, dto.stationId ?? null);
+        // Working file lives in the input dir when no adapter was applied,
+        // or the intermediate dir when the preview upload already ran the adapter.
+        const workingDir: string = session.fileLocation === 'input' ? op.inputDir : op.intermediateDir;
+        const inputFilePathName: string = path.posix.join(workingDir, session.workingFileName);
+
+        // Skip the adapter step: it already ran during the preview upload.
+        // Running it again here would either fail (adapter can't parse its
+        // own output) or silently produce wrong data.
+        const error: FileProcessingError | void = await this.observationImportService.transformForImport(dto.sourceId, inputFilePathName, op.outputDir, userId, dto.stationId ?? null);
+        if (error) {
+            throw new BadRequestException(error.message);
+        }
 
         // Import to database from the operation's output directory
         const outputFiles = await fs.promises.readdir(op.outputDir);
         if (outputFiles.length === 0) {
-            throw new Error('No processed file produced');
+            throw new BadRequestException('No processed data output found.');
         }
         const processedFilePathName = path.posix.join(op.dbOutputDir, outputFiles[0]);
         await this.observationImportService.importProcessedFileToDatabase(processedFilePathName);
@@ -245,13 +321,16 @@ export class ImportPreviewService implements OnModuleDestroy {
         }
 
         const op: OperationContext = this.fileIOService.getOperationContext(session.operationId);
+        // The runner expects a full FILE path, not the input directory — DuckDB
+        // `read_csv` silently treats a directory as an empty source and would
+        // otherwise produce a headers-only output file.
+        const inputFilePathName = path.posix.join(op.inputDir, session.originalFileName);
 
         const adapterRef: AdapterRef = {
             id: adapter.id,
             name: adapter.name,
             language: adapter.language,
             scriptDirName: adapter.scriptDirName,
-            entryPoint: adapter.entryPoint,
         };
 
         const metadata: AdapterRunMetadata = {
@@ -265,13 +344,15 @@ export class ImportPreviewService implements OnModuleDestroy {
             testRun: false,
         };
 
-        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, op.inputDir, op.intermediateDir, metadata);
+        // Preview session tears down its whole op dir when the session ends,
+        // so log files add no value here either.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata, { deleteLogsOnCompletion: true });
 
         if (result.status !== 'success') {
             throw new Error(`Adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
         }
 
-        const adapterOutputFileName: string = path.basename(result.outputFiles[0]);
+        const adapterOutputFileName: string = result.outputFiles[0].name;
         this.logger.log(`Adapter '${adapter.name}' produced preview file: ${adapterOutputFileName}`);
         return adapterOutputFileName;
     }

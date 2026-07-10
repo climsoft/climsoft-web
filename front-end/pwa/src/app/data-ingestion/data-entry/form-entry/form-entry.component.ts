@@ -4,8 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
-import { map, Subject, take, takeUntil } from 'rxjs';
-import { FormEntryDefinition } from './defintitions/form-entry.definition';
+import { Subject, take, takeUntil } from 'rxjs';
+import { FormEntryDefinition } from './form-entry.definition';
 import { ViewSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/view-source-specification.model';
 import { AssignSameInputComponent, SameInputStruct } from './assign-same-input/assign-same-input.component';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -389,6 +389,16 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSubmit(): void {
+    // For some reasons, 
+    // slower computers may fail to detect changes when user quickly enters data, 
+    // presses enter twice for focusing and clicking on the submit button.
+    // TODO. Investigate more about the bug.
+    setTimeout(() => {
+      this.save();
+    }, 0);
+  }
+
+  protected save(): void {
     if (this.userLocationErrorMessage) {
       this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;

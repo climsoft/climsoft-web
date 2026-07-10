@@ -8,7 +8,7 @@ import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/dat
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DataCorrectionComponent } from '../data-correction.component';
 import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
-import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
+import { QCAssessmentComponent } from 'src/app/quality-control/qc-data-checks/qc-assessment.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -140,7 +140,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
-        case QueryQCDataChecksComponent.name:
+        case QCAssessmentComponent.name:
           if (permissions.qcPermissions) {
             this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
           } else {

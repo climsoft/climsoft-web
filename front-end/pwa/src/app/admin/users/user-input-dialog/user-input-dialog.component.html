@@ -1,0 +1,63 @@
+<ng-container *ngIf="open && viewUser">
+  <app-dialog [(open)]="open" [title]="title"
+    [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+    (firstButtonClick)="onOkClick()"
+    [secondButtonOptions]="title === 'Edit User' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+    (secondButtonClick)="onDelete()"
+    [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+    (thirdButtonClick)="onCancelClick()">
+    <div>
+      <div>
+        <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-user-group-selector-single [label]="'Group'" [selectedId]="viewUser.groupId"
+          (selectedIdChange)="onGroupChange($event)" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-check-box-input [label]="'Is system administrator'" [value]="viewUser.isSystemAdmin"
+          (valueChange)="onIsSytemAdminChange($event)" />
+
+        <div *ngIf="!viewUser.isSystemAdmin && viewUser.permissions" class="mt-2">
+          <app-edit-user-permissions [userPermissions]="viewUser.permissions" />
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
+        <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Comment'" [(value)]="viewUser.comment" />
+      </div>
+    </div>
+  </app-dialog>
+  <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete User'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the user <strong>{{ viewUser.name }}</strong>?
+    </p>
+  </app-confirmation-dialog>
+</ng-container>

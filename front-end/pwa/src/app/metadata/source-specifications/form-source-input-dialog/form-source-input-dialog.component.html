@@ -27,7 +27,7 @@
         <hr />
 
         <div>
-            <app-selector-multiple-input [label]="'Fields'" [errorMessage]="fieldsErrorMessage"
+            <app-selector-multiple-input [label]="'Fields'" [labelSuperScript]="selectedFields.length > 1 ? 'row, col': ''" [errorMessage]="fieldsErrorMessage"
                 [options]="possibleFields" [selectedOptions]="selectedFields"
                 (selectedOptionsChange)="onFieldsSelected($event)" />
         </div>
@@ -41,7 +41,8 @@
         <hr />
 
         <div>
-            <app-element-selector-multiple [label]="'Element(s)'" [(selectedIds)]="selectedElementIds" />
+            <app-element-selector-multiple [label]="'Element(s)'" [selectedIds]="selectedElementIds"
+                (selectedIdsChange)="onElementsSelected($event)" />
         </div>
 
         <hr />
@@ -55,8 +56,48 @@
         <hr />
 
         <div>
-            <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage"
-                [selectedIds]="selectedHourIds" (selectedIdsChange)="onHoursSelected($event)" />
+            <app-hour-multiple-input [label]="'Hour(s)'" [selectedIds]="selectedHourIds"
+                (selectedIdsChange)="onHoursSelected($event)" />
+        </div>
+
+        <hr />
+
+        <!-- Per-element hour configuration. Each element can either inherit all the form hours selected above,
+             or be restricted to a subset of them. -->
+        <div *ngIf="elementsMetadata.length > 0">
+            <label class="form-label fw-semibold">Element Hours</label>
+            <div class="text-muted small mb-2">
+                Pick which form hours each element accepts by toggling off "All form hours" to restrict an element to a
+                subset.
+            </div>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th class="text-center">All Form Hours</th>
+                        <th>Allowed Hours</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr *ngFor="let meta of elementsMetadata; let i = index">
+                        <td class="align-middle">{{ getElementLabel(meta.elementId) }}</td>
+                        <td>
+                           <div class="d-flex justify-content-center">
+                             <app-check-box-input [id]="i + '_all_hours'" [value]="isInheritingFormHours(meta)"
+                                (valueChange)="onAllHoursToggle(i, $event)" />
+                           </div>
+                        </td>
+                        <td>
+                            <app-hour-multiple-input [id]="i + '_element_hour'" *ngIf="!isInheritingFormHours(meta)"
+                                [includeOnlyIds]="selectedHourIds" [selectedIds]="meta.hours || []"
+                                (selectedIdsChange)="onElementHoursChange(i, $event)" />
+                            <span *ngIf="isInheritingFormHours(meta)" class="text-muted small">
+                                All form hour(s)
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <hr />

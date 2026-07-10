@@ -10,6 +10,14 @@ library(plumber)
 library(jsonlite)
 
 INSTALLED_DIR_NAME <- ".installed"
+## Entry point is a language convention (`main.R`) enforced by the API at
+## upload-preview time — hardcoded here so it doesn't need to travel in the
+## request body.
+ENTRY_POINT <- "main.R"
+## Volume mount points inside this container. Hardcoded to match every
+## docker-compose profile (dev / test / prod). Callers pass only IDs.
+ADAPTERS_ROOT <- "/app/adapters"
+OPERATIONS_ROOT <- "/app/operations"
 
 health_handler <- function() {
   list(status = "ok", runtime = "r", version = paste(R.version$major, R.version$minor, sep = "."))
@@ -18,7 +26,7 @@ health_handler <- function() {
 run_handler <- function(req) {
   body <- req$body
 
-  required <- c("scriptDir", "entryPoint", "inputDir", "outputDir", "metadataFile", "timeoutSeconds")
+  required <- c("scriptDirName", "operationId", "inputRelPath", "outputRelPath", "timeoutSeconds")
   missing <- setdiff(required, names(body))
   if (length(missing) > 0) {
     return(list(
@@ -28,21 +36,22 @@ run_handler <- function(req) {
     ))
   }
 
-  script_dir     <- body$scriptDir
-  entry_point    <- body$entryPoint
-  input_dir      <- body$inputDir
-  output_dir     <- body$outputDir
-  metadata_file  <- body$metadataFile
+  # Resolve full paths from the hardcoded roots + wire-supplied IDs.
+  script_dir     <- file.path(ADAPTERS_ROOT, body$scriptDirName)
+  op_dir         <- file.path(OPERATIONS_ROOT, body$operationId)
+  input_file_path_name <- file.path(op_dir, body$inputRelPath)
+  output_dir     <- file.path(op_dir, body$outputRelPath)
   timeout_secs   <- as.integer(body$timeoutSeconds)
 
-  # Derive paths by convention
+  # Derive paths by convention inside outputDir.
   env_dir        <- file.path(script_dir, INSTALLED_DIR_NAME)
+  metadata_file  <- file.path(output_dir, "metadata.json")
   warnings_file  <- file.path(output_dir, "warnings.jsonl")
   stdout_file    <- file.path(output_dir, "stdout.log")
   stderr_file    <- file.path(output_dir, "stderr.log")
   install_log    <- file.path(output_dir, "install.log")
 
-  entry_path <- file.path(script_dir, entry_point)
+  entry_path <- file.path(script_dir, ENTRY_POINT)
   if (!file.exists(entry_path)) {
     return(list(
       status = "failure", durationMs = 0, exitCode = -1,
@@ -87,7 +96,7 @@ run_handler <- function(req) {
 
   # Step 2: run the script with the right env vars
   env_vars <- c(
-    paste0("CLIMSOFT_INPUT_DIR=", input_dir),
+    paste0("CLIMSOFT_INPUT_FILE_PATH_NAME=", input_file_path_name),
     paste0("CLIMSOFT_OUTPUT_DIR=", output_dir),
     paste0("CLIMSOFT_METADATA_FILE=", metadata_file),
     paste0("CLIMSOFT_WARNINGS_FILE=", warnings_file),

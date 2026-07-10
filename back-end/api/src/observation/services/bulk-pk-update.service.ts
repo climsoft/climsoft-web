@@ -21,6 +21,7 @@ import { BulkFilterUtils } from './bulk-filter.utils';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+import { StreamableFileUtils } from 'src/shared/utils/streamable-file.utils';
 
 interface BulkPkUpdateSession {
     sessionId: string;
@@ -364,11 +365,7 @@ export class BulkPkUpdateService implements OnModuleDestroy {
         }
 
         const csvPath: string = path.posix.join(op.outputDir, csvFiles[0]);
-        const fileName: string = path.basename(csvPath);
-        return new StreamableFile(fs.createReadStream(csvPath), {
-            type: 'text/csv',
-            disposition: `attachment; filename="${fileName}"`,
-        });
+        return StreamableFileUtils.asAttachment(fs.createReadStream(csvPath), path.basename(csvPath));
     }
 
     public async destroySession(sessionId: string): Promise<void> {

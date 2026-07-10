@@ -36,16 +36,17 @@ export class Wis2BoxElementMapDto {
 export const WIS2BOX_ELEMENTS_BY_REPORT_TYPE: Record<ReportTypeEnum, string[]> = {
     [ReportTypeEnum.SYNOP]: [
         'station_pressure',
-        'msl_pressure',
+        'msl_pressure', // Calculate if not present
         //'pressure_change_3hr', // Calculate it from the 1 hour station_pressure. It is a minus calculation between the value for the latest hour and the last 3 hour. If any misses then it should be missing as well.
         // 'pressure_tendency_characteristic', // 2 if it is increasing (pressure3hr is positive), 4 if it is the same (pressure3hr is 0), 7 if it has decreased for the last 3 hours(if pressure3hr is negative). If any pressure3hr is missing it should be missing
         // 'pressure_change_24hr', // Calculate it from the 1 hour station_pressure. It is a minus calculation between the value for the latest hour and the last 24 hour. If any misses then it should be missing as well.
         // 'pressure_standard_level', // Hard code as 85000
-        'geopotential_height',
+        'geopotential_height',  // Calculate if not present
         // 'thermometer_height', //  Should come from station element instrument metadata.  
         'air_temperature', // convert from celcius to kelvin
-        'dewpoint_temperature', // convert from celcius to kelvin
-        'relative_humidity',
+        'wet_bulb_temperature', // Auxiliary input - not emitted in the WIS2BOX CSV; used only to derive dewpoint_temperature when it isn't supplied directly. convert from celcius to kelvin
+        'dewpoint_temperature', // Calculate if not present. convert from celcius to kelvin
+        'relative_humidity', // Calculate if not present
         // 'visibility_sensor_height', //  Should come from station element instrument metadata. 
         'horizontal_visibility',
         'cloud_total_cover',// convert from oktas to % . 0 to 8 - which adds to 100%.  9 or / is 113% . No decimal points that's why 112.5 becomes 113

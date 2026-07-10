@@ -1,9 +1,10 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
 import { ViewNetworkAffiliationModel } from '../models/view-network-affiliation.model';
 import { CreateUpdateNetworkAffiliationModel } from '../models/create-update-network-affiliation.model';
+import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-network-affiliation-input-dialog',
@@ -11,11 +12,11 @@ import { CreateUpdateNetworkAffiliationModel } from '../models/create-update-net
   styleUrls: ['./network-affiliation-input-dialog.component.scss']
 })
 export class NetworkAffiliationInputDialogComponent implements OnDestroy {
-  @Output()
-  public ok = new EventEmitter<void>();
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: ConfirmationDialogComponent;
+  @Output() public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected title: string = '';
+  protected title: 'Edit Network Affiliation' | 'New Network Affiliation' = 'New Network Affiliation';
   protected viewNetworkAffiliations!: ViewNetworkAffiliationModel;
   protected errorMessage!: string;
 
@@ -83,6 +84,26 @@ export class NetworkAffiliationInputDialogComponent implements OnDestroy {
         this.ok.emit();
       });
     }
+  }
+
+  protected onDelete(): void {
+    this.dlgDeleteConfirm.openDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.networkAffiliationCacheService.delete(this.viewNetworkAffiliations.id).pipe(
+      take(1),
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: 'Network Affiliation deleted', type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();
+      },
+      error: (err) => {
+        console.error(err);
+        this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
+    });
   }
 
 }

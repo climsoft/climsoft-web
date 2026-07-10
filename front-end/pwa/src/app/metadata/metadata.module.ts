@@ -6,6 +6,8 @@ import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/im
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
 import { FormSourceInputDialogComponent } from './source-specifications/form-source-input-dialog/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from './source-specifications/import-source-input-dialog/import-source-input-dialog.component';
+import { SourceCloneDialogComponent } from './source-specifications/source-clone-dialog/source-clone-dialog.component';
+import { IdMappingTableComponent } from './source-specifications/id-mapping-table/id-mapping-table.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { StationInputDialogComponent } from './stations/station-input-dialog/station-input-dialog.component';
 import { StationsImportDialogComponent } from './stations/stations-import-dialog/stations-import-dialog.component';
@@ -50,6 +52,7 @@ import { StationSelectorSingleComponent } from './stations/station-selector/stat
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
 import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ExportSpecificationInputDialogComponent } from './export-specifications/export-specification-input-dialog/export-specification-input-dialog.component';
+import { ExportCloneDialogComponent } from './export-specifications/export-clone-dialog/export-clone-dialog.component';
 import { RawExportParamsComponent } from './export-specifications/export-specification-input-dialog/raw-export-params/raw-export-params.component';
 import { Wis2BoxExportParamsComponent } from './export-specifications/export-specification-input-dialog/wis2box-export-params/wis2box-export-params.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
@@ -82,6 +85,7 @@ import { StationEnvironmentSelectorMultipleComponent } from './stations/station-
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
 import { ImportSourceValueDetailComponent } from './source-specifications/import-source-input-dialog/import-source-value-detail/import-source-value-detail.component';
 import { ConnectorSpecificationInputDialogComponent } from './connector-specifications/connector-specification-input-dialog/connector-specification-input-dialog.component';
+import { ConnectorCloneDialogComponent } from './connector-specifications/connector-clone-dialog/connector-clone-dialog.component';
 import { ServerTypeSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/server-type-selector-single/server-type-selector-single.component';
 import { FileServerParametersInputComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-parameters-input.component';
 import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
@@ -118,6 +122,8 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
     ViewSourcesComponent,
     FormSourceInputDialogComponent,
     ImportSourceInputDialogComponent,
+    SourceCloneDialogComponent,
+    IdMappingTableComponent,
 
     ViewStationsComponent,
     StationInputDialogComponent,
@@ -196,6 +202,7 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
 
     ViewExportSpecificationsComponent,
     ExportSpecificationInputDialogComponent,
+    ExportCloneDialogComponent,
     RawExportParamsComponent,
     Wis2BoxExportParamsComponent,
     ExportSpecificationSelectorSingleComponent,
@@ -203,6 +210,7 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
 
     ViewConnectorSpecificationsComponent,
     ConnectorSpecificationInputDialogComponent,
+    ConnectorCloneDialogComponent,
     ServerTypeSelectorSingleComponent,
     FileServerParametersInputComponent,
     ImportFileServerParamsComponent,

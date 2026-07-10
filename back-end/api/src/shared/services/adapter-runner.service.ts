@@ -5,20 +5,22 @@ import path from 'node:path';
 import { FileIOService } from './file-io.service';
 import { AppConfig } from 'src/app.config';
 import { AdapterLanguageEnum } from 'src/metadata/adapters/enums/adapter-language.enum';
-import { AdapterWarning } from 'src/metadata/adapters/dtos/adapter-run-result.dto';
 import { FileProcessingErrorType, FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 /**
  * Identifying the adapter to run. Uses raw fields rather than an entity
  * object so this service can live in SharedModule without depending on
  * the TypeORM entity (which is registered in MetadataModule).
+ *
+ * `entryPoint` is intentionally absent — each per-language runner hardcodes
+ * its canonical filename (`main.py`, `main.R`, `index.js`, `transform.sql`).
+ * The convention is enforced at upload-preview time on the API side.
  */
 export interface AdapterRef {
     id: number;
     name: string;
     language: AdapterLanguageEnum;
     scriptDirName: string;
-    entryPoint: string;
 }
 
 /**
@@ -36,30 +38,79 @@ export interface AdapterRunMetadata {
     testRun: boolean;
 }
 
+/**
+ * Descriptor for a file that lives in the operation output directory
+ * after a run. Both categories share this shape.
+ */
+export interface ProducedFile {
+    /** Basename inside the output directory. */
+    name: string;
+    /** Size in bytes as reported by `fs.stat`. */
+    sizeBytes: number;
+}
+
 export interface AdapterRunResult {
-    status: 'success' | 'failure';
+    status: 'success' | 'failure' | 'timeout';
     durationMs: number;
-    outputFiles: string[];
-    stdout: string;
-    stderr: string;
-    installLog: string | null;
-    warnings: AdapterWarning[];
+    /** Files the adapter script wrote, excluding well-known log files. */
+    outputFiles: ProducedFile[];
+    /**
+     * Well-known runner-produced log files that exist on disk:
+     * `metadata.json`, `warnings.jsonl`, `stdout.log`, `stderr.log`,
+     * `install.log`. Empty when `deleteLogsOnCompletion` was requested
+     * or when the runner wrote nothing.
+     */
+    logFiles: ProducedFile[];
     error?: FileProcessingError;
 }
 
+/** Options for {@link AdapterRunnerService.run}. */
+export interface AdapterRunOptions {
+    /**
+     * When true, the runner deletes the well-known log files from the
+     * output directory after enumerating them, and returns `logFiles: []`.
+     * Used by production callers whose output directory becomes user-
+     * visible (e.g. export downloads) so log files don't leak into the
+     * download.
+     */
+    deleteLogsOnCompletion?: boolean;
+}
+
+/**
+ * Wire contract with the runner microservices.
+ *
+ * The runner and the API share the adapters/operations volumes but mount them
+ * at potentially different paths (in dev the API runs on the host under
+ * `<projectRoot>/back-end/api/temp/…` while the runner sees `/app/…`). The
+ * wire therefore carries only IDs and operation-relative paths — each runner
+ * hardcodes its own `ADAPTERS_ROOT` / `OPERATIONS_ROOT` and reconstructs full
+ * paths locally. Metadata / warnings / stdout / stderr / install-log
+ * filenames are pure convention inside the runner's output directory, so
+ * they are not carried on the wire either.
+ */
 interface RunnerRequest {
-    scriptDir: string;
-    entryPoint: string;
-    inputFilePathName: string;
-    outputDir: string;
-    metadataFile: string;
+    /** Adapter UUID (subdir under ADAPTERS_ROOT on the runner side). */
+    scriptDirName: string;
+    /** Operation UUID (subdir under OPERATIONS_ROOT on the runner side). */
+    operationId: string;
+    /** Path relative to `<OPERATIONS_ROOT>/<operationId>/` where the runner reads input. */
+    inputRelPath: string;
+    /** Path relative to `<OPERATIONS_ROOT>/<operationId>/` where the runner writes output. */
+    outputRelPath: string;
     timeoutSeconds: number;
 }
 
+/**
+ * Runners answer with `errorType` + `errorMessage` fields (see
+ * `back-end/runners/*` — the JSON body is written by hand in each server).
+ * `errorType` arrives as a plain string; we narrow it to `FileProcessingErrorType`
+ * at the point of use.
+ */
 interface RunnerResponse {
-    status: 'success' | 'failure';
+    status: 'success' | 'failure' | 'timeout';
     durationMs: number;
-    error?: FileProcessingErrorType;
+    errorType?: string;
+    errorMessage?: string;
 }
 
 /**
@@ -102,16 +153,24 @@ export class AdapterRunnerService {
     /**
      * Runs an adapter script via the runner microservice.
      *
-     * @param adapter   Adapter identification (language, scriptDir, entryPoint)
-     * @param inputFilePathName  Directory the runner reads input from
-     * @param outputDir Directory the runner writes output and logs to
+     * @param adapter   Adapter identification (language, scriptDirName)
+     * @param inputFilePathName  API-view path the runner should read input from
+     * @param outputDir API-view path the runner should write output and logs to
      * @param metadata  Context written to metadata.json for the script
+     * @param opts      Optional run behavior (e.g. delete log files after completion).
+     *
+     * Both `inputFilePathName` and `outputDir` must lie under
+     * `fileIO.apiOperationsDir/<operationId>/`. This service extracts the
+     * operation id and the operation-relative paths so the wire body can be
+     * filesystem-agnostic; the runner reconstructs full paths from its own
+     * hardcoded `OPERATIONS_ROOT`.
      */
     public async run(
         adapter: AdapterRef,
         inputFilePathName: string,
         outputDir: string,
         metadata: AdapterRunMetadata,
+        opts?: AdapterRunOptions,
     ): Promise<AdapterRunResult> {
         const cfg = this.runnerConfigFor(adapter.language);
         if (!cfg.enabled) {
@@ -121,20 +180,23 @@ export class AdapterRunnerService {
             );
         }
 
+        // Metadata sidecar is written by the API at its own view of outputDir;
+        // the runner reads it via its own view (derived from operationId), so
+        // the sidecar path itself does not need to travel in the wire body.
         const metadataFile = path.posix.join(outputDir, 'metadata.json');
 
         try {
             await fs.promises.writeFile(metadataFile, JSON.stringify(metadata, null, 2), 'utf8');
 
-            const scriptDir = this.fileIO.getAdapterScriptDir(adapter.scriptDirName);
+            const { operationId, inputRelPath, outputRelPath } =
+                this.deriveOperationRelativePaths(inputFilePathName, outputDir);
             const timeoutSeconds = cfg.timeoutSeconds;
 
             const req: RunnerRequest = {
-                scriptDir: scriptDir,
-                entryPoint: adapter.entryPoint,
-                inputFilePathName: inputFilePathName,
-                outputDir: outputDir,
-                metadataFile: metadataFile,
+                scriptDirName: adapter.scriptDirName,
+                operationId: operationId,
+                inputRelPath: inputRelPath,
+                outputRelPath: outputRelPath,
                 timeoutSeconds: timeoutSeconds,
             };
 
@@ -151,39 +213,49 @@ export class AdapterRunnerService {
                 });
                 runnerResp = resp.data;
             } catch (err) {
-                return await this.onHttpError(err, adapter.name, outputDir);
+                return await this.onHttpError(err, adapter.name, outputDir, opts);
             }
 
-            const stdout = await this.readFileSafe(path.posix.join(outputDir, 'stdout.log'));
-            const stderr = await this.readFileSafe(path.posix.join(outputDir, 'stderr.log'));
-            const installLog = (await this.readFileSafe(path.posix.join(outputDir, 'install.log'))) || null;
-            const warnings = await this.readWarningsFile(path.posix.join(outputDir, 'warnings.jsonl'));
-            const outputFiles = await this.scanOutputFiles(outputDir);
+            const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
 
-            if (runnerResp.status === 'success' && outputFiles.length > 0) {
-                return {
-                    status: 'success',
-                    durationMs: runnerResp.durationMs,
-                    outputFiles: outputFiles,
-                    stdout: stdout,
-                    stderr: stderr,
-                    installLog: installLog,
-                    warnings: warnings,
-                    error: {type: FileProcessingErrorType.OUTPUT_MISSING, message: 'no files output'},
-                };
-            }else{
-                 return {
-                    status: runnerResp.status,
-                    durationMs: runnerResp.durationMs,
-                    outputFiles: outputFiles,
-                    stdout: stdout,
-                    stderr: stderr,
-                    installLog: installLog,
-                    warnings: warnings,
-                    error: {type: FileProcessingErrorType.OUTPUT_MISSING, message: 'runner failed'},
-                };
+            this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.map(f => f.name).join(', ')}`);
 
+            if (opts?.deleteLogsOnCompletion) {
+                await this.deleteLogFiles(outputDir, logFiles);
             }
+
+            const baseResult = {
+                durationMs: runnerResp.durationMs,
+                outputFiles,
+                logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles,
+            };
+
+            if (runnerResp.status === 'success') {
+                if (outputFiles.length === 0) {
+                    // Runner completed cleanly but the script wrote nothing.
+                    // Flag it so the UI can surface "success but empty output".
+                    return {
+                        ...baseResult,
+                        status: 'success',
+                        error: {
+                            type: FileProcessingErrorType.OUTPUT_MISSING,
+                            message: 'Adapter completed successfully but produced no output files.',
+                        },
+                    };
+                }
+                // Clean success — no error attached.
+                return { ...baseResult, status: 'success' };
+            }
+
+            // Failure or timeout — propagate the runner's own error info.
+            return {
+                ...baseResult,
+                status: runnerResp.status,
+                error: {
+                    type: this.mapRunnerErrorType(runnerResp.errorType),
+                    message: runnerResp.errorMessage ?? 'Adapter run failed. See stderr.log for details.',
+                },
+            };
 
         } catch (err) {
             this.logger.error(`Unexpected error running adapter '${adapter.name}': ${(err as Error).message}`);
@@ -196,17 +268,106 @@ export class AdapterRunnerService {
     //--------------------------------------------------------------------
 
     /**
-     * Scans outputDir for files that are not well-known log files.
-     * These are the actual output files produced by the adapter script.
+     * Converts the API-view input file path and output directory into the
+     * `{ operationId, inputRelPath, outputRelPath }` triple carried on the
+     * wire. Both paths must sit under `<apiOperationsDir>/<operationId>/`.
+     *
+     * Splits the first path segment (the operation id) off and returns the
+     * remainder as the operation-relative paths the runner will splice with
+     * its own `OPERATIONS_ROOT`.
      */
-    private async scanOutputFiles(outputDir: string): Promise<string[]> {
+    private deriveOperationRelativePaths(
+        inputFilePathName: string,
+        outputDir: string,
+    ): { operationId: string; inputRelPath: string; outputRelPath: string } {
+        const opsRoot = this.fileIO.apiOperationsDir;
+        const inputFromOps = path.posix.relative(opsRoot, inputFilePathName.replaceAll('\\', '/'));
+        const outputFromOps = path.posix.relative(opsRoot, outputDir.replaceAll('\\', '/'));
+
+        if (inputFromOps.startsWith('..') || outputFromOps.startsWith('..')) {
+            throw new Error(
+                `Adapter runner paths must sit under the operations root (${opsRoot}). ` +
+                `Got input='${inputFilePathName}', output='${outputDir}'.`,
+            );
+        }
+
+        const [inputOpId, ...inputRest] = inputFromOps.split('/');
+        const [outputOpId, ...outputRest] = outputFromOps.split('/');
+
+        if (!inputOpId || inputOpId !== outputOpId) {
+            throw new Error(
+                `Input and output must belong to the same operation. ` +
+                `Got inputOpId='${inputOpId}', outputOpId='${outputOpId}'.`,
+            );
+        }
+
+        return {
+            operationId: inputOpId,
+            inputRelPath: inputRest.join('/'),
+            outputRelPath: outputRest.join('/'),
+        };
+    }
+
+    /**
+     * Narrows the runner's plain-string `errorType` to a `FileProcessingErrorType`
+     * enum value. Any unknown or missing string falls back to `RUNTIME_ERROR`
+     * so callers don't have to defend against out-of-band strings from a
+     * future runner version.
+     */
+    private mapRunnerErrorType(errorType: string | undefined): FileProcessingErrorType {
+        if (errorType && (Object.values(FileProcessingErrorType) as string[]).includes(errorType)) {
+            return errorType as FileProcessingErrorType;
+        }
+        return FileProcessingErrorType.RUNTIME_ERROR;
+    }
+
+    /**
+     * Enumerates every file in `outputDir` and partitions them into
+     * `outputFiles` (actual adapter output) vs `logFiles` (well-known
+     * runner-produced sidecars). Sizes are read via `fs.stat`.
+     */
+    private async enumerateOutputDir(outputDir: string): Promise<{ outputFiles: ProducedFile[]; logFiles: ProducedFile[] }> {
+        let entries: fs.Dirent[];
         try {
-            const entries = await fs.promises.readdir(outputDir, { withFileTypes: true });
-            return entries
-                .filter(e => e.isFile() && !AdapterRunnerService.LOG_FILES.has(e.name))
-                .map(e => path.posix.join(outputDir, e.name));
+            entries = await fs.promises.readdir(outputDir, { withFileTypes: true });
         } catch {
-            return [];
+            return { outputFiles: [], logFiles: [] };
+        }
+
+        const outputFiles: ProducedFile[] = [];
+        const logFiles: ProducedFile[] = [];
+
+        for (const entry of entries) {
+            if (!entry.isFile()) continue;
+            let sizeBytes: number;
+            try {
+                const stat = await fs.promises.stat(path.posix.join(outputDir, entry.name));
+                sizeBytes = stat.size;
+            } catch {
+                continue;
+            }
+            const descriptor: ProducedFile = { name: entry.name, sizeBytes };
+            if (AdapterRunnerService.LOG_FILES.has(entry.name)) {
+                logFiles.push(descriptor);
+            } else {
+                outputFiles.push(descriptor);
+            }
+        }
+        return { outputFiles, logFiles };
+    }
+
+    /**
+     * Unlinks the enumerated log files from `outputDir`. Failures are
+     * swallowed — cleanup is best-effort; the orphaned-op sweeper will
+     * eventually collect anything left behind.
+     */
+    private async deleteLogFiles(outputDir: string, logFiles: ProducedFile[]): Promise<void> {
+        for (const f of logFiles) {
+            try {
+                await fs.promises.unlink(path.posix.join(outputDir, f.name));
+            } catch (err) {
+                this.logger.warn(`Failed to delete log file '${f.name}' in ${outputDir}: ${(err as Error).message}`);
+            }
         }
     }
 
@@ -219,17 +380,21 @@ export class AdapterRunnerService {
         }
     }
 
-    private async onHttpError(err: unknown, adapterName: string, outputDir: string): Promise<AdapterRunResult> {
+    private async onHttpError(err: unknown, adapterName: string, outputDir: string, opts?: AdapterRunOptions): Promise<AdapterRunResult> {
         const axiosErr = err as AxiosError;
         const code = axiosErr?.code ?? '';
 
-        // Try to read any logs the runner may have written before the error
-        const stdout = await this.readFileSafe(path.posix.join(outputDir, 'stdout.log'));
-        const stderr = await this.readFileSafe(path.posix.join(outputDir, 'stderr.log'));
+        // Enumerate whatever the runner may have written before crashing —
+        // the log files are on disk regardless of what the HTTP layer saw.
+        const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
+        if (opts?.deleteLogsOnCompletion) {
+            await this.deleteLogFiles(outputDir, logFiles);
+        }
+        const carryFiles = { outputFiles, logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles };
 
         if (code === 'ECONNABORTED' || /timeout/i.test(axiosErr?.message ?? '')) {
             this.logger.warn(`Adapter '${adapterName}' timed out at the HTTP layer`);
-            return { ...this.failResult(FileProcessingErrorType.TIMEOUT, 'Adapter run exceeded the wall-clock timeout.'), stdout, stderr };
+            return { ...this.failResult(FileProcessingErrorType.TIMEOUT, 'Adapter run exceeded the wall-clock timeout.'), ...carryFiles };
         }
 
         if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'EHOSTUNREACH') {
@@ -239,36 +404,15 @@ export class AdapterRunnerService {
                     FileProcessingErrorType.RUNNER_UNREACHABLE,
                     'The adapter runner is not reachable. Check that the runner container is running and network-accessible from the API.',
                 ),
-                stdout, stderr,
+                ...carryFiles,
             };
         }
 
         this.logger.error(`Unexpected HTTP error from runner: ${axiosErr?.message}`);
-        return { ...this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected runner HTTP error: ${axiosErr?.message ?? 'unknown'}`), stdout, stderr };
+        return { ...this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected runner HTTP error: ${axiosErr?.message ?? 'unknown'}`), ...carryFiles };
     }
 
     private failResult(type: FileProcessingErrorType, message: string): AdapterRunResult {
-        return { status: 'failure', durationMs: 0, outputFiles: [], stdout: '', stderr: '', installLog: null, warnings: [], error: { type, message } };
-    }
-
-    private async readFileSafe(filePath: string): Promise<string> {
-        try { return await fs.promises.readFile(filePath, 'utf8'); } catch { return ''; }
-    }
-
-    private async readWarningsFile(filePath: string): Promise<AdapterWarning[]> {
-        const content = await this.readFileSafe(filePath);
-        if (!content.trim()) return [];
-        const warnings: AdapterWarning[] = [];
-        for (const line of content.split(/\r?\n/)) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            try {
-                const parsed = JSON.parse(trimmed);
-                if (typeof parsed === 'object' && parsed !== null && typeof parsed.message === 'string') {
-                    warnings.push({ message: parsed.message, detail: parsed.detail });
-                }
-            } catch { /* non-JSON line */ }
-        }
-        return warnings;
+        return { status: 'failure', durationMs: 0, outputFiles: [], logFiles: [], error: { type, message } };
     }
 }

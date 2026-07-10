@@ -49,4 +49,11 @@ export class FlagsController {
   async deleteAll() {
     return this.flagsService.deleteAll();
   }
+
+  @Admin()
+  @Delete(':id')
+  async delete(
+    @Param('id', ParseIntPipe) id: number): Promise<number> {
+    return this.flagsService.delete(id);
+  }
 }

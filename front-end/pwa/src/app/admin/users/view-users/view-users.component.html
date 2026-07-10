@@ -14,7 +14,7 @@
     </div>
 
     <div class="card-body px-0">
-        <div class="app-table-container" style="height: 80vh;">
+        <div class="app-table-container" style="max-height: 80vh;">
             <table class="table table-hover table-sm">
                 <thead>
                     <tr>
@@ -46,6 +46,7 @@
         </div>
 
         <app-password-change #adminPasswordChangeDialog />
+        <app-user-input-dialog #dlgUserInput (ok)="onUserSaved()" />
     </div>
 
 </div>

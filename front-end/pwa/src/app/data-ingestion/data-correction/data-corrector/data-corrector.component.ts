@@ -304,7 +304,7 @@ export class DataCorrectorComponent implements OnDestroy {
         this.loadData();
         this.userChangesSubmitted.emit();
       },
-      error: err => {
+      error: (err) => {
         this.setLoadingStatus(false);
         this.handleError(err);
       },
@@ -325,7 +325,7 @@ export class DataCorrectorComponent implements OnDestroy {
       this.pagesDataService.showToast({ title: 'Data Correction', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR });
     } else {
       // Log the error for tracing purposes
-      console.log('data entry error: ', err);
+      console.error('data entry error: ', err);
       this.pagesDataService.showToast({ title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
     }
   }

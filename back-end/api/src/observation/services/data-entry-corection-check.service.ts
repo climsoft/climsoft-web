@@ -11,16 +11,17 @@ import { ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 
-// TODO. Later convert this service to a guard??
+// TODO. Later convert this service to a guard ??
 
-interface FormParams {
+interface FormSpecs {
     form: FormSourceDTO;
-    utcAdjustedHours: number[];
+    /** Element id -> set of UTC-adjusted hours allowed for that element on this form. */
+    allowedHoursByElement: Map<number, Set<number>>;
 }
 
 interface EntryFormValidation {
     sourceType: SourceTypeEnum;
-    settings: FormParams | ImportSourceDto;
+    sourceSpec: FormSpecs | ImportSourceDto;
 }
 
 interface ValidationErrorMessage {
@@ -52,6 +53,12 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
         this.reloadFormParameters();
     }
 
+    @OnEvent('source.bulk-updated')
+    handleSourcesBulkUpdated(payload: { ids: number[] }) {
+        this.logger.log(`Sources bulk-updated: ${payload.ids.length} record(s)`);
+        this.reloadFormParameters();
+    }
+
     @OnEvent('source.deleted')
     handleSourceDeleted(payload: { id: number }) {
         this.logger.log(`Source deleted: ID ${payload.id}`);
@@ -64,20 +71,31 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
         for (const source of sources) {
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const form = source.parameters as FormSourceDTO;
-                // If the form utc setting is not 0, then use the utc setting to adjust the hours to utc.
-                // data sent from the form is converted to utc based on the form utc setting, so the hours on the form could be in say localtime
-                const utcAdjustedHours: number[] = source.utcOffset === 0 ?
-                    form.hours : form.hours.map(hour => (DateUtils.getHourBasedOnUTCOffset(hour, source.utcOffset, 'subtract')));
+                // data sent from the form is converted to utc based on the form utc setting,
+                // so the form's stored hours may be in local time and need to be shifted to UTC for comparison.
+                const toUtc = (hour: number): number => source.utcOffset === 0
+                    ? hour
+                    : DateUtils.getHourBasedOnUTCOffset(hour, source.utcOffset, 'subtract');
+
+                // Build per-element allowed UTC hour sets. `hours: null` means inherit the form's hours.
+                const allowedHoursByElement = new Map<number, Set<number>>();
+                if (form.elementsMetadata) { // TODO. After all users have preview 3.0.1 this check can be removed.
+                    for (const elementMeta of form.elementsMetadata) {
+                        const sourceHours = elementMeta.hours ?? form.hours;
+                        allowedHoursByElement.set(elementMeta.elementId, new Set(sourceHours.map(toUtc)));
+                    }
+                }
+
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.FORM,
-                    settings: {
-                        form: form, utcAdjustedHours: utcAdjustedHours
+                    sourceSpec: {
+                        form: form, allowedHoursByElement: allowedHoursByElement
                     }
                 });
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.IMPORT,
-                    settings: source.parameters as ImportSourceDto
+                    sourceSpec: source.parameters as ImportSourceDto
                 });
             } else {
                 throw new Error('Developer error: Source type not recognised')
@@ -176,17 +194,20 @@ export class DataEntryAndCorrectionCheckService implements OnModuleInit {
             }
 
             if (source.sourceType === SourceTypeEnum.FORM) {
-                const formTemplate: FormParams = source.settings as FormParams;
+                const formSpec: FormSpecs = source.sourceSpec as FormSpecs;
+                const allowedHours = formSpec.allowedHoursByElement.get(dto.elementId);
+
                 // check element
-                if (!formTemplate.form.elementIds.includes(dto.elementId)) {
+                if (!allowedHours) {
                     errorMessage = { message: 'Element not allowed', dto: dto };
                     this.logger.error(JSON.stringify(errorMessage));
                     throw new BadRequestException(errorMessage);
                 }
 
-                // Check if hour is allowed for the form
-                if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) {
-                    errorMessage = { message: 'Hour not allowed', dto: dto };
+                // Check if the hour is allowed for this element on this form
+                const obsHour = parseInt(dto.datetime.substring(11, 13), 10);
+                if (!allowedHours.has(obsHour)) {
+                    errorMessage = { message: 'Element not allowed at this hour', dto: dto };
                     this.logger.error(JSON.stringify(errorMessage));
                     throw new BadRequestException(errorMessage);
                 }

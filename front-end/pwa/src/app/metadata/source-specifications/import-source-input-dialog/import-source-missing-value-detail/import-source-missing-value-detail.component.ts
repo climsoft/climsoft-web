@@ -1,5 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
+// Inclusion-control rule: this step uses a checkbox because the "off" state means
+// literally nothing (don't import missing values). Steps whose "off" state still
+// carries sub-config (default value or default id) use a radio instead.
 @Component({
   selector: 'app-import-source-missing-value-detail',
   templateUrl: './import-source-missing-value-detail.component.html',

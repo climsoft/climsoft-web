@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
-import { Admin } from 'src/user/decorators/admin.decorator'; 
+import { Admin } from 'src/user/decorators/admin.decorator';
 import { ViewOrganisationQueryDTO } from '../dtos/view-organisation-query.dto';
 import { Request } from 'express';
 import { CreateUpdateOrganisationDto } from '../dtos/create-update-organisation.dto';
@@ -49,6 +49,13 @@ export class OrganisationsController {
   @Delete()
   async deleteAll() {
     return this.organisationsService.deleteAll();
+  }
+
+  @Admin()
+  @Delete(':id')
+  async delete(
+    @Param('id', ParseIntPipe) id: number): Promise<number> {
+    return this.organisationsService.delete(id);
   }
 
 }

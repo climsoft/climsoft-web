@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IntervalDefinition } from '../../models/import-source-tabular-params.model';
+import { LevelDefinition } from '../../models/import-source-tabular-params.model';
 
+// Inclusion-control rule: this step uses a radio because each branch has its own
+// sub-config (column position vs default value). Steps whose "off" state literally
+// means nothing use a checkbox instead.
 @Component({
   selector: 'app-import-source-level-detail',
   templateUrl: './import-source-level-detail.component.html',
@@ -8,18 +11,19 @@ import { IntervalDefinition } from '../../models/import-source-tabular-params.mo
 })
 export class ImportSourceLevelDetailComponent {
 
-  @Input()
-  public levelDefinition!: IntervalDefinition;
+  @Input() public levelDefinition!: LevelDefinition;
+  @Output() public levelDefinitionChange = new EventEmitter<LevelDefinition>();
 
   protected onLevelStatusSelection(status: string): void {
-    this.levelDefinition.columnPosition = undefined;
-    this.levelDefinition.defaultValue = undefined;
+    this.levelDefinition.inColumn = undefined;
+    this.levelDefinition.default = undefined;
 
     if (status === 'Includes Level') {
-      this.levelDefinition.columnPosition = 0
+      this.levelDefinition.inColumn = { columnPosition: 0 };
     } else if (status === 'Does Not Include Level') {
-      this.levelDefinition.defaultValue = 0;
+      this.levelDefinition.default = { value: 0 };
     }
+    this.levelDefinitionChange.emit(this.levelDefinition);
   }
 
 }

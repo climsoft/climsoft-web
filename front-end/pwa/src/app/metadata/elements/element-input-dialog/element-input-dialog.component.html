@@ -1,54 +1,66 @@
-<app-dialog [(open)]="open" [title]="title"
-  [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
-  (firstButtonClick)="onOkClick()"
-  [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
-  (secondButtonClick)="onCancelClick()">
-  <div *ngIf="element">
+<ng-container *ngIf="open && element">
+  <app-dialog [(open)]="open" [title]="title"
+    [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+    (firstButtonClick)="onOkClick()"
+    [secondButtonOptions]="title === 'Edit Element' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+    (secondButtonClick)="onDelete()"
+    [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+    (thirdButtonClick)="onCancelClick()">
     <div>
-      <app-number-input [label]="'Id'" [disabled]="element.id > 0" [(numValue)]="element.id" />
+      <div>
+        <app-number-input [label]="'Id'" [disabled]="title === 'Edit Element'" [(numValue)]="element.id" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Name'" [(value)]="element.name" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Description'" [(value)]="element.description" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Units'" [(value)]="element.units" />
+      </div>
+
+      <hr>
+
+      <div>
+        <app-element-type-single-input [label]="'Type'" [selectedId]="element.typeId"
+          (selectedIdChange)="onTypeChange($event)" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-number-input [label]="'Entry scale factor'" [labelSuperScript]="'(e.g 25 to 2.5)'"
+          [title]="'Value entered by user will be divided by this factor before storage'"
+          [value]="element.entryScaleFactor" (valueChange)="onEntryScaleFactorChange($event)" />
+      </div>
+
+      <hr />
+
+      <div>
+        <app-text-input [label]="'Comment'" [(value)]="element.comment" />
+      </div>
     </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-text-input [label]="'Name'" [(value)]="element.name" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-text-input [label]="'Description'" [(value)]="element.description" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-text-input [label]="'Units'" [(value)]="element.units" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-element-type-single-input [label]="'Type'" [selectedId]="element.typeId" (selectedIdChange)="onTypeChange($event)" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-number-input [label]="'Entry scale factor'" [labelSuperScript]="'(e.g 25 to 2.5)'" [title]="'Value entered by user will be divided by this factor before storage'" [value]="element.entryScaleFactor"
-        (valueChange)="onEntryScaleFactorChange($event)" />
-    </div>
-
-    <hr class="border border-secondary border-1">
-
-    <div>
-      <app-text-input [label]="'Comment'" [(value)]="element.comment" />
-    </div>
-  </div>
-</app-dialog>
+  </app-dialog>
+  <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Element'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete the element <strong>{{ element.name }}</strong>?
+    </p>
+  </app-confirmation-dialog>
+</ng-container>

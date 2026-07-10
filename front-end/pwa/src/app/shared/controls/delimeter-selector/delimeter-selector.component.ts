@@ -42,7 +42,19 @@ export class DelimeterSelectorComponent implements OnChanges {
   }
 
   protected optionDisplayFunction(option: DelimiterOption): string {
-    return option.name;
+    let symbolDisplay: string;
+    switch (option.symbol) {
+      case undefined:
+        symbolDisplay = '';
+        break;
+      case '\t':
+        symbolDisplay = `(Tab)`;
+        break;
+      default:
+        symbolDisplay = `(${option.symbol})`;
+        break;
+    }
+    return `${option.name} ${symbolDisplay}`;
   }
 
   protected onSelectedOptionChange(selectedOption: DelimiterOption | null): void {
