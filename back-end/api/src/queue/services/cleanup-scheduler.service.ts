@@ -10,6 +10,7 @@ import { CleanupScheduleDto, SchedulerSettingDto } from 'src/settings/dtos/setti
 import { JobQueueService } from './job-queue.service';
 import { ConnectorExecutionLogService } from './connector-execution-log.service';
 import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
         private jobQueueService: JobQueueService,
         private connectorExecutionLogService: ConnectorExecutionLogService,
         private adaptersService: AdaptersService,
+        private sourcesService: SourceSpecificationsService,
         private fileIOService: FileIOService,
     ) { }
 
@@ -137,7 +139,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     }
 
     /**
-     * Delete orphaned operation directories and unreferenced adapter script directories.
+     * Delete orphaned operation directories and unreferenced adapter script directories and sample files directories.
      * Operation directories that are still referenced by connector execution logs are preserved.
      */
     private async cleanupFiles() {
@@ -153,10 +155,25 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
         // Clean operation directories
         totalDeleted += await this.cleanupOperations(cutoffDate);
 
-        // Clean adapter script directories — remove unreferenced directories
-        // that were created by upload-preview but never saved to a spec.
+        // Clean adapter script directories to remove unreferenced directories.
+        // adapter script directories stay on disk after a spec is deleted or 
+        // replaced — this is deliberate so a future sysadmin audit
+        // feature can inspect recent changes within the retention window.
+        // This sweep is the enforcement mechanism for that window: once a
+        // directory is unreferenced AND older than the configured `daysOld`
+        // cutoff, it is removed.
         const referencedScriptDirs: Set<string> = this.adaptersService.findAllReferencedScriptDirs();
         totalDeleted += await this.cleanupAdapterScriptDirs(this.fileIOService.apiAdaptersDir, referencedScriptDirs, cutoffDate);
+
+        // Clean orphaned source-specification sample filesto remove unreferenced files.
+        // Sample files stay on disk after a spec is deleted or its sample
+        // is replaced — this is deliberate so a future sysadmin audit
+        // feature can inspect recent changes within the retention window.
+        // This sweep is the enforcement mechanism for that window: once a
+        // file is unreferenced AND older than the configured `daysOld`
+        // cutoff, it is removed.
+        const referencedSampleFiles: Set<string> = this.sourcesService.findAllReferencedSampleFiles();
+        totalDeleted += await this.cleanupSampleFiles(this.fileIOService.apiSamplesDir, referencedSampleFiles, cutoffDate);
 
         this.logger.log(`File cleanup completed. Deleted ${totalDeleted} unreferenced file(s)/directory(ies)`);
     }
@@ -204,8 +221,43 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     }
 
     /**
+     * Delete orphaned source-specification sample files older than cutoffDate.
+     */
+    private async cleanupSampleFiles(
+        samplesDir: string,
+        referencedFiles: Set<string>,
+        cutoffDate: Date,
+    ): Promise<number> {
+        let deletedCount = 0;
+
+        try {
+            const entries = await fs.promises.readdir(samplesDir, { withFileTypes: true });
+
+            for (const entry of entries) {
+                if (!entry.isFile()) continue;
+                if (referencedFiles.has(entry.name)) continue;
+
+                try {
+                    const filePath = path.posix.join(samplesDir, entry.name);
+                    const stats = await fs.promises.stat(filePath);
+
+                    if (stats.mtime < cutoffDate) {
+                        await fs.promises.unlink(filePath);
+                        deletedCount++;
+                    }
+                } catch (error) {
+                    this.logger.warn(`Could not delete sample file ${entry.name}: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Error reading samples directory ${samplesDir}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        return deletedCount;
+    }
+
+    /**
      * Delete unreferenced adapter script directories older than cutoffDate.
-     * These are directories created by upload-preview but never saved to a spec.
      */
     private async cleanupAdapterScriptDirs(
         scriptsDir: string,
