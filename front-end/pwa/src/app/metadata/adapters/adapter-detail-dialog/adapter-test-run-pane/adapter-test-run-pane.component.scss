@@ -1,17 +1,8 @@
-.log-block {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  max-height: 200px;
-  overflow: auto;
-  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
-  font-size: 0.75rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
 .result-summary {
-  background-color: #ffffff;
+  max-height: 200px;
+  min-height: 150px;
+  min-width: 150px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
 }

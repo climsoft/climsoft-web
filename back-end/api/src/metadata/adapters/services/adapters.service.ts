@@ -290,7 +290,7 @@ export class AdaptersService implements OnModuleInit {
      */
     public async testRunPreview(dto: AdapterTestRunPreviewDto, sampleFile: Express.Multer.File, userId: number): Promise<AdapterTestRunResponseDto> {
         if (!this.runner.isRunnerEnabled(dto.language)) {
-            console.error(`Test run failed: runner for language '${dto.language}' is not enabled`);
+            console.warn(`Test run failed: runner for language '${dto.language}' is not enabled`);
             return this.toTestRunFailure(FileProcessingErrorType.RUNNER_DISABLED, `The ${dto.language} runner is not enabled in this deployment.`);
         }
 
@@ -328,7 +328,7 @@ export class AdaptersService implements OnModuleInit {
 
         const result: AdapterRunResult = await this.runner.run(adapterRef, inputFilePathName, op.outputDir, metadata);
 
-        this.logger.log(`Test run completed with status '${result.status}' in ${result.durationMs}ms. Output files: ${result.outputFiles.join(', ')}`);
+        this.logger.log(`Test run completed with status '${result.status}' in ${result.durationMs}ms. Output files: ${result.outputFiles.map(f => f.name).join(', ')}`);
 
         // The operation directory is intentionally NOT deleted here — the
         // dialog needs it available so the sysadmin can download the output
@@ -337,12 +337,9 @@ export class AdaptersService implements OnModuleInit {
         return {
             status: result.status,
             durationMs: result.durationMs,
-            outputFiles:  result.outputFiles,
-            operationId:  result.outputFiles.length > 0 ? op.operationId : null,
-            stdout: result.stdout,
-            stderr: result.stderr,
-            installLog: result.installLog,
-            warnings: result.warnings,
+            outputFiles: result.outputFiles,
+            logFiles: result.logFiles,
+            operationId: result.outputFiles.length > 0 ? op.operationId : null,
             error: result.error,
         };
     }
@@ -352,11 +349,8 @@ export class AdaptersService implements OnModuleInit {
             status: 'failure',
             durationMs: 0,
             outputFiles: [],
+            logFiles: [],
             operationId: null,
-            stdout: '',
-            stderr: '',
-            installLog: null,
-            warnings: [],
             error: { type, message },
         };
     }

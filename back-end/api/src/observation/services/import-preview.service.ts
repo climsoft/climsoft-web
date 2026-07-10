@@ -344,13 +344,15 @@ export class ImportPreviewService implements OnModuleDestroy {
             testRun: false,
         };
 
-        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata);
+        // Preview session tears down its whole op dir when the session ends,
+        // so log files add no value here either.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata, { deleteLogsOnCompletion: true });
 
         if (result.status !== 'success') {
             throw new Error(`Adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
         }
 
-        const adapterOutputFileName: string = path.basename(result.outputFiles[0]);
+        const adapterOutputFileName: string = result.outputFiles[0].name;
         this.logger.log(`Adapter '${adapter.name}' produced preview file: ${adapterOutputFileName}`);
         return adapterOutputFileName;
     }

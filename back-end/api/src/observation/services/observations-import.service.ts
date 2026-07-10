@@ -98,7 +98,7 @@ export class ObservationImportService {
             if (result.status !== 'success' || result.outputFiles.length === 0) {
                 return result.error;
             }
-            duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0]);
+            duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0].name);
         }
 
         return this.transformForImport(sourceId, duckDbInputFilePathName, outputDir, userId, stationId);
@@ -170,7 +170,9 @@ export class ObservationImportService {
             testRun: false,
         };
 
-        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata);
+        // Production import: the operation directory is torn down at the end
+        // of the flow, so log files add no value — delete them right away.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
 
         return result;
     }

@@ -15,6 +15,10 @@ import { AdapterLanguageEnum } from '../../models/adapter-language.enum';
  * The pane is enabled as soon as the script is uploaded — saving the adapter
  * first is no longer required. The entry point is derived from `language` by
  * the API (canonical convention), so it is not an input here.
+ *
+ * After a run, the pane lists every file the runner produced (output +
+ * runner sidecars) with their sizes. To inspect contents, the user
+ * downloads the whole operation directory as a zip.
  */
 @Component({
   selector: 'app-adapter-test-run-pane',
@@ -33,10 +37,6 @@ export class AdapterTestRunPaneComponent {
   protected running: boolean = false;
   protected result: AdapterTestRunResponseModel | null = null;
   protected errorMessage: string = '';
-
-  protected stdoutOpen: boolean = true;
-  protected stderrOpen: boolean = false;
-  protected installOpen: boolean = false;
 
   constructor(private readonly adaptersService: AdaptersService) { }
 
@@ -71,8 +71,6 @@ export class AdapterTestRunPaneComponent {
       next: (res) => {
         this.result = res;
         this.running = false;
-        this.stderrOpen = res.status !== 'success';
-        this.installOpen = res.installLog !== null && res.installLog.trim().length > 0;
       },
       error: (err) => {
         console.error('Test run failed:', err);
@@ -101,5 +99,13 @@ export class AdapterTestRunPaneComponent {
       case 'failure': return 'Failure';
       default: return this.result.status;
     }
+  }
+
+  /** Human-readable byte size ("1.2 KB", "356 B", "4.8 MB"). */
+  protected formatSize(sizeBytes: number): string {
+    if (sizeBytes < 1024) return `${sizeBytes} B`;
+    if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    if (sizeBytes < 1024 * 1024 * 1024) return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(sizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 }

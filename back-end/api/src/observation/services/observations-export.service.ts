@@ -304,7 +304,10 @@ export class ObservationsExportService {
             testRun: false,
         };
 
-        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata);
+        // The operation's outputDir becomes user-visible via
+        // `manualDownloadExport`, which zips every file it finds. Delete
+        // the runner's log files so they don't leak into the download.
+        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
 
         if (result.status !== 'success') {
             throw new Error(`Export adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);

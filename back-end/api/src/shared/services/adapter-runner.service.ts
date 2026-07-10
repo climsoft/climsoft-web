@@ -5,7 +5,6 @@ import path from 'node:path';
 import { FileIOService } from './file-io.service';
 import { AppConfig } from 'src/app.config';
 import { AdapterLanguageEnum } from 'src/metadata/adapters/enums/adapter-language.enum';
-import { AdapterWarning } from 'src/metadata/adapters/dtos/adapter-run-result.dto';
 import { FileProcessingErrorType, FileProcessingError } from 'src/metadata/file-processing-error.model';
 
 /**
@@ -39,15 +38,42 @@ export interface AdapterRunMetadata {
     testRun: boolean;
 }
 
+/**
+ * Descriptor for a file that lives in the operation output directory
+ * after a run. Both categories share this shape.
+ */
+export interface ProducedFile {
+    /** Basename inside the output directory. */
+    name: string;
+    /** Size in bytes as reported by `fs.stat`. */
+    sizeBytes: number;
+}
+
 export interface AdapterRunResult {
     status: 'success' | 'failure' | 'timeout';
     durationMs: number;
-    outputFiles: string[];
-    stdout: string;
-    stderr: string;
-    installLog: string | null;
-    warnings: AdapterWarning[];
+    /** Files the adapter script wrote, excluding well-known log files. */
+    outputFiles: ProducedFile[];
+    /**
+     * Well-known runner-produced log files that exist on disk:
+     * `metadata.json`, `warnings.jsonl`, `stdout.log`, `stderr.log`,
+     * `install.log`. Empty when `deleteLogsOnCompletion` was requested
+     * or when the runner wrote nothing.
+     */
+    logFiles: ProducedFile[];
     error?: FileProcessingError;
+}
+
+/** Options for {@link AdapterRunnerService.run}. */
+export interface AdapterRunOptions {
+    /**
+     * When true, the runner deletes the well-known log files from the
+     * output directory after enumerating them, and returns `logFiles: []`.
+     * Used by production callers whose output directory becomes user-
+     * visible (e.g. export downloads) so log files don't leak into the
+     * download.
+     */
+    deleteLogsOnCompletion?: boolean;
 }
 
 /**
@@ -131,6 +157,7 @@ export class AdapterRunnerService {
      * @param inputFilePathName  API-view path the runner should read input from
      * @param outputDir API-view path the runner should write output and logs to
      * @param metadata  Context written to metadata.json for the script
+     * @param opts      Optional run behavior (e.g. delete log files after completion).
      *
      * Both `inputFilePathName` and `outputDir` must lie under
      * `fileIO.apiOperationsDir/<operationId>/`. This service extracts the
@@ -143,6 +170,7 @@ export class AdapterRunnerService {
         inputFilePathName: string,
         outputDir: string,
         metadata: AdapterRunMetadata,
+        opts?: AdapterRunOptions,
     ): Promise<AdapterRunResult> {
         const cfg = this.runnerConfigFor(adapter.language);
         if (!cfg.enabled) {
@@ -151,7 +179,7 @@ export class AdapterRunnerService {
                 `The ${adapter.language} runner is not enabled in this deployment. Set the corresponding RUNNER_ENABLED environment variable and restart the API.`,
             );
         }
- 
+
         // Metadata sidecar is written by the API at its own view of outputDir;
         // the runner reads it via its own view (derived from operationId), so
         // the sidecar path itself does not need to travel in the wire body.
@@ -185,24 +213,21 @@ export class AdapterRunnerService {
                 });
                 runnerResp = resp.data;
             } catch (err) {
-                return await this.onHttpError(err, adapter.name, outputDir);
+                return await this.onHttpError(err, adapter.name, outputDir, opts);
             }
 
-            const stdout = await this.readFileSafe(path.posix.join(outputDir, 'stdout.log'));
-            const stderr = await this.readFileSafe(path.posix.join(outputDir, 'stderr.log'));
-            const installLog = (await this.readFileSafe(path.posix.join(outputDir, 'install.log'))) || null;
-            const warnings = await this.readWarningsFile(path.posix.join(outputDir, 'warnings.jsonl'));
-            const outputFiles = await this.scanOutputFiles1(outputDir);
+            const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
 
-            this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.join(', ')}`);
+            this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.map(f => f.name).join(', ')}`);
+
+            if (opts?.deleteLogsOnCompletion) {
+                await this.deleteLogFiles(outputDir, logFiles);
+            }
 
             const baseResult = {
                 durationMs: runnerResp.durationMs,
                 outputFiles,
-                stdout,
-                stderr,
-                installLog,
-                warnings,
+                logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles,
             };
 
             if (runnerResp.status === 'success') {
@@ -297,17 +322,52 @@ export class AdapterRunnerService {
     }
 
     /**
-     * Scans outputDir for files that are not well-known log files.
-     * These are the actual output files produced by the adapter script.
+     * Enumerates every file in `outputDir` and partitions them into
+     * `outputFiles` (actual adapter output) vs `logFiles` (well-known
+     * runner-produced sidecars). Sizes are read via `fs.stat`.
      */
-    private async scanOutputFiles1(outputDir: string): Promise<string[]> {
+    private async enumerateOutputDir(outputDir: string): Promise<{ outputFiles: ProducedFile[]; logFiles: ProducedFile[] }> {
+        let entries: fs.Dirent[];
         try {
-            const entries = await fs.promises.readdir(outputDir, { withFileTypes: true });
-            return entries
-                .filter(e => e.isFile() && !AdapterRunnerService.LOG_FILES.has(e.name))
-                .map(e => e.name);
+            entries = await fs.promises.readdir(outputDir, { withFileTypes: true });
         } catch {
-            return [];
+            return { outputFiles: [], logFiles: [] };
+        }
+
+        const outputFiles: ProducedFile[] = [];
+        const logFiles: ProducedFile[] = [];
+
+        for (const entry of entries) {
+            if (!entry.isFile()) continue;
+            let sizeBytes: number;
+            try {
+                const stat = await fs.promises.stat(path.posix.join(outputDir, entry.name));
+                sizeBytes = stat.size;
+            } catch {
+                continue;
+            }
+            const descriptor: ProducedFile = { name: entry.name, sizeBytes };
+            if (AdapterRunnerService.LOG_FILES.has(entry.name)) {
+                logFiles.push(descriptor);
+            } else {
+                outputFiles.push(descriptor);
+            }
+        }
+        return { outputFiles, logFiles };
+    }
+
+    /**
+     * Unlinks the enumerated log files from `outputDir`. Failures are
+     * swallowed — cleanup is best-effort; the orphaned-op sweeper will
+     * eventually collect anything left behind.
+     */
+    private async deleteLogFiles(outputDir: string, logFiles: ProducedFile[]): Promise<void> {
+        for (const f of logFiles) {
+            try {
+                await fs.promises.unlink(path.posix.join(outputDir, f.name));
+            } catch (err) {
+                this.logger.warn(`Failed to delete log file '${f.name}' in ${outputDir}: ${(err as Error).message}`);
+            }
         }
     }
 
@@ -320,17 +380,21 @@ export class AdapterRunnerService {
         }
     }
 
-    private async onHttpError(err: unknown, adapterName: string, outputDir: string): Promise<AdapterRunResult> {
+    private async onHttpError(err: unknown, adapterName: string, outputDir: string, opts?: AdapterRunOptions): Promise<AdapterRunResult> {
         const axiosErr = err as AxiosError;
         const code = axiosErr?.code ?? '';
 
-        // Try to read any logs the runner may have written before the error
-        const stdout = await this.readFileSafe(path.posix.join(outputDir, 'stdout.log'));
-        const stderr = await this.readFileSafe(path.posix.join(outputDir, 'stderr.log'));
+        // Enumerate whatever the runner may have written before crashing —
+        // the log files are on disk regardless of what the HTTP layer saw.
+        const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
+        if (opts?.deleteLogsOnCompletion) {
+            await this.deleteLogFiles(outputDir, logFiles);
+        }
+        const carryFiles = { outputFiles, logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles };
 
         if (code === 'ECONNABORTED' || /timeout/i.test(axiosErr?.message ?? '')) {
             this.logger.warn(`Adapter '${adapterName}' timed out at the HTTP layer`);
-            return { ...this.failResult(FileProcessingErrorType.TIMEOUT, 'Adapter run exceeded the wall-clock timeout.'), stdout, stderr };
+            return { ...this.failResult(FileProcessingErrorType.TIMEOUT, 'Adapter run exceeded the wall-clock timeout.'), ...carryFiles };
         }
 
         if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'EHOSTUNREACH') {
@@ -340,36 +404,15 @@ export class AdapterRunnerService {
                     FileProcessingErrorType.RUNNER_UNREACHABLE,
                     'The adapter runner is not reachable. Check that the runner container is running and network-accessible from the API.',
                 ),
-                stdout, stderr,
+                ...carryFiles,
             };
         }
 
         this.logger.error(`Unexpected HTTP error from runner: ${axiosErr?.message}`);
-        return { ...this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected runner HTTP error: ${axiosErr?.message ?? 'unknown'}`), stdout, stderr };
+        return { ...this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected runner HTTP error: ${axiosErr?.message ?? 'unknown'}`), ...carryFiles };
     }
 
     private failResult(type: FileProcessingErrorType, message: string): AdapterRunResult {
-        return { status: 'failure', durationMs: 0, outputFiles: [], stdout: '', stderr: '', installLog: null, warnings: [], error: { type, message } };
-    }
-
-    private async readFileSafe(filePath: string): Promise<string> {
-        try { return await fs.promises.readFile(filePath, 'utf8'); } catch { return ''; }
-    }
-
-    private async readWarningsFile(filePath: string): Promise<AdapterWarning[]> {
-        const content = await this.readFileSafe(filePath);
-        if (!content.trim()) return [];
-        const warnings: AdapterWarning[] = [];
-        for (const line of content.split(/\r?\n/)) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            try {
-                const parsed = JSON.parse(trimmed);
-                if (typeof parsed === 'object' && parsed !== null && typeof parsed.message === 'string') {
-                    warnings.push({ message: parsed.message, detail: parsed.detail });
-                }
-            } catch { /* non-JSON line */ }
-        }
-        return warnings;
+        return { status: 'failure', durationMs: 0, outputFiles: [], logFiles: [], error: { type, message } };
     }
 }
