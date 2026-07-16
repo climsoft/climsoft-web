@@ -7,7 +7,7 @@ import { AdapterLanguageEnum } from '../enums/adapter-language.enum';
  * returned the `scriptDirName` (UUID) the client sends here.
  *
  * The entry point is NOT sent by the client — it is a language-level
- * convention (see `CANONICAL_ENTRY_POINT`) that the API enforces at
+ * convention (see `LANGUAGE_CONVENTIONS`) that the API enforces at
  * upload-preview time.
  */
 export class CreateAdapterSpecificationDto {

@@ -8,7 +8,7 @@ import { CreateAdapterSpecificationModel } from '../models/create-adapter-specif
 import { UpdateAdapterSpecificationModel } from '../models/update-adapter-specification.model';
 import { AdapterLanguageEnum } from '../models/adapter-language.enum';
 import { AdapterUploadPreviewResponseModel, FileTreeEntry } from '../models/adapter-upload-preview-response.model';
-import { CANONICAL_ENTRY_POINT, MANIFEST_FILENAMES } from '../models/adapter-language-conventions';
+import { LANGUAGE_CONVENTIONS } from '../models/adapter-language-conventions';
 
 @Component({
   selector: 'app-adapter-detail-dialog',
@@ -155,12 +155,12 @@ export class AdapterDetailDialogComponent implements OnDestroy {
   }
 
   protected fileIsEntryPoint(file: FileTreeEntry): boolean {
-    return !file.isDirectory && file.path === CANONICAL_ENTRY_POINT[this.adapter.language];
+    return !file.isDirectory && file.path === LANGUAGE_CONVENTIONS[this.adapter.language].entryPoint;
   }
 
   protected fileIsManifest(file: FileTreeEntry): boolean {
     if (file.isDirectory) return false;
-    return MANIFEST_FILENAMES[this.adapter.language].includes(file.path);
+    return file.path === LANGUAGE_CONVENTIONS[this.adapter.language].manifest;
   }
 
   /**

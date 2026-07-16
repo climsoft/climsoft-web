@@ -19,7 +19,7 @@ import { AdapterRef, AdapterRunMetadata, AdapterRunnerService, AdapterRunResult 
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 import { AdapterTestRunPreviewDto } from '../dtos/adapter-test-run-preview.dto';
 import { FileProcessingErrorType } from 'src/metadata/file-processing-error.model';
-import { CANONICAL_ENTRY_POINT, MANIFEST_FILENAMES } from '../adapter-language-conventions';
+import { LANGUAGE_CONVENTIONS } from '../adapter-language-conventions';
 
 @Injectable()
 export class AdaptersService implements OnModuleInit {
@@ -157,9 +157,9 @@ export class AdaptersService implements OnModuleInit {
     }
 
     /**
-     * Returns an error message if none of the accepted manifest filenames for
-     * the language are present at the ROOT of the tree (top-level files only,
-     * no directory prefix). Returns `undefined` if a valid manifest is present.
+     * Returns an error message if the language's required manifest file is
+     * not present at the ROOT of the tree (top-level files only, no
+     * directory prefix). Returns `undefined` if the manifest is present.
      *
      * Root-only enforcement is intentional: runners execute from the extracted
      * script directory and expect the manifest at that same level. A zip whose
@@ -167,12 +167,10 @@ export class AdaptersService implements OnModuleInit {
      * fail here rather than at runtime.
      */
     private checkManifestAtRoot(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): string | undefined {
-        const acceptedNames = MANIFEST_FILENAMES[language];
-        const found = acceptedNames.some(name =>
-            fileTree.some(e => !e.isDirectory && e.path === name),
-        );
+        const expected = LANGUAGE_CONVENTIONS[language].manifest;
+        const found = fileTree.some(e => !e.isDirectory && e.path === expected);
         if (found) return undefined;
-        return `Missing manifest file for '${language}'. Expected one of: ${acceptedNames.join(', ')} at the root of the archive.`;
+        return `Missing manifest file '${expected}' at the root of the archive for language '${language}'.`;
     }
 
     /**
@@ -182,7 +180,7 @@ export class AdaptersService implements OnModuleInit {
      * `transform.sql`) enforced here so the runner never has to guess.
      */
     private checkEntryPointAtRoot(fileTree: FileTreeEntry[], language: AdapterLanguageEnum): string | undefined {
-        const expected = CANONICAL_ENTRY_POINT[language];
+        const expected = LANGUAGE_CONVENTIONS[language].entryPoint;
         const found = fileTree.some(e => !e.isDirectory && e.path === expected);
         if (found) return undefined;
         return `Missing entry-point file '${expected}' at the root of the archive for language '${language}'.`;
