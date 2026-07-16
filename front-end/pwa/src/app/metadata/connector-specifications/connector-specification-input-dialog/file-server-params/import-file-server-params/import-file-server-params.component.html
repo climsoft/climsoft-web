@@ -2,6 +2,9 @@
 
     <div>
         <app-check-box-input [label]="'Recursive'" [(value)]="importFileServerParameters.recursive" />
+        <small class="form-text text-muted d-block">
+            Turn on when Climsoft is required to also process files in subdirectories.
+        </small>
     </div>
 
     <hr />
@@ -23,6 +26,12 @@
 
             <div
                 *ngIf="importFileServerParameters.specifications && importFileServerParameters.specifications.length > 0">
+                <small class="form-text text-muted d-block mb-2">
+                    File Source Pattern examples: <code>*.csv</code> (root files),
+                    <code>stationA/</code> (all files in directory),
+                    <code>stationA/*.csv</code> (glob inside directory).
+                    Subdirectory patterns require Recursive to be on.
+                </small>
                 <table class="table table-sm">
                     <thead>
                         <tr>

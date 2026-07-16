@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ConnectorTypeEnum, ExportFileServerParametersModel, FileServerParametersModel, FileServerProtocolEnum, ImportFileServerParametersModel } from '../../models/create-connector-specification.model';
 import { ViewConnectorSpecificationModel } from '../../models/view-connector-specification.model';
+import { ImportFileServerParamsComponent } from './import-file-server-params/import-file-server-params.component';
 
 /**
  * Component for managing FTP/SFTP/FTPS connector parameters input.
@@ -26,6 +27,9 @@ export class FileServerParametersInputComponent implements OnChanges {
   /** Event emitted when validation errors occur */
   @Output()
   public validationError = new EventEmitter<string>();
+
+  @ViewChild('importFileServerParams')
+  private importParams?: ImportFileServerParamsComponent;
 
   protected ConnectorTypeEnum = ConnectorTypeEnum;
   protected newPassword: string = '';
@@ -74,6 +78,15 @@ export class FileServerParametersInputComponent implements OnChanges {
     }
 
     this.validationError.emit(this.passwordErrormessage);
+  }
+
+  /**
+   * Called by the parent dialog at submit time. Delegates to the import
+   * file-pattern check on the child component. Returns null when there is
+   * nothing to validate (export connector, or import with no issues).
+   */
+  public validate(): string | null {
+    return this.importParams?.validate() ?? null;
   }
 
   protected onFileProtocolSelection(protocol: FileServerProtocolEnum): void {

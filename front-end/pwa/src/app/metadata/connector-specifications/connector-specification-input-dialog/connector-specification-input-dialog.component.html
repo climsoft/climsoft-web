@@ -67,7 +67,7 @@
                 <div class="card-header">Server Parameters</div>
                 <div class="card-body">
                     <div *ngIf="connector.serverType === ServerTypeEnum.FILE_SERVER">
-                        <app-file-server-parameters-input [connector]="connector"
+                        <app-file-server-parameters-input #fileServerParams  [connector]="connector"
                             (validationError)="onValidationError($event)" />
                     </div>
                     <div *ngIf="connector.serverType === ServerTypeEnum.WEB_SERVER" class="text-info">

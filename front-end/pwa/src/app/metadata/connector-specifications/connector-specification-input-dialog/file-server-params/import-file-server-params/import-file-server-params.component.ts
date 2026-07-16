@@ -41,4 +41,22 @@ export class ImportFileServerParamsComponent {
   protected onSpecificationIdChange(index: number, specificationId: number | null): void {
     this.importFileServerParameters.specifications[index].specificationId = specificationId ?? 0;
   }
+
+  /**
+   * Called by the parent dialog at submit time. Returns an error message
+   * if any spec's `filePattern` targets a subdirectory (contains "/")
+   * while `recursive` is off — that combination silently matches nothing
+   * at runtime, so we catch it here at authoring time.
+   */
+  public validate(): string | null {
+    const specs = this.importFileServerParameters?.specifications;
+    if (!specs || specs.length === 0) return null;
+    if (this.importFileServerParameters.recursive) return null;
+
+    const offending = specs.find(s => s.filePattern && s.filePattern.includes('/'));
+    if (offending) {
+      return `Pattern "${offending.filePattern}" targets a subdirectory but "Recursive" is off. Enable Recursive or drop the "/" from the pattern.`;
+    }
+    return null;
+  }
 }
