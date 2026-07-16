@@ -382,7 +382,14 @@ export class ObservationsExportService {
             columnSelections.push('st.elevation AS station_elevation');
         }
 
+        //-------------------------------------------
+        // Elements
         columnSelections.push('ob.element_id AS element_id');
+
+        if (exportParams.includeElementAbbreviation) {
+            columnSelections.push('el.abbreviation AS element_abbreviation');
+        }
+
         if (exportParams.includeElementName) {
             columnSelections.push('el.name AS element_name');
         }
@@ -390,6 +397,7 @@ export class ObservationsExportService {
         if (exportParams.includeElementUnits) {
             columnSelections.push('el.units AS element_units');
         }
+        //-------------------------------------------
 
         if (exportParams.includeSourceName) {
             columnSelections.push('so.name AS source_name');
@@ -412,7 +420,8 @@ export class ObservationsExportService {
                 columnSelections.push(`EXTRACT(MONTH FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS month`);
                 columnSelections.push(`EXTRACT(DAY FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS day`);
                 columnSelections.push(`EXTRACT(HOUR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS hour`);
-                columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
+                columnSelections.push(`EXTRACT(MINUTE FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS minute`);
+                columnSelections.push(`FLOOR(EXTRACT(SECOND FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours'))) AS second`);
             } else {
                 columnSelections.push(`(ob.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS date_time`);
             }
@@ -422,7 +431,8 @@ export class ObservationsExportService {
                 columnSelections.push('EXTRACT(MONTH FROM ob.date_time ) AS month');
                 columnSelections.push('EXTRACT(DAY FROM ob.date_time) AS day');
                 columnSelections.push('EXTRACT(HOUR FROM ob.date_time) AS hour');
-                columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
+                columnSelections.push('EXTRACT(MINUTE FROM ob.date_time) AS minute');
+                columnSelections.push('FLOOR(EXTRACT(SECOND FROM ob.date_time)) AS second');
             } else {
                 columnSelections.push('ob.date_time::timestamp AS date_time');
             }

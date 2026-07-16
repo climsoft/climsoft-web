@@ -1,7 +1,6 @@
 import { IsBoolean, IsOptional } from "class-validator";
 
 export class RawExportParametersDto {
-  // Data
   @IsOptional()
   @IsBoolean()
   convertDatetimeToDisplayTimeZone?: boolean;
