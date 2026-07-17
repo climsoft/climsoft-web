@@ -199,7 +199,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         name: this.adapter.name,
         description: this.adapter.description,
         language: this.adapter.language,
-        scriptDirName: this.adapter.scriptDirName!,
+        scriptDirName: this.adapter.scriptDirName,
         disabled: this.adapter.disabled,
         comment: this.adapter.comment || null,
       };
