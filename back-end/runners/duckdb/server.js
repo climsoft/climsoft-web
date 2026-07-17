@@ -58,6 +58,9 @@ app.post('/run', async (req, res) => {
   try {
     console.log('Received run request with body:', req.body);
     const body = req.body;
+    if (!body) {
+      return res.json(errorSummary('RUNTIME_ERROR', 'Request body must be JSON'));
+    }
     const required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
