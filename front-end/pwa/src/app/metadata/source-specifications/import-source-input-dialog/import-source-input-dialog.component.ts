@@ -12,6 +12,7 @@ import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewAdapterSpecificationModel } from 'src/app/metadata/adapters/models/view-adapter-specification.model';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
+import { AdaptersService } from '../../adapters/services/adapters.service';
 
 type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'interval' | 'value' | 'review';
 
@@ -59,6 +60,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         private pagesDataService: PagesDataService,
         private sourcesCacheService: SourcesCacheService,
         private importPreviewService: ImportPreviewService,
+        private adaptersService: AdaptersService,
     ) {
         // Reset all state
         this.resetSamplePreview();
@@ -77,10 +79,16 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (source) {
             this.title = 'Edit Import Specification';
             this.viewSource = structuredClone(source);
-            console.log('Loaded source specification for editing:', this.viewSource.parameters);
             this.initPreviewFromSavedFile();
             // Mark all steps as visited for existing specifications
             this.wizardSteps.forEach(s => this.visitedSteps.add(s));
+
+            if (this.viewSource.adapterId) {
+                this.adaptersService.findOne(this.viewSource.adapterId).pipe(
+                    take(1)
+                ).subscribe(res => { this.selectedAdapter = res; });
+            }
+
         } else {
             this.title = 'New Import Specification';
 
@@ -474,7 +482,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             sampleFileOperationId: this.rawPreviewResponse.sessionId,
             utcOffset: this.viewSource.utcOffset,
             parameters: this.viewSource.parameters,
-            adapterId: this.selectedAdapter?.id || null,
+            adapterId: this.viewSource.adapterId || null,
             disabled: this.viewSource.disabled,
             comment: this.viewSource.comment || null,
         };
