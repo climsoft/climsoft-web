@@ -23,16 +23,11 @@
                 <div>
                     <app-adapter-language-selector-single [label]="'Language'" [selectedId]="adapter.language"
                         (selectedIdChange)="onLanguageSelected($event)" />
-                    <div class="mt-1 d-flex justify-content-between">
-                        <div class="form-text text-muted">
-                            Language cannot be changed after creation.
-                        </div>
-                        <div *ngIf="adapter.language">
-                            <button type="button" class="btn btn-link small p-0"
-                                (click)="onDownloadSelectedLanguageTemplate()">
-                                <i class="bi bi-download"></i> Download starter template
-                            </button>
-                        </div>
+                    <div *ngIf="adapter.language" class="mt-1 d-flex justify-content-end">
+                        <button type="button" class="btn btn-link small p-0"
+                            (click)="onDownloadSelectedLanguageTemplate()">
+                            <i class="bi bi-download"></i> Download starter template
+                        </button>
                     </div>
                 </div>
 
@@ -55,8 +50,7 @@
                             </span>
                         </div>
                         <div *ngIf="adapter.id">
-                            <button type="button" class="btn btn-link small p-0"
-                                (click)="onDownloadCurrentScripts()">
+                            <button type="button" class="btn btn-link small p-0" (click)="onDownloadCurrentScripts()">
                                 <i class="bi bi-download"></i> Download current scripts
                             </button>
                         </div>
