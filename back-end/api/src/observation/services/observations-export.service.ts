@@ -421,7 +421,7 @@ export class ObservationsExportService {
                 columnSelections.push(`EXTRACT(DAY FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS day`);
                 columnSelections.push(`EXTRACT(HOUR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS hour`);
                 columnSelections.push(`EXTRACT(MINUTE FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS minute`);
-                columnSelections.push(`FLOOR(EXTRACT(SECOND FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours'))) AS second`);
+                columnSelections.push(`TRUNC(EXTRACT(SECOND FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours'))) AS second`);
             } else {
                 columnSelections.push(`(ob.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS date_time`);
             }
@@ -432,7 +432,7 @@ export class ObservationsExportService {
                 columnSelections.push('EXTRACT(DAY FROM ob.date_time) AS day');
                 columnSelections.push('EXTRACT(HOUR FROM ob.date_time) AS hour');
                 columnSelections.push('EXTRACT(MINUTE FROM ob.date_time) AS minute');
-                columnSelections.push('FLOOR(EXTRACT(SECOND FROM ob.date_time)) AS second');
+                columnSelections.push('TRUNC(EXTRACT(SECOND FROM ob.date_time)) AS second');
             } else {
                 columnSelections.push('ob.date_time::timestamp AS date_time');
             }
