@@ -20,7 +20,7 @@ export enum FlagEnum {
 
 // TODO. Investigate if a constraints check for level to always not be negative is necessary
 @Entity("observations")
-@Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag_id" IS NOT NULL`)
+//@Check("CHK_observations_both_value_and_flag_id_not_null", `"value" IS NOT NULL OR "flag_id" IS NOT NULL`) // TODO. Temporarily commented out because it prevents inserting a record with both value and flag_id as null. This is needed for the case where a user wants to delete an observation by setting both value and flag_id to null. disable until all countries migrate to using the new flag_id column and the old flag column is deprecated. After that, this check can be re-enabled to prevent inserting a record with both value and flag_id as null.
 @Check("CHK_observations_no_future_dates", `"date_time" < NOW()`)
 @Check("CHK_observations_interval_greater_than_zero", `"interval" > 0`)
 export class ObservationEntity extends AppBaseEntity {
