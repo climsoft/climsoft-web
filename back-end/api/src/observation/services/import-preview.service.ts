@@ -213,7 +213,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(workingDir, session.workingFileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
@@ -241,7 +241,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(workingDir, session.workingFileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
         const elements: CreateViewElementDto[] = this.elementsService.find();
         const flags: ViewFlagDto[] = this.flagsService.find();

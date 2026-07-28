@@ -135,7 +135,6 @@ export class TabularImportTransformer {
         return sql;
     }
 
-
     private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId: string | null): string[] {
         const sql: string[] = [];
         if (source.stationDefinition) {
