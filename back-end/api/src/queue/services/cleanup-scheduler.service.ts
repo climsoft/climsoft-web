@@ -213,6 +213,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
                     this.logger.warn(`Could not delete operation dir ${dir.name}: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
+            this.logger.log(`Operation cleanup completed. Deleted ${deletedCount} unreferenced operation directory(ies)`);
         } catch (error) {
             this.logger.error(`Error reading operations directory ${operationsDir}: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -249,6 +250,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
                     this.logger.warn(`Could not delete sample file ${entry.name}: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
+            this.logger.log(`Sample file cleanup completed. Deleted ${deletedCount} unreferenced sample file(s)`);
         } catch (error) {
             this.logger.error(`Error reading samples directory ${samplesDir}: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -287,6 +289,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
                     this.logger.warn(`Could not delete adapter dir ${dir.name}: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
+            this.logger.log(`Adapter script cleanup completed. Deleted ${deletedCount} unreferenced adapter script directory(ies)`);
         } catch (error) {
             this.logger.error(`Error reading adapter scripts dir ${scriptsDir}: ${error instanceof Error ? error.message : String(error)}`);
         }
