@@ -11,7 +11,7 @@ import { ProductsService } from '../services/products.service';
     styleUrls: ['./product-list.component.scss'],
 })
 export class ProductListComponent implements OnInit, OnDestroy {
-    protected productsByCategory: { category: string; products: ViewProductModel[] }[] = [];
+    protected products: ViewProductModel[] = [];
     protected loading = true;
     protected errorMessage: string | null = null;
 
@@ -27,7 +27,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: products => {
-                    this.productsByCategory = this.groupByCategory(products);
+                    this.products = products;
                     this.loading = false;
                 },
                 error: () => {
@@ -39,16 +39,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     protected openProduct(product: ViewProductModel): void {
         this.router.navigate(['/data-monitoring/product-viewer', product.id]);
-    }
-
-    private groupByCategory(products: ViewProductModel[]): { category: string; products: ViewProductModel[] }[] {
-        const map = new Map<string, ViewProductModel[]>();
-        for (const p of products) {
-            const key = p.category ?? 'General';
-            if (!map.has(key)) map.set(key, []);
-            map.get(key)!.push(p);
-        }
-        return [...map.entries()].map(([category, prods]) => ({ category, products: prods }));
     }
 
     ngOnDestroy(): void {

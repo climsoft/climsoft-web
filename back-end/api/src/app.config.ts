@@ -62,6 +62,14 @@ export class AppConfig {
   // It should be atleast 32 chracters long
   public static readonly encryptionSecret: string = AppConfig.devMode ? '0123456789012345678901234567890123456789' : (process.env.ENCRYPTION_SECRET ? process.env.ENCRYPTION_SECRET : '');
 
+  public static readonly superset = {
+    enabled: AppConfig.devMode ? true : process.env.SUPERSET_ENABLED === 'true',
+    host: AppConfig.devMode ? 'localhost' : (process.env.SUPERSET_HOST ?? 'climsoft_superset'),
+    port: process.env.SUPERSET_PORT ? +process.env.SUPERSET_PORT : 8088,
+    serviceUsername: process.env.SUPERSET_SERVICE_USERNAME ?? 'climsoft_service',
+    servicePassword: process.env.SUPERSET_SERVICE_PASSWORD ?? 'climsoft_service',
+  };
+
   public static readonly v4DbCredentials = {
     v4Save: AppConfig.devMode ? true : (process.env.V4_SAVE ? (process.env.V4_SAVE === 'yes') : false),
     v4Import: AppConfig.devMode ? true : (process.env.V4_IMPORT ? (process.env.V4_IMPORT === 'yes') : false),
