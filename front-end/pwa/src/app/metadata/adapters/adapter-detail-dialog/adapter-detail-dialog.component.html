@@ -2,71 +2,108 @@
     <app-dialog [(open)]="open" [title]="title"
         [firstButtonOptions]="{label: 'Save', color: 'primary', disable: !canSave, closeDialogOnClick: false}"
         (firstButtonClick)="onSave()"
-        [secondButtonOptions]="title === 'Edit Adapter' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+        [secondButtonOptions]="title === 'Edit Adapter' && !isSystemAdapter ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
         (secondButtonClick)="onDelete()"
         [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}">
 
         <div class="d-flex align-items-center gap-4">
             <div>
-                <div>
-                    <app-text-input [label]="'Name'" [(value)]="adapter.name" />
-                </div>
-
-                <hr />
-
-                <div>
-                    <app-text-input [label]="'Description'" [(value)]="adapter.description" />
-                </div>
-
-                <hr />
-
-                <div>
-                    <app-adapter-language-selector-single [label]="'Language'" [selectedId]="adapter.language"
-                        (selectedIdChange)="onLanguageSelected($event)" />
-                    <div *ngIf="adapter.language" class="mt-1 d-flex justify-content-end">
-                        <button type="button" class="btn btn-link small p-0"
-                            (click)="onDownloadSelectedLanguageTemplate()">
-                            <i class="bi bi-download"></i> Download starter template
+                <!-- System adapters: read-only identity fields -->
+                <ng-container *ngIf="isSystemAdapter; else editableAdapterFields">
+                    <div class="mb-2">
+                        <small class="text-muted d-block mb-1">Name</small>
+                        <span>{{ adapter.name }}</span>
+                    </div>
+                    <hr />
+                    <div class="mb-2">
+                        <small class="text-muted d-block mb-1">Description</small>
+                        <span>{{ adapter.description || '—' }}</span>
+                    </div>
+                    <hr />
+                    <div class="mb-2">
+                        <small class="text-muted d-block mb-1">Language</small>
+                        <span>{{ languageLabel }}</span>
+                    </div>
+                    <hr />
+                    <div class="mb-2">
+                        <small class="text-muted d-block mb-1">Comment</small>
+                        <span>{{ adapter.comment || '—' }}</span>
+                    </div>
+                    <hr />
+                    <div *ngIf="adapter.id" class="mb-2">
+                        <button type="button" class="btn btn-link small p-0" (click)="onDownloadCurrentScripts()">
+                            <i class="bi bi-download"></i> Download current scripts
                         </button>
                     </div>
-                </div>
+                    <hr />
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-lock me-1"></i>Shipped adapter — only visibility settings can be changed.
+                    </div>
+                </ng-container>
 
-                <hr />
+                <!-- Custom adapters: full editing -->
+                <ng-template #editableAdapterFields>
+                    <div>
+                        <app-text-input [label]="'Name'" [(value)]="adapter.name" />
+                    </div>
 
-                <!-- Adapter Source Upload -->
-                <div>
-                    <app-file-input [id]="'adapter_script_source'" [label]="'Adapter Script Source'"
-                        [buttonLabel]="adapter.scriptDirName? 'Change File' : 'Choose File'"
-                        [accept]="'.zip,application/zip'" [fileName]="selectedFileName"
-                        (fileSelected)="onScriptZipFileSelected($event)" />
-                    <div class="mt-1 d-flex justify-content-between">
-                        <div class="form-text text-muted">
-                            <span *ngIf="!adapter.id">
-                                Upload a zip containing the adapter source and a manifest file matching the selected
-                                language.
-                            </span>
-                            <span *ngIf="adapter.id">
-                                Optional. Upload to replace the current version.
-                            </span>
-                        </div>
-                        <div *ngIf="adapter.id">
-                            <button type="button" class="btn btn-link small p-0" (click)="onDownloadCurrentScripts()">
-                                <i class="bi bi-download"></i> Download current scripts
+                    <hr />
+
+                    <div>
+                        <app-text-input [label]="'Description'" [(value)]="adapter.description" />
+                    </div>
+
+                    <hr />
+
+                    <div>
+                        <app-adapter-language-selector-single [label]="'Language'" [selectedId]="adapter.language"
+                            (selectedIdChange)="onLanguageSelected($event)" />
+                        <div *ngIf="adapter.language" class="mt-1 d-flex justify-content-end">
+                            <button type="button" class="btn btn-link small p-0"
+                                (click)="onDownloadSelectedLanguageTemplate()">
+                                <i class="bi bi-download"></i> Download starter template
                             </button>
                         </div>
                     </div>
-                </div>
+
+                    <hr />
+
+                    <!-- Adapter Source Upload -->
+                    <div>
+                        <app-file-input [id]="'adapter_script_source'" [label]="'Adapter Script Source'"
+                            [buttonLabel]="adapter.scriptDirName? 'Change File' : 'Choose File'"
+                            [accept]="'.zip,application/zip'" [fileName]="selectedFileName"
+                            (fileSelected)="onScriptZipFileSelected($event)" />
+                        <div class="mt-1 d-flex justify-content-between">
+                            <div class="form-text text-muted">
+                                <span *ngIf="!adapter.id">
+                                    Upload a zip containing the adapter source and a manifest file matching the selected
+                                    language.
+                                </span>
+                                <span *ngIf="adapter.id">
+                                    Optional. Upload to replace the current version.
+                                </span>
+                            </div>
+                            <div *ngIf="adapter.id">
+                                <button type="button" class="btn btn-link small p-0"
+                                    (click)="onDownloadCurrentScripts()">
+                                    <i class="bi bi-download"></i> Download current scripts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div>
+                        <app-text-input [label]="'Comment'" [(value)]="adapter.comment" />
+                    </div>
+                </ng-template>
 
                 <hr />
 
                 <div>
                     <app-check-box-input [label]="'Disabled'" [(value)]="adapter.disabled" />
-                </div>
-
-                <hr />
-
-                <div>
-                    <app-text-input [label]="'Comment'" [(value)]="adapter.comment" />
                 </div>
             </div>
 

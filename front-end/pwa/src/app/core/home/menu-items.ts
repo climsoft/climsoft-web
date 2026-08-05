@@ -13,7 +13,7 @@ export interface MenuItem {
 export enum MainMenuNameEnum {
     DASHBOARD = 'Dashboard',
     DATA_INGESTION = 'Data Ingestion',
-    DATA_MONITORING = 'Data Monitoring',
+    DATA_MONITORING = 'Analytics & Products',
     QUALITY_CONTROL = 'Quality Control',
     DATA_EXTRACTION = 'Data Extraction',
     METADATA = 'Metadata',
@@ -30,6 +30,7 @@ export enum SubMenuNameEnum {
     DATA_FLOW = 'Data Flow',
     DATA_AVAILABILTY = 'Data Availabilty',
     DATA_EXPLORER = 'Data Explorer',
+    PRODUCT_LIST = 'Product List',
 
     QC_ASSESSMENT = 'QC Assessment',
 
@@ -46,6 +47,9 @@ export enum SubMenuNameEnum {
     EXPORT_SPECIFICATIONS = 'Export Specifications',
     CONNECTOR_SPECIFICATIONS = 'Connector Specifications',
     ADAPTERS_SPECIFICATIONS = 'Adapter Specifications',
+    CLIMATE_PRODUCTS_ADMIN = 'Climate Products',
+
+
 
     USER_GROUPS = 'User Groups',
     USERS = 'Users',
@@ -111,6 +115,10 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.DATA_FLOW,
                     url: '/data-flow',
                 },
+                 {
+                    name: SubMenuNameEnum.PRODUCT_LIST,
+                    url: '/product-list',
+                },
             ]
         }
     }
@@ -141,10 +149,6 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.MANUAL_EXPORT,
                     url: '/manual-export-selection',
                 },
-                // {
-                //     name: SubMenuNameEnum.SCHEDULED_EXPORT,
-                //     url: '/auto-export-selection',
-                // },
             ]
         };
     }
@@ -199,6 +203,10 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.ADAPTERS_SPECIFICATIONS,
                     url: '/view-adapters',
+                },
+                {
+                    name: SubMenuNameEnum.CLIMATE_PRODUCTS_ADMIN,
+                    url: '/view-climate-products',
                 },
             ]
         }

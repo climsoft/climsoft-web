@@ -16,6 +16,8 @@ import { DataAvailabilitySummaryComponent } from './data-availability/data-avail
 import { DataAvailabilityFilterSelectionGeneralComponent } from './data-availability/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 import { DataAvailabilityHeatmapComponent } from './data-availability/data-availability-summary/data-availability-heatmap/data-availability-heatmap.component';
 import { DataAvailabilityDetailsDialogComponent } from './data-availability/data-availability-summary/data-availability-details-dialog/data-availability-details-dialog.component';
+import { ProductViewerComponent } from './products/product-viewer/product-viewer.component';
+import { ProductListComponent } from './products/product-list/product-list.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +33,8 @@ import { DataAvailabilityDetailsDialogComponent } from './data-availability/data
     DataAvailabilityHeatmapComponent,
     DataAvailabilityDetailsDialogComponent,
     DataExplorerComponent,
+    ProductListComponent,
+    ProductViewerComponent,
   ],
   imports: [
     DataMonitoringRoutingModule,

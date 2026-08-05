@@ -6,7 +6,7 @@ import { AdaptersService } from '../services/adapters.service';
 import { ViewAdapterSpecificationModel } from '../models/view-adapter-specification.model';
 import { CreateAdapterSpecificationModel } from '../models/create-adapter-specification.model';
 import { UpdateAdapterSpecificationModel } from '../models/update-adapter-specification.model';
-import { AdapterLanguageEnum } from '../models/adapter-language.enum';
+import { ADAPTER_LANGUAGE_LABELS, AdapterLanguageEnum } from '../models/adapter-language.enum';
 import { AdapterUploadPreviewResponseModel, FileTreeEntry } from '../models/adapter-upload-preview-response.model';
 import { LANGUAGE_CONVENTIONS } from '../models/adapter-language-conventions';
 
@@ -65,6 +65,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
       this.title = 'New Adapter';
       this.adapter = {
         id: 0,
+        systemKey: null,
         name: '',
         description: '',
         language: AdapterLanguageEnum.SQL,
@@ -104,6 +105,14 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         this.selectedFileName = '';
       },
     });
+  }
+
+  protected get isSystemAdapter(): boolean {
+    return !!this.adapter?.systemKey;
+  }
+
+  protected get languageLabel(): string {
+    return ADAPTER_LANGUAGE_LABELS[this.adapter?.language] ?? this.adapter?.language ?? '';
   }
 
   protected onLanguageSelected(language: AdapterLanguageEnum | null): void {
@@ -167,6 +176,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
    * Whether the save button should be enabled.
    */
   protected get canSave(): boolean {
+    if (this.isSystemAdapter) return true;
     if (!this.adapter.name || !this.adapter.language || !this.adapter.scriptDirName || !this.adapterPreviewResponse) return false;
     if (this.adapterPreviewResponse.manifestError || this.adapterPreviewResponse.entryPointError) return false;
     return true;

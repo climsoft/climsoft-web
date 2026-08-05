@@ -11,6 +11,7 @@ import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-ne
 import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
 import { ViewFlagsComponent } from './flags/view-flags/view-flags.component';
 import { ViewAdaptersComponent } from './adapters/view-adapters/view-adapters.component';
+import { ViewClimateProductsComponent } from './climate-products/view-climate-products/view-climate-products.component';
 const routes: Routes = [
   {
     path: '',
@@ -66,6 +67,10 @@ const routes: Routes = [
       {
         path: 'view-adapters',
         component: ViewAdaptersComponent
+      },
+      {
+        path: 'view-climate-products',
+        component: ViewClimateProductsComponent
       },
     ]
   }

@@ -1,0 +1,12 @@
+.product-viewer-wrapper {
+    height: calc(100vh - 56px); // subtract nav bar height
+}
+
+.superset-container {
+    // The SDK injects an iframe into this element
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+}

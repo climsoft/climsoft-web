@@ -1,0 +1,39 @@
+<div class="container-fluid py-3">
+
+  <div *ngIf="loading" class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div *ngIf="productsByCategory.length === 0" class="text-muted text-center py-5">
+      No climate products are available.
+    </div>
+
+    <div *ngFor="let group of productsByCategory" class="mb-4">
+      <h5 class="text-muted mb-3 border-bottom pb-1">{{ group.category }}</h5>
+      <div class="row g-3">
+        <div *ngFor="let product of group.products" class="col-sm-6 col-md-4 col-xl-3">
+          <div class="card h-100 shadow-sm product-card" role="button" (click)="openProduct(product)">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-bar-chart-line fs-4 text-primary me-2"></i>
+                <h6 class="card-title mb-0">{{ product.name }}</h6>
+              </div>
+              <p class="card-text text-muted small">{{ product.description }}</p>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+              <small class="text-muted">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Open product
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

@@ -103,6 +103,8 @@ import { AdapterDetailDialogComponent } from './adapters/adapter-detail-dialog/a
 import { AdapterTestRunPaneComponent } from './adapters/adapter-detail-dialog/adapter-test-run-pane/adapter-test-run-pane.component';
 import { AdapterLanguageSelectorSingleComponent } from './adapters/adapter-detail-dialog/adapter-language-selector-single/adapter-language-selector-single.component';
 import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-specification-selector-single/adapter-specification-selector-single.component';
+import { ViewClimateProductsComponent } from './climate-products/view-climate-products/view-climate-products.component';
+import { ProductInputDialogComponent } from './climate-products/product-input-dialog/product-input-dialog.component';
 @NgModule({
   declarations: [
     ViewNetworkAffiliationsComponent,
@@ -234,6 +236,9 @@ import { AdapterSpecificationSelectorSingleComponent } from './adapters/adapter-
     AdapterLanguageSelectorSingleComponent,
     AdapterTestRunPaneComponent,
     AdapterSpecificationSelectorSingleComponent,
+
+    ViewClimateProductsComponent,
+    ProductInputDialogComponent,
 
   ],
   imports: [

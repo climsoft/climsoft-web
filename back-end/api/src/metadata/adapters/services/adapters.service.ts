@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -257,15 +257,18 @@ export class AdaptersService implements OnModuleInit {
     public async update(id: number, dto: UpdateAdapterSpecificationDto, userId: number): Promise<ViewAdapterSpecificationDto> {
         const entity = await this.findEntity(id);
 
-        entity.name = dto.name;
-        entity.description = dto.description ?? null;
-        entity.disabled = dto.disabled;
-        entity.comment = dto.comment ?? null;
+        if (entity.systemKey !== null) {
+            entity.disabled = dto.disabled;
+        } else {
+            entity.name = dto.name;
+            entity.description = dto.description ?? null;
+            entity.disabled = dto.disabled;
+            entity.comment = dto.comment ?? null;
+            const scriptDir = this.fileIO.getAdapterScriptDir(dto.scriptDirName);
+            await this.assertDirExists(scriptDir, `Script directory '${dto.scriptDirName}' not found. Please upload the zip file first.`);
+            entity.scriptDirName = dto.scriptDirName;
+        }
         entity.entryUserId = userId;
-
-        const scriptDir = this.fileIO.getAdapterScriptDir(dto.scriptDirName);
-        await this.assertDirExists(scriptDir, `Script directory '${dto.scriptDirName}' not found. Please upload the zip file first.`);
-        entity.scriptDirName = dto.scriptDirName;
 
         await this.adapterRepo.save(entity);
         await this.cache.invalidate();
@@ -427,16 +430,19 @@ export class AdaptersService implements OnModuleInit {
 
     public async delete(id: number): Promise<void> {
         const entity: AdapterSpecificationEntity = await this.findEntity(id);
+        if (entity.systemKey !== null) {
+            throw new BadRequestException(`Adapter '${entity.name}' is a system adapter and cannot be deleted`);
+        }
         await this.adapterRepo.remove(entity);
         await this.cache.invalidate();
         this.logger.log(`Adapter deleted: #${id}. On-disk script directories are retained.`);
     }
 
     public async deleteAll(): Promise<void> {
-        const entities: AdapterSpecificationEntity[] = await this.adapterRepo.find();
+        const entities: AdapterSpecificationEntity[] = await this.adapterRepo.find({ where: { systemKey: IsNull() } });
         await this.adapterRepo.remove(entities);
         await this.cache.invalidate();
-        this.logger.log(`All adapters deleted. On-disk script directories are retained.`);
+        this.logger.log(`All user-defined adapters deleted. System adapters and on-disk script directories are retained.`);
     }
 
     //--------------------------------------------------------------------
@@ -454,6 +460,7 @@ export class AdaptersService implements OnModuleInit {
     private toViewDto(entity: AdapterSpecificationEntity): ViewAdapterSpecificationDto {
         return {
             id: entity.id,
+            systemKey: entity.systemKey ?? null,
             name: entity.name,
             description: entity.description ?? '',
             language: entity.language,

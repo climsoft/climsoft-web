@@ -8,8 +8,6 @@ import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-grou
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 import { ViewJobQueueComponent } from './job-queue/components/view-job-queue/view-job-queue.component';
 import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
-
-
 const routes: Routes = [
   {
     path: '',

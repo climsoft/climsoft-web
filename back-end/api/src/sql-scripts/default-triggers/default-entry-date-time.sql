@@ -24,6 +24,7 @@ DECLARE
         'export_specifications',
         'connector_specifications',
         'adapter_specifications',
+        'climate_products',
         'job_queues',
         'connector_execution_log',
         'station_forms',

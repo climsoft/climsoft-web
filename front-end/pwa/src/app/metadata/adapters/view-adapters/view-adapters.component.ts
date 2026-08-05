@@ -91,6 +91,10 @@ export class ViewAdaptersComponent {
 
   protected onDeleteClick(adapter: View, event: Event): void {
     event.stopPropagation();
+    if (adapter.systemKey !== null) {
+      this.pagesDataService.showToast({ title: 'Adapter Specification', message: 'System adapters cannot be deleted', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
     this.selectedAdapter = adapter;
     this.dlgDeleteConfirm.openDialog();
   }
@@ -120,8 +124,8 @@ export class ViewAdaptersComponent {
   protected onToggleDisabledConfirm(): void {
     if (!this.selectedAdapter) return;
     const newDisabledState = !this.selectedAdapter.disabled;
-    // Destructure to exclude 'id' and 'languageLabel' since API does not expect them
-    const { id, languageLabel, ...updateDto } = this.selectedAdapter;
+    // Destructure to exclude 'id', 'languageLabel', and 'systemKey' since API does not expect them
+    const { id, languageLabel, systemKey, ...updateDto } = this.selectedAdapter;
     this.adaptersService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
       take(1)
     ).subscribe({

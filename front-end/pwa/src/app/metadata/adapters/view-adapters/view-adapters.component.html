@@ -19,18 +19,20 @@
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
-          <col style="width: 22%;" />
-          <col style="width: 12%;" />
-          <col style="width: 54%;" />
+          <col style="width: 20%;" />
+          <col style="width: 10%;" />
+          <col style="width: 8%;" />
+          <col style="width: 50%;" />
           <col style="width: 10%;" />
         </colgroup>
         <thead>
           <tr>
-            <th></th>
+            <th aria-label="Row indicator"></th>
             <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Name</th>
             <th appSortableHeader="languageLabel" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Language</th>
+            <th>Type</th>
             <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Description</th>
             <th>Actions</th>
@@ -46,10 +48,14 @@
                 'bg-primary': adapter.language === 'sql',
                 'bg-success': adapter.language === 'python',
                 'bg-info': adapter.language === 'r',
-                'bg-secondary': adapter.language === 'javascript'         
+                'bg-secondary': adapter.language === 'javascript'
               }">
                 {{ adapter.languageLabel }}
               </span>
+            </td>
+            <td>
+              <span *ngIf="adapter.systemKey" class="badge bg-secondary">Shipped</span>
+              <span *ngIf="!adapter.systemKey" class="badge bg-primary">Custom</span>
             </td>
             <td>
               <ng-container *ngFor="let seg of adapter.description | linkify">
@@ -62,14 +68,17 @@
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm"
                   [ngClass]="adapter.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
-                  [title]="adapter.disabled ? 'Enable source' : 'Disable source'"
+                  [title]="adapter.disabled ? 'Enable adapter' : 'Disable adapter'"
                   (click)="onToggleDisabledClick(adapter, $event)">
                   <i class="bi" [ngClass]="adapter.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete source"
-                  (click)="onDeleteClick(adapter, $event)">
+                <button *ngIf="!adapter.systemKey" type="button" class="btn btn-sm btn-outline-danger"
+                  title="Delete adapter" (click)="onDeleteClick(adapter, $event)">
                   <i class="bi bi-trash"></i>
                 </button>
+                <span *ngIf="adapter.systemKey" class="text-muted" title="Shipped adapter — cannot be deleted">
+                  <i class="bi bi-lock"></i>
+                </span>
               </div>
             </td>
           </tr>

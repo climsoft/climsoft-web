@@ -7,6 +7,7 @@ import { SharedModule } from 'src/shared/shared.module';
 import { SettingsModule } from 'src/settings/settings.module';
 import { MetadataModule } from 'src/metadata/metadata.module';
 import { SqlScriptsModule } from 'src/sql-scripts/sql-scripts.module';
+import { ProductsModule } from 'src/products/products.module';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { SqlScriptsModule } from 'src/sql-scripts/sql-scripts.module';
         MetadataModule,
         SettingsModule,
         SqlScriptsModule,
+        ProductsModule,
     ],
     providers: [MigrationsService],
     exports: [MigrationsService],
