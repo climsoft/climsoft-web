@@ -13,7 +13,7 @@ export interface MenuItem {
 export enum MainMenuNameEnum {
     DASHBOARD = 'Dashboard',
     DATA_INGESTION = 'Data Ingestion',
-    DATA_MONITORING = 'Analytics & Products',
+    DATA_MONITORING = 'Monitoring & Products',
     QUALITY_CONTROL = 'Quality Control',
     DATA_EXTRACTION = 'Data Extraction',
     METADATA = 'Metadata',
