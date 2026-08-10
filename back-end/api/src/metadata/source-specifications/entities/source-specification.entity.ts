@@ -35,10 +35,6 @@ export class SourceSpecificationEntity extends AppBaseEntity {
     @Column({ name: "parameters", type: "jsonb" })
     parameters!: SourceParameters;
 
-    @Column({ name: "order_number", type: "int", nullable: true })
-    @Index()
-    orderNumber!: number | null; // TODO. Deprecate this in future. Given that auto imports are scheduled by time. This is not relevant
-
     @Column({ type: "boolean", default: false })
     disabled!: boolean;
 

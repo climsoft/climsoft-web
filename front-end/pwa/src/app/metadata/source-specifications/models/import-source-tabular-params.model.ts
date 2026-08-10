@@ -179,8 +179,11 @@ export enum DateTimeFormat {
 
     // 12-hour clock with AM/PM (Excel and US-locale form entries)
     YMD_DASH_HM_AMPM = '%Y-%m-%d %I:%M %p',
+    YMD_DASH_HMS_AMPM = '%Y-%m-%d %I:%M:%S %p',    // 2023-12-13 10:30:00 AM
     DMY_SLASH_HM_AMPM = '%d/%m/%Y %I:%M %p',
+    DMY_SLASH_HMS_AMPM = '%d/%m/%Y %I:%M:%S %p',   // 13/12/2023 10:30:00 AM
     MDY_SLASH_HM_AMPM = '%m/%d/%Y %I:%M %p',
+    MDY_SLASH_HMS_AMPM = '%m/%d/%Y %I:%M:%S %p',   // 12/13/2023 10:30:00 AM
 
     // Dot-separated (German / Russian / Eastern European locales)
     DMY_DOT_HMS = '%d.%m.%Y %H:%M:%S',
