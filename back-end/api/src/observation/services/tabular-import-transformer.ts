@@ -400,10 +400,18 @@ export class TabularImportTransformer {
         // Get all missing value indicators in quoted format
         const missingValueIndicators: string[] = importDef.sourceMissingValueIndicators.split(',').map(f => `'${f}'`).filter(f => f);
 
-        let missingValueCondition: string = `${this.VALUE_PROPERTY_NAME} IS NULL`;
+        let valueMissingCondition: string = `${this.VALUE_PROPERTY_NAME} IS NULL`;
         if (missingValueIndicators.length > 0) {
-            missingValueCondition = `${missingValueCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${missingValueIndicators.join(',')})`;
+            valueMissingCondition = `${valueMissingCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${missingValueIndicators.join(',')})`;
         }
+
+        // A row is treated as missing only when BOTH the value is empty AND
+        // there is no meaningful flag. This preserves trace-only cells such
+        // as ('', 'T'), where the flag alone carries the observation.
+        // When no flag column is configured, `flag_id` is a NULL default for
+        // every row, so this narrows to just the value-missing check.
+        const flagAbsentCondition: string = `${this.FLAG_PROPERTY_NAME} IS NULL OR ${this.FLAG_PROPERTY_NAME} = ''`;
+        const missingValueCondition: string = `(${valueMissingCondition}) AND (${flagAbsentCondition})`;
 
         if (sourceDef.allowMissingValue) {
             // Set missing flag if missing are allowed to be imported.
