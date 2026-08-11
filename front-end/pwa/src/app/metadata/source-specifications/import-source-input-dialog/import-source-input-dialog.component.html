@@ -136,6 +136,15 @@
                             <app-import-source-value-detail [(valueDefinition)]="tabularImportParams.valueDefinition" />
                         </div>
 
+                        <div class="mt-2">
+                            <app-import-source-flag-detail
+                                [flagDefinition]="tabularImportParams.valueDefinition?.flagDefinition"
+                                (flagDefinitionChange)="onFlagDefinitionChange($event)"
+                                [inlineFlagRule]="tabularImportParams.inlineFlagRule"
+                                (inlineFlagRuleChange)="onInlineFlagRuleChange($event)"
+                                [canUseSeparateColumn]="!!tabularImportParams.valueDefinition" />
+                        </div>
+
                         <hr *ngIf="tabularImportParams.valueDefinition" />
 
                         <div>

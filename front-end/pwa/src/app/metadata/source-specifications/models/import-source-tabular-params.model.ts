@@ -3,6 +3,22 @@ export interface FlagDefinition {
     flagsToFetch?: { sourceId: string, databaseId: number }[];
 }
 
+/**
+ * When set on {@link ImportSourceTabularParamsModel.inlineFlagRule}, cells in
+ * the observation `value` column carry a trailing alphabetic run interpreted
+ * as a flag abbreviation. Example: `0.5T` splits into value `0.5` and flag `T`.
+ *
+ * Applies uniformly whether the `value` column comes from an explicit
+ * `valueDefinition.valueColumnPosition` or from a wide-pivot UNPIVOT.
+ * Mutually exclusive with `valueDefinition.flagDefinition`.
+ */
+export interface InlineFlagRule {
+    /** Optional source flag string → database flag id mapping. When omitted,
+     *  the extracted flag string is matched case-insensitively against
+     *  `flags.abbreviation`. */
+    flagsToFetch?: { sourceId: string, databaseId: number }[];
+}
+
 export interface ValueDefinition {
 
     /** Value column position. */
@@ -351,6 +367,12 @@ export interface ImportSourceTabularParamsModel {
     datetimeDefinition: DateTimeDefinition;
 
     valueDefinition?: ValueDefinition;
+
+    /**
+     * Opt-in: cells in the `value` column carry a trailing flag suffix.
+     * Mutually exclusive with `valueDefinition.flagDefinition`.
+     */
+    inlineFlagRule?: InlineFlagRule;
 
     commentDefinition?: CommentDefinition;
 

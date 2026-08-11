@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
-import { DateTimeFormat, ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
+import { DateTimeFormat, FlagDefinition, ImportSourceTabularParamsModel, InlineFlagRule } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Observable, switchMap, take } from 'rxjs';
@@ -445,6 +445,22 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (dataStructureType !== null) {
             this.importSourceParams.dataStructureType = dataStructureType;
         }
+    }
+
+    /**
+     * Handles flag-mode transitions from the flag-detail component. The
+     * `flagDefinition` slot lives nested inside `valueDefinition`, so it can
+     * only be set when we're not in a wide-pivot mode (the flag-detail
+     * component already hides 'Separate Column' in that case).
+     */
+    protected onFlagDefinitionChange(flagDef: FlagDefinition | undefined): void {
+        if (this.tabularImportParams.valueDefinition) {
+            this.tabularImportParams.valueDefinition.flagDefinition = flagDef;
+        }
+    }
+
+    protected onInlineFlagRuleChange(rule: InlineFlagRule | undefined): void {
+        this.tabularImportParams.inlineFlagRule = rule;
     }
 
     protected get showNavigation(): boolean {

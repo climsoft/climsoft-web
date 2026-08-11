@@ -75,6 +75,31 @@ export class FlagDefinition {
     flagsToFetch?: FlagToFetch[];
 }
 
+/**
+ * When set on {@link ImportSourceTabularParamsDto.inlineFlagRule}, cells in
+ * the observation `value` column carry a trailing alphabetic run interpreted
+ * as a flag abbreviation. Example: `0.5T` splits into value `0.5` and flag `T`.
+ *
+ * Applies uniformly whether the `value` column comes from an explicit
+ * `valueDefinition.valueColumnPosition` or from a wide-pivot UNPIVOT
+ * (multiple elements, day columns range, or hour columns range).
+ *
+ * The split rule itself is fixed — trailing `[A-Za-z]+` is the flag; the
+ * numeric prefix is the value. Both parts may be empty and are handled by
+ * the existing missing-value logic.
+ */
+export class InlineFlagRule {
+    /**
+     * Optional source flag string → database flag id mapping. When omitted,
+     * the extracted flag string is matched case-insensitively against
+     * `flags.abbreviation` — same semantics as `FlagDefinition.flagsToFetch`.
+     */
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => FlagToFetch)
+    flagsToFetch?: FlagToFetch[];
+}
+
 export class ValueDefinition {
     /** Value column position. */
     @IsInt()
@@ -476,6 +501,16 @@ export class ImportSourceTabularParamsDto {
     @ValidateNested()
     @Type(() => ValueDefinition)
     valueDefinition?: ValueDefinition;
+
+    /**
+     * Opt-in: cells in the `value` column carry a trailing flag suffix.
+     * Mutually exclusive with `valueDefinition.flagDefinition` — if both are
+     * set, the explicit flag column takes precedence and this is ignored.
+     */
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => InlineFlagRule)
+    inlineFlagRule?: InlineFlagRule;
 
     @IsOptional()
     @ValidateNested()
