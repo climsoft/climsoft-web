@@ -28,14 +28,14 @@ export class TimeFormatSelectorSingleComponent implements OnChanges {
   }
 
   private readonly displayLabels: Record<TimeFormat, string> = {
-    [TimeFormat.HMS]: '14:30:00 (%H:%M:%S)',
-    [TimeFormat.HM]: '14:30 (%H:%M)',
+    [TimeFormat.HMS]: '09:30:00 (%H:%M:%S)',
+    [TimeFormat.HM]: '09:30 (%H:%M)',
     [TimeFormat.HM_UNPADDED]: '9:30 (%-H:%M, no padding)',
-    [TimeFormat.H]: '14 (%H, zero-padded hour)',
+    [TimeFormat.H]: '09 (%H, zero-padded hour)',
     [TimeFormat.H_UNPADDED]: '9 (%-H, unpadded hour)',
-    [TimeFormat.HMS_FRAC]: '14:30:00.123456 (%H:%M:%S.%f)',
-    [TimeFormat.HMS_COMPACT]: '143000 (%H%M%S)',
-    [TimeFormat.HM_COMPACT]: '1430 (%H%M)',
+    [TimeFormat.HMS_FRAC]: '09:30:00.123456 (%H:%M:%S.%f)',
+    [TimeFormat.HMS_COMPACT]: '093000 (%H%M%S)',
+    [TimeFormat.HM_COMPACT]: '0930 (%H%M)',
     [TimeFormat.HMS_AMPM]: '02:30:00 PM (%I:%M:%S %p)',
     [TimeFormat.HM_AMPM]: '02:30 PM (%I:%M %p)',
   };
