@@ -354,7 +354,7 @@ export class TabularImportTransformer {
             // Map back to hour-of-day (00..23). Hours start at 0, unlike days at 1,
             // so the offset is `- firstColumnPosition` not `- firstColumnPosition + 1`.
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET time_col = lpad(substr(hour_col, 7)::INTEGER - ${firstColumnPosition}, 2, '0') || ':00:00'`);
+            sql.push(`UPDATE ${tableName} SET time_col = lpad((substr(hour_col, 7)::INTEGER - ${firstColumnPosition})::VARCHAR, 2, '0') || ':00:00'`);
             return '%H:%M:%S';
         }
         throw new Error('Time part must define defaultHour, singleColumn, hourAndMinuteColumns, or hourColumnsRange');
@@ -448,7 +448,7 @@ export class TabularImportTransformer {
             // Nulls are excluded because they represent non-existent days (e.g. Feb 31st).
             sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}))`);
             // Extract the numeric day part from the column name (e.g. 'column5' -> 5) and zero-pad it.
-            sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${firstColumnPosition} + 1, 2, '0')`);
+            sql.push(`UPDATE ${tableName} SET day_col = lpad((substr(day_col, 7)::INTEGER - ${firstColumnPosition} + 1)::VARCHAR, 2, '0')`);
         } else {
             throw new Error('Day columns must define either singleColumn or columnsRange');
         }
