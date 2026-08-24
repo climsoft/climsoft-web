@@ -3,7 +3,6 @@ x-superset-build: &superset-build
   build:
     context: ./superset
     dockerfile: Dockerfile
-  profiles: ["superset"]
 
 x-superset-env: &superset-env
   SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
@@ -29,6 +28,7 @@ services:
     depends_on:
       - climsoft_pwa
       - climsoft_api
+      - climsoft_superset
     networks:
       - climsoft_network
 
@@ -153,7 +153,6 @@ services:
   climsoft_superset_redis:
     image: redis:7-alpine
     container_name: climsoft-test-superset-redis
-    profiles: ["superset"]
     expose:
       - 6379
     networks:
@@ -194,8 +193,8 @@ services:
       SERVER_WORKER_CLASS: gevent
       SERVER_THREADS_AMOUNT: 100
       GUNICORN_TIMEOUT: 120
-    expose:
-      - 8088
+    ports:
+      - "8088:8088"
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully

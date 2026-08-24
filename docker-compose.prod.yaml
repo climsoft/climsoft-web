@@ -1,7 +1,6 @@
 
 x-superset-image: &superset-image
   image: climsoftdevelopers/climsoft-superset:preview-3.0.3
-  profiles: ["superset"]
 
 x-superset-env: &superset-env
   SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
@@ -23,6 +22,7 @@ services:
     depends_on:
       - climsoft_pwa
       - climsoft_api
+      - climsoft_superset
     networks:
       - climsoft_network
 
@@ -142,7 +142,6 @@ services:
     image: redis:7-alpine
     container_name: climsoft-superset-redis
     restart: always
-    profiles: ["superset"]
     expose:
       - 6379
     networks:
@@ -177,8 +176,8 @@ services:
       SERVER_WORKER_CLASS: gevent
       SERVER_THREADS_AMOUNT: 1000
       GUNICORN_TIMEOUT: 120
-    expose:
-      - 8088
+    ports:
+      - "8088:8088"
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully

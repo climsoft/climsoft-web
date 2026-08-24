@@ -47,7 +47,9 @@ FEATURE_FLAGS = {
 PUBLIC_ROLE_LIKE = "Gamma"
 
 # Sub-path prefix when Superset is served at /superset/ behind Nginx.
-# Must match the Nginx location block prefix.
+# Must match the Nginx location block. Superset uses this to generate all
+# its internal URLs (login, API calls, static assets) so nginx can route them.
+# Set WEBSERVER_PREFIX= (empty) in dev when accessing Superset directly on port 8088.
 WEBSERVER_PREFIX = os.environ.get("WEBSERVER_PREFIX", "/superset")
 
 # Required when running behind a reverse proxy so Superset trusts
