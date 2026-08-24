@@ -1,0 +1,71 @@
+<ng-container *ngIf="open && product">
+  <app-dialog [(open)]="open" [title]="title"
+    [firstButtonOptions]="{label: 'Submit', color: 'primary', closeDialogOnClick: false}"
+    (firstButtonClick)="onOkClick()"
+    [secondButtonOptions]="title === 'Edit Product' ? {label: 'Delete', color: 'danger', closeDialogOnClick: false} : undefined"
+    (secondButtonClick)="onDelete()"
+    [thirdButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: false}"
+    (thirdButtonClick)="onCancelClick()">
+    <div>
+
+      <!-- Shipped products: show identity fields as read-only -->
+      <ng-container *ngIf="product.systemKey; else customFields">
+        <div class="mb-2">
+          <small class="text-muted d-block mb-1">Name</small>
+          <span>{{ product.name }}</span>
+        </div>
+        <hr />
+        <div class="mb-2">
+          <small class="text-muted d-block mb-1">Category</small>
+          <span>{{ product.category || '—' }}</span>
+        </div>
+        <hr />
+        <div class="mb-2">
+          <small class="text-muted d-block mb-1">Description</small>
+          <span>{{ product.description || '—' }}</span>
+        </div>
+        <hr />
+        <div class="mb-2">
+          <small class="text-muted d-block mb-1">Superset UUID</small>
+          <code class="small">{{ product.supersetUuid }}</code>
+        </div>
+        <hr />
+        <div class="text-muted small mb-3">
+          <i class="bi bi-lock me-1"></i>Shipped product — only visibility settings can be changed.
+        </div>
+      </ng-container>
+
+      <!-- Custom products: full editing -->
+      <ng-template #customFields>
+        <div>
+          <app-text-input [label]="'Superset UUID'" [(value)]="product.supersetUuid" />
+        </div>
+        <hr />
+        <div>
+          <app-text-input [label]="'Name'" [(value)]="product.name" />
+        </div>
+        <hr />
+        <div>
+          <app-text-input [label]="'Category'" [(value)]="product.category" />
+        </div>
+        <hr />
+        <div>
+          <app-text-input [label]="'Description'" [(value)]="product.description" />
+        </div>
+        <hr />
+      </ng-template>
+
+      <div>
+        <app-check-box-input [label]="'Disabled'" [(value)]="product.disabled" />
+      </div>
+
+    </div>
+  </app-dialog>
+
+  <app-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Product'" [okButtonLabel]="'Yes'"
+    [cancelButtonLabel]="'No'" (okConfirmed)="onDeleteConfirm()" [displayCannotBeUndone]="true">
+    <p>
+      Are you sure you want to delete <strong>{{ product.name }}</strong>?
+    </p>
+  </app-confirmation-dialog>
+</ng-container>

@@ -9,17 +9,51 @@ export class Wis2BoxExportService implements OnModuleInit {
     private readonly logger = new Logger(Wis2BoxExportService.name);
 
     /**
-     * Per-element value transforms applied inside pivot expressions. Wrapped in
-     * ROUND to suppress float-arithmetic noise — e.g. `273.15` is not exactly
-     * representable in float64, so `value + 273.15` would otherwise produce
-     * trailing-digit noise. Shared between SYNOP and DAYCLI generators.
+     * Per-element value transforms applied inside pivot expressions.
+     *
+     * Most transforms are conditional on the source element's units (carried
+     * through the intermediate CSV as `element_units`, one value per input
+     * row). The conversion only fires when the units string matches an
+     * accepted spelling of the expected source unit; otherwise the raw
+     * value passes through unchanged. This guards against double-conversion
+     * when an admin has already stored values in the WIS2BOX target unit.
+     *
+     * `minsToHours` is the exception — it's used only for `sunshine_total_24hr`
+     * where the WIS2BOX spec commits to minute-storage on the 1hr side, so
+     * the conversion is unconditional and matches that same assumption.
+     *
+     * Conversion branches are wrapped in ROUND to suppress float-arithmetic noise.
+     * The ELSE branch passes the raw value without rounding.
+     *
+     * Shared between SYNOP and DAYCLI generators.
      */
-    private readonly hPaToPa = (v: string) => `ROUND(${v} * 100, 1)`;  // Pa to 0.1 precision
-    private readonly celciusToK = (v: string) => `ROUND(${v} + 273.15, 2)`;  // K to 0.01 precision
-    private readonly knotsToMs = (v: string) => `ROUND(${v} * 0.51444, 2)`;  // ms to 0.01 precision
-    private readonly feetToMeters = (v: string) => `ROUND(${v} * 0.3048, 2)`;  // meters to 0.01 precision 
-    private readonly oktasToPerc = (v: string) => `ROUND( (${v} * 100) / 8 , 0)`;  // % with no d.p. Important for 9 oktas to be 113% 
-    private readonly minsToHours = (v: string) => `ROUND(${v} / 60, 2)`;  // ms to 0.01 precision 
+    private readonly hPaToPa = (v: string) =>
+        this.conditionalConvert(v, ['hpa', 'hectopascal', 'hectopascals', 'mb', 'mbar', 'millibar', 'millibars'], `ROUND(${v} * 100, 1)`);
+    private readonly celciusToK = (v: string) =>
+        this.conditionalConvert(v, ['c', '°c', 'celsius', 'deg c', 'degc', 'degrees c', 'degrees celsius'], `ROUND(${v} + 273.15, 2)`);
+    private readonly knotsToMs = (v: string) =>
+        this.conditionalConvert(v, ['kt', 'kts', 'kn', 'knot', 'knots'], `ROUND(${v} * 0.51444, 2)`);
+    // Cloud base heights are reported in tens of meters, so decimal precision is not needed. Round to nearest meter.
+    private readonly feetToMeters = (v: string) =>
+        this.conditionalConvert(v, ['ft', 'feet', 'foot'], `ROUND(${v} * 0.3048, 0)`);
+    // 9 oktas -> 113% is intentional: WMO okta code 9 = "sky obscured".
+    private readonly oktasToPerc = (v: string) =>
+        this.conditionalConvert(v, ['okta', 'oktas'], `ROUND((${v} * 100) / 8, 0)`);
+    private readonly minsToHours = (v: string) => `ROUND(${v} / 60, 2)`;  // hours to 0.01 precision
+    /**
+     * Builds a `CASE WHEN LOWER(TRIM(element_units)) IN (…) THEN <convert> ELSE <raw> END`
+     * expression. Called by five of the six unit-transform arrow fields above
+     * (all except `minsToHours`, which is unconditional).
+     * NULL/empty element_units matches nothing and falls through to the raw branch.
+     */
+    private conditionalConvert(v: string, acceptedUnits: string[], convertSql: string): string {
+        // Wrap each accepted spelling as a SQL string literal, doubling any
+        // embedded single quote (SQL's standard escape) so a spelling like
+        // "deg's" would splice in safely. None of the current arrays contain
+        // apostrophes; this is belt-and-braces against future edits.
+        const list = acceptedUnits.map(u => `'${u.replace(/'/g, "''")}'`).join(', ');
+        return `CASE WHEN LOWER(TRIM(COALESCE(element_units, ''))) IN (${list}) THEN ${convertSql} ELSE ${v} END`;
+    }
 
     constructor(
         private fileIOService: FileIOService,
@@ -56,10 +90,11 @@ export class Wis2BoxExportService implements OnModuleInit {
      * Multi-stage SQL:
      *   1. CTE `pivoted` — group input rows by (station, observation moment)
      *      and pivot each user-mapped element into its own column.
-     *      Per-element transforms applied here:
+     *      Per-element transforms applied here are conditional on the source
+     *      element's units (see `conditionalConvert` above). Common cases:
      *        - Pressure columns: hPa -> Pa (* 100), rounded to 1 decimal
      *        - Temperature columns: C -> K (+ 273.15), rounded to 2 decimals
-     *      Rounding suppresses float-arithmetic noise.
+     *      Values already stored in the WIS2BOX target unit pass through raw.
      *   2. CTE `station_meta` — collapses pivoted to one row per station and
      *      computes the time bounds for each station's data.
      *   3. CTE `hourly_grid` — generates a complete hourly timeline per
@@ -76,7 +111,9 @@ export class Wis2BoxExportService implements OnModuleInit {
      *          pressure_tendency_fm12() macro (registered in onModuleInit)
      *        - sunshine_total_24hr, total_precipitation_{3,6,12,24}_hour,
      *          solar_radiation24_*: strict SUM over rolling row windows
-     *          (NULL when fewer than N values are present in the window)
+     *          (NULL when fewer than N values are present in the window).
+     *          sunshine_total_24hr additionally divides by 60 because the
+     *          WIS2BOX spec keeps 1hr in minutes but expects hours for 24hr.
      *
      * Several columns are emitted as hardcoded constants or NULL (per TODOs
      * in WIS2BOX_ELEMENTS_BY_REPORT_TYPE[SYNOP]) until station instrument
@@ -310,7 +347,8 @@ export class Wis2BoxExportService implements OnModuleInit {
             `past_weather1`,
             `past_weather2`,
             `sunshine_total_1hr`,
-            // sunshine_total_24hr — strict 24-row trailing sum (NULL if any hour missing). Convert minutes to hours.
+            // sunshine_total_24hr — strict 24-row trailing sum (NULL if any hour missing). 
+            // Convert minutes to hours. sunshine_total_1hr is assumed to be in minutes.
             `${this.minsToHours(strictWindowSum('sunshine_total_1hr', 24, 'w_24'))} AS sunshine_total_24hr`,
             // ── Precipitation ─────────────────────────────────────────────
             // TODO: rain_sensor_height — to come from station instrument metadata.
@@ -488,7 +526,7 @@ export class Wis2BoxExportService implements OnModuleInit {
             ) TO '${outputFilePathName}' WITH (HEADER, DELIMITER ',');
         `;
 
-        this.logger.debug(`Executing SYNOP WIS2BOX CSV generation SQL`);
+        this.logger.log(`Executing SYNOP WIS2BOX CSV generation SQL`);
 
         await this.fileIOService.duckDbConn.run(sql);
 
@@ -504,9 +542,10 @@ export class Wis2BoxExportService implements OnModuleInit {
      *   1. CTE `pivoted` — group input rows by (station, day) and, for each
      *      prefix-grouped measurement, emit the 6 spec columns
      *      (`<name>_day_offset`, `_hour`, `_minute`, `_second`, value, `_flag`).
-     *      Per-element transforms applied here:
+     *      Per-element transforms applied here are conditional on the source
+     *      element's units (see `conditionalConvert` above). Common cases:
      *        - Temperature columns: C -> K (+ 273.15), rounded to 2 decimals
-     *      Rounding suppresses float-arithmetic noise.
+     *      Values already stored in the WIS2BOX target unit pass through raw.
      *   2. Outer SELECT — emits the WIS2BOX spec column order: parsed WIS/WMO
      *      identifiers, location, hardcoded placeholders (siting class,
      *      averaging method, thermometer height) and bare references to the

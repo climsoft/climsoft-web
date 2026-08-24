@@ -169,7 +169,10 @@ export class ClimsoftWebToV4SyncService {
                 capturedBy = VALUES(capturedBy)
         `;
 
-            const values: (string | number | null | undefined)[][] = [];
+            // Track each row's source entity alongside its bind values so that
+            // if the batch fails we can pinpoint the exact row(s) that caused
+            // it via a per-row diagnostic pass.
+            const rows: { entity: ObservationEntity; values: (string | number | null | undefined)[] }[] = [];
             for (const entity of entities) {
 
                 if (!this.climsoftV4WebSetupService.v4Stations.has(entity.stationId)) {
@@ -189,32 +192,35 @@ export class ClimsoftWebToV4SyncService {
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
 
-                values.push([
-                    entity.stationId,
-                    entity.elementId,
-                    v4ValueMap.v4DBDatetime,
-                    v4ValueMap.v4Level,
-                    v4ValueMap.v4Value,
-                    v4ValueMap.v4Flag,
-                    v4ValueMap.v4DBPeriod,
+                rows.push({
+                    entity,
+                    values: [
+                        entity.stationId,
+                        entity.elementId,
+                        v4ValueMap.v4DBDatetime,
+                        v4ValueMap.v4Level,
+                        v4ValueMap.v4Value,
+                        v4ValueMap.v4Flag,
+                        v4ValueMap.v4DBPeriod,
 
-                    // V4 qcStatus 1 means data was quality controlled
-                    1,
+                        // V4 qcStatus 1 means data was quality controlled
+                        1,
 
-                    // Web database qc log is not supported by v4 qcTypeLog
-                    null,
+                        // Web database qc log is not supported by v4 qcTypeLog
+                        null,
 
-                    // V4 acquisitionType 7 means data came from climsoft web 
-                    7,
+                        // V4 acquisitionType 7 means data came from climsoft web
+                        7,
 
-                    // Technically, sourceName will never be null
-                    // But put null here to make sure the userEmail goes to the correct column
-                    // This will be mapped to dataForm
-                    source.name,
+                        // Technically, sourceName will never be null
+                        // But put null here to make sure the userEmail goes to the correct column
+                        // This will be mapped to dataForm
+                        source.name,
 
-                    // V4 capturedBy supports upto 30 characters only  
-                    user.email.substring(0, 30),
-                ]);
+                        // V4 capturedBy supports upto 30 characters only
+                        user.email.substring(0, 30),
+                    ],
+                });
 
             }
 
@@ -222,22 +228,86 @@ export class ClimsoftWebToV4SyncService {
                 return false;
             }
 
-            // Execute the batch upsert 
-            const results: mariadb.UpsertResult[] = await connection.batch(upsertStatement, values);
-            const totalAffectedRows = results.reduce((sum, result) => sum + result.affectedRows, 0);
-            this.logger.log(`V4 affected rows: ${totalAffectedRows}`);
+            try {
+                // Execute the batch upsert
+                const results: mariadb.UpsertResult[] = await connection.batch(upsertStatement, rows.map(r => r.values));
+                const totalAffectedRows = results.reduce((sum, result) => sum + result.affectedRows, 0);
+                this.logger.log(`V4 affected rows: ${totalAffectedRows}`);
 
-            // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
-            // Once for detecting the conflict (i.e., attempting to insert)
-            // Once for performing the update
-            // So more affected rows should return true as well.
-            return totalAffectedRows >= entities.length;
+                // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
+                // Once for detecting the conflict (i.e., attempting to insert)
+                // Once for performing the update
+                // So more affected rows should return true as well.
+                return totalAffectedRows >= entities.length;
+            } catch (batchErr) {
+                // The batch failed atomically and MariaDB does not tell us
+                // which row triggered the error. Re-run each row individually
+                // inside a transaction that is always rolled back, so we can
+                // log the offending row(s) without side-effects. The sync
+                // loop will retry the whole backlog on the next tick.
+                const batchMsg = batchErr instanceof Error ? batchErr.message : String(batchErr);
+                this.logger.error(`Batch upsert to v4 failed: ${batchMsg}`);
+                this.logger.error(`Running per-row diagnosis to identify offending row(s). No rows will be committed by this pass.`);
+                await this.diagnoseFailingV4Rows(connection, upsertStatement, rows);
+                return false;
+            }
         } catch (err) {
             console.error('Error saving observations to v4 initial table:', err);
             return false;
         } finally {
             if (connection) connection.release(); // Ensure the connection is released back to the pool
         }
+    }
+
+    /**
+     * Diagnostic-only per-row execution used after a batch upsert fails.
+     * Runs each row inside a transaction that is always rolled back at the
+     * end, so successful rows are not committed here — the next sync tick
+     * will re-attempt the whole backlog once the offending row(s) are fixed.
+     * Logs a full identifier tuple + the exact v4 bind values + the MariaDB
+     * error for each failing row.
+     */
+    private async diagnoseFailingV4Rows(
+        connection: mariadb.Connection,
+        statement: string,
+        rows: { entity: ObservationEntity; values: (string | number | null | undefined)[] }[],
+    ): Promise<void> {
+        try {
+            await connection.beginTransaction();
+        } catch (beginErr) {
+            this.logger.error(`Could not begin diagnostic transaction: ${beginErr instanceof Error ? beginErr.message : String(beginErr)}. Skipping per-row diagnosis.`);
+            return;
+        }
+
+        let failedCount = 0;
+        try {
+            for (const { entity, values } of rows) {
+                try {
+                    await connection.query(statement, values);
+                } catch (rowErr) {
+                    failedCount++;
+                    const rowMsg = rowErr instanceof Error ? rowErr.message : String(rowErr);
+                    this.logger.error(
+                        `V4 sync failing row: ` +
+                        `stationId=${entity.stationId}, elementId=${entity.elementId}, ` +
+                        `level=${entity.level}, datetime=${entity.datetime.toISOString()}, ` +
+                        `interval=${entity.interval}, sourceId=${entity.sourceId}, ` +
+                        `v5 value=${entity.value}. ` +
+                        `V4 bind values: ${JSON.stringify(values)}. ` +
+                        `MariaDB error: ${rowMsg}`,
+                    );
+                }
+            }
+        } finally {
+            // Always rollback — this pass is diagnostic only.
+            try {
+                await connection.rollback();
+            } catch (rollbackErr) {
+                this.logger.warn(`Failed to rollback diagnostic transaction: ${rollbackErr instanceof Error ? rollbackErr.message : String(rollbackErr)}`);
+            }
+        }
+
+        this.logger.error(`Per-row diagnosis complete. ${failedCount} of ${rows.length} row(s) failed.`);
     }
 
     private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4Value: number | null, v4Flag: string | null, v4DBDatetime: string } {

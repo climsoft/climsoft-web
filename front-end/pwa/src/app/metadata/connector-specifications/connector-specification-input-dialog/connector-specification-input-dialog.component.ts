@@ -14,6 +14,7 @@ import {
   ImportFileServerParametersModel,
   ObservationWindowDateFieldEnum,
 } from '../models/create-connector-specification.model';
+import { FileServerParametersInputComponent } from './file-server-params/file-server-parameters-input.component';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -21,7 +22,8 @@ import {
   styleUrls: ['./connector-specification-input-dialog.component.scss']
 })
 export class ConnectorSpecificationInputDialogComponent {
-  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgDeleteConfirm') private dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('fileServerParams ') private fileServerParams?: FileServerParametersInputComponent;
 
   @Output()
   public ok = new EventEmitter<void>();
@@ -75,6 +77,15 @@ export class ConnectorSpecificationInputDialogComponent {
 
     if (!this.connector.cronSchedule) {
       this.showValidationError('Cron schedule required');
+      return;
+    }
+
+    // Late-binding validation from the parameters sub-tree — currently
+    // covers the "directory-shaped filePattern without recursive" case
+    // in the import file-server params.
+    const paramsError = this.fileServerParams?.validate() ?? null;
+    if (paramsError) {
+      this.showValidationError(paramsError);
       return;
     }
 

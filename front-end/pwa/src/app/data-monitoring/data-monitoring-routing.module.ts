@@ -4,6 +4,8 @@ import { DataFlowComponent } from './data-flow/data-flow.component';
 import { DataExplorerComponent } from './data-explorer/data-explorer.component';
 import { stationStatusComponent } from './station-status/stations-status.component'; 
 import { DataAvailabilityComponent } from './data-availability/data-availability.component';
+import { ProductListComponent } from './products/product-list/product-list.component';
+import { ProductViewerComponent } from './products/product-viewer/product-viewer.component';
 
 const routes: Routes = [
   {
@@ -29,6 +31,14 @@ const routes: Routes = [
       {
         path: 'data-explorer',
         component: DataExplorerComponent
+      }, 
+       {
+        path: 'product-list',
+        component: ProductListComponent
+      }, 
+       {
+        path: 'product-viewer/:id',
+        component: ProductViewerComponent
       }, 
     ]
   }

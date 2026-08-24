@@ -1,7 +1,19 @@
 
+x-superset-build: &superset-build
+  build:
+    context: ./superset
+    dockerfile: Dockerfile
+  profiles: ["superset"]
+
+x-superset-env: &superset-env
+  SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-superset_dev_secret_change_in_prod}
+  SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://postgres:${DB_PASSWORD:-my_password}@climsoft_db:5432/superset"
+  REDIS_URL: "redis://climsoft_superset_redis:6379/0"
+
 services:
-  climsoft_dev_db:
+  climsoft_db:
     image: postgis/postgis:17-3.5
+    container_name: climsoft-dev-db
     environment:
       POSTGRES_DB: climsoft
       POSTGRES_USER: postgres
@@ -11,12 +23,17 @@ services:
     volumes:
       - climsoft_dev_data:/var/lib/postgresql/data
       - ./back-end/api/temp/operations:/var/lib/postgresql/operations
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   climsoft_python_runner:
     build:
       context: ./back-end/runners/python
       dockerfile: Dockerfile
-    container_name: climsoft-python-runner
+    container_name: climsoft-dev-python-runner
     profiles: ["adapters-python"]
     ports:
       - "5101:5101"
@@ -28,7 +45,7 @@ services:
     build:
       context: ./back-end/runners/r
       dockerfile: Dockerfile
-    container_name: climsoft-r-runner
+    container_name: climsoft-dev-r-runner
     profiles: ["adapters-r"]
     ports:
       - "5102:5102"
@@ -40,7 +57,7 @@ services:
     build:
       context: ./back-end/runners/javascript
       dockerfile: Dockerfile
-    container_name: climsoft-javascript-runner
+    container_name: climsoft-dev-javascript-runner
     profiles: ["adapters-javascript"]
     ports:
       - "5103:5103"
@@ -59,6 +76,82 @@ services:
     volumes:
       - ./back-end/api/temp/adapters:/app/adapters
       - ./back-end/api/temp/operations:/app/operations
+
+  climsoft_superset_redis:
+    image: redis:7
+    container_name: climsoft-dev-superset-redis
+    profiles: ["superset"]
+    ports:
+      - "6379:6379"
+
+  climsoft_superset_init:
+    <<: *superset-build
+    container_name: climsoft-dev-superset-init
+    command: ["/app/init.sh"]
+    environment:
+      <<: *superset-env
+      ADMIN_USERNAME: ${SUPERSET_ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD:-admin}
+      SERVICE_USERNAME: ${SUPERSET_SERVICE_USERNAME:-climsoft_service}
+      SERVICE_PASSWORD: ${SUPERSET_SERVICE_PASSWORD:-climsoft_service}
+      DB_HOST: climsoft_db
+      DB_NAME: climsoft
+      DB_PASSWORD: ${DB_PASSWORD:-my_password}
+    depends_on:
+      climsoft_db:
+        condition: service_healthy
+      climsoft_superset_redis:
+        condition: service_started
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - ./superset/init.sh:/app/init.sh
+      - ./superset/ensure_superset_db.py:/app/ensure_superset_db.py
+      - ./superset/init_datasets.py:/app/init_datasets.py
+      - ./superset/datasets:/app/datasets
+      - ./superset/products:/app/products
+
+  climsoft_superset:
+    <<: *superset-build
+    container_name: climsoft-dev-superset
+    command: ["/app/docker/entrypoints/run-server.sh"]
+    environment:
+      <<: *superset-env
+      SERVER_WORKER_AMOUNT: 2
+      SERVER_WORKER_CLASS: gevent
+      SERVER_THREADS_AMOUNT: 100
+      GUNICORN_TIMEOUT: 120
+    ports:
+      - "8088:8088"
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+
+  climsoft_superset_worker:
+    <<: *superset-build
+    container_name: climsoft-dev-superset-worker
+    command: ["/app/worker.sh"]
+    environment:
+      <<: *superset-env
+      CELERY_CONCURRENCY: 2
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+
+  climsoft_superset_beat:
+    <<: *superset-build
+    container_name: climsoft-dev-superset-beat
+    command: ["/app/beat.sh"]
+    environment:
+      <<: *superset-env
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
 
 volumes:
   climsoft_dev_data:

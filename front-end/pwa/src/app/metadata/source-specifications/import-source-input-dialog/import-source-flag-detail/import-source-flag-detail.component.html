@@ -1,22 +1,56 @@
 <div>
-    <app-check-box-input [label]="'Includes Flag'" [value]="flagDefinition !== undefined"
-        (valueChange)="onIncludesFlag($event)" />
-    <div class="ms-2" *ngIf="flagDefinition">
-        <app-number-input [label]="'Column Position'" [(numValue)]="flagDefinition.flagColumnPosition" />
+    <div class="mb-2 fw-bold">Flags:</div>
 
-        <div class="mt-2">
-            <app-check-box-input [label]="'Fetch Specific Flags'"
-                [value]="flagDefinition.flagsToFetch !== undefined"
-                (valueChange)="onFetchFlagsChange($event)" />
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'flagMode'"
+        [groupItems]="modeButtons"
+        [groupItemDisplayFn]="modeLabel"
+        (checkedValueChange)="onModeSelection($event)" />
 
-            <div *ngIf="flagDefinition.flagsToFetch" class="ms-2">
-                <app-id-mapping-table [selectorType]="'flag'"
-                    [mappings]="$any(flagDefinition.flagsToFetch)"
-                    [defaultDatabaseId]="defaultFlagId"
-                    [sourceLabel]="'Source ID'"
-                    [databaseLabel]="'Database ID'"
-                    (mappingsChange)="onMappingsChange($event)" />
+    <div *ngIf="mode !== FlagMode.NONE" class="ms-4 mt-3">
+
+        <!-- Separate column: column position + optional source→database mapping -->
+        <div *ngIf="mode === FlagMode.SEPARATE && flagDefinition?.separateColumn as separateColumn">
+            <app-number-input [label]="'Column Position'" [(numValue)]="separateColumn.flagColumnPosition" />
+
+            <div class="mt-2">
+                <app-check-box-input [label]="'Fetch Specific Flags'"
+                    [value]="separateColumn.flagsToFetch !== undefined"
+                    (valueChange)="onFetchFlagsChange($event)" />
+
+                <div *ngIf="separateColumn.flagsToFetch" class="ms-2">
+                    <app-id-mapping-table [selectorType]="'flag'"
+                        [mappings]="$any(separateColumn.flagsToFetch)"
+                        [defaultDatabaseId]="defaultFlagId"
+                        [sourceLabel]="'Source ID'"
+                        [databaseLabel]="'Database ID'"
+                        (mappingsChange)="onMappingsChange($event)" />
+                </div>
             </div>
         </div>
+
+        <!-- Inline flag: split rule is fixed (trailing alphabetic run), only
+             the optional source→database mapping is user-configurable. -->
+        <div *ngIf="mode === FlagMode.INLINE && flagDefinition?.inline as inline">
+            <p class="text-muted small mb-2">
+                Cells like <code>0.5T</code> are split into value <code>0.5</code> and flag <code>T</code>
+                (trailing letters become the flag). Values without a trailing letter carry no flag.
+            </p>
+
+            <div class="mt-2">
+                <app-check-box-input [label]="'Fetch Specific Flags'"
+                    [value]="inline.flagsToFetch !== undefined"
+                    (valueChange)="onInlineFetchFlagsChange($event)" />
+
+                <div *ngIf="inline.flagsToFetch" class="ms-2">
+                    <app-id-mapping-table [selectorType]="'flag'"
+                        [mappings]="$any(inline.flagsToFetch)"
+                        [defaultDatabaseId]="defaultFlagId"
+                        [sourceLabel]="'Source ID'"
+                        [databaseLabel]="'Database ID'"
+                        (mappingsChange)="onInlineMappingsChange($event)" />
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

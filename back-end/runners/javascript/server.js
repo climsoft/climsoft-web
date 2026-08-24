@@ -31,6 +31,9 @@ app.get('/health', (_req, res) => {
 app.post('/run', async (req, res) => {
   try {
     const body = req.body;
+    if (!body) {
+      return res.json(errorSummary('RUNTIME_ERROR', 'Request body must be JSON'));
+    }
     const required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
@@ -59,32 +62,41 @@ app.post('/run', async (req, res) => {
       return res.json(errorSummary('RUNTIME_ERROR', `Entry point not found: ${entryPath}`));
     }
 
-    // Step 1: install dependencies if .installed doesn't exist
+    // Step 1: install dependencies if .installed doesn't exist.
+    // Uses `npm install` for symmetry with the other runners' authoring
+    // model (user declares top-level deps, installer resolves transitives).
+    // package-lock.json is optional: if present, it's copied alongside so
+    // power-users get deterministic installs; otherwise `npm install`
+    // generates its own lockfile in .installed/ during the run.
     if (!fs.existsSync(envDir)) {
       const pkgJson = path.join(scriptDir, 'package.json');
       const lockFile = path.join(scriptDir, 'package-lock.json');
 
-      if (!fs.existsSync(pkgJson) || !fs.existsSync(lockFile)) {
+      if (!fs.existsSync(pkgJson)) {
         fs.mkdirSync(envDir, { recursive: true });
-        fs.writeFileSync(installLogFile, 'No package.json/package-lock.json found. Skipping install.\n');
+        fs.writeFileSync(installLogFile, 'No package.json found. Skipping install.\n');
       } else {
         // Copy package files to envDir so node_modules lands there
         fs.mkdirSync(envDir, { recursive: true });
         fs.copyFileSync(pkgJson, path.join(envDir, 'package.json'));
-        fs.copyFileSync(lockFile, path.join(envDir, 'package-lock.json'));
+        if (fs.existsSync(lockFile)) {
+          fs.copyFileSync(lockFile, path.join(envDir, 'package-lock.json'));
+        }
 
         const installResult = await runProcess(
-          'npm', ['ci', '--no-audit', '--no-fund'],
+          'npm', ['install', '--no-audit', '--no-fund'],
           { cwd: envDir, timeout: Math.max(timeoutSeconds, 600) * 1000 },
           installLogFile,
         );
 
         if (installResult.exitCode !== 0) {
+          const errorMessage = installResult.timedOut
+            ? `npm install exceeded the install timeout; see install.log`
+            : `npm install exited with code ${installResult.exitCode}; see install.log`;
           return res.json({
             status: 'failure', durationMs: 0, exitCode: installResult.exitCode,
-
             errorType: 'INSTALL_FAILED',
-            errorMessage: `npm ci exited with code ${installResult.exitCode}; see install.log`,
+            errorMessage,
           });
         }
       }

@@ -54,9 +54,12 @@ export class DatetimeFormatSelectorSingleComponent implements OnChanges {
     [DateTimeFormat.MDY_SLASH_HM]: '01/15/2024 14:30 (%m/%d/%Y %H:%M)',
 
     // 12-hour AM/PM
-    [DateTimeFormat.YMD_DASH_HM_AMPM]: '2024-01-15 02:30 PM (%Y-%m-%d %I:%M %p)',
-    [DateTimeFormat.DMY_SLASH_HM_AMPM]: '15/01/2024 02:30 PM (%d/%m/%Y %I:%M %p)',
-    [DateTimeFormat.MDY_SLASH_HM_AMPM]: '01/15/2024 02:30 PM (%m/%d/%Y %I:%M %p)',
+    [DateTimeFormat.YMD_DASH_HM_AMPM]: '2024-01-15 02:30 AM/PM (%Y-%m-%d %I:%M %p)',
+    [DateTimeFormat.YMD_DASH_HMS_AMPM]: '2024-01-15 02:30:00 AM/PM (%Y-%m-%d %I:%M:%S %p)',
+    [DateTimeFormat.DMY_SLASH_HM_AMPM]: '15/01/2024 02:30 AM/PM (%d/%m/%Y %I:%M %p)',
+    [DateTimeFormat.DMY_SLASH_HMS_AMPM]: '15/01/2024 02:30:00 AM/PM (%d/%m/%Y %I:%M:%S %p)',
+    [DateTimeFormat.MDY_SLASH_HM_AMPM]: '01/15/2024 02:30 AM/PM (%m/%d/%Y %I:%M %p)',
+    [DateTimeFormat.MDY_SLASH_HMS_AMPM]: '01/15/2024 02:30:00 AM/PM (%m/%d/%Y %I:%M:%S %p)',
 
     // Dot-separated (European)
     [DateTimeFormat.DMY_DOT_HMS]: '15.01.2024 14:30:00 (%d.%m.%Y %H:%M:%S)',

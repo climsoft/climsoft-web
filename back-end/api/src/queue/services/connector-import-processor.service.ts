@@ -38,7 +38,7 @@ export class ConnectorImportProcessorService {
         try {
             const payload = job.payload as ConnectorJobPayloadDto;
             const connector: ViewConnectorSpecificationModel = this.connectorService.find(payload.connectorId, false);
-            
+
             this.logger.log(`Processing import job: ${job.id} for connector: ${connector.name}. Specs to be processed: ${connector.parameters.specifications.length}`);
             await this.processImportSpecifications(connector, job.entryUserId);
             this.logger.log(`Finished processing import job: ${job.id} for connector: ${connector.name}`);
@@ -139,7 +139,7 @@ export class ConnectorImportProcessorService {
         }
         this.logger.log(`Completed processing and importing file form connector ${connector.name}. Time taken: ${new Date().getTime() - startTime} milliseconds`);
 
-        // Step 4. Save the new the connector log
+        // Step 3. Save the new the connector log
         newConnectorLog.executionEndDatetime = new Date();
         await this.connectorExecutionLogService.create(newConnectorLog);
     }
@@ -314,18 +314,22 @@ export class ConnectorImportProcessorService {
     ): Promise<void> {
 
         for (const spec of connectorParams.specifications) {
-            // Step 3: Find matching files by converting the user's glob pattern to a regex.
-            // First, escape all regex-special characters (e.g. "." becomes "\." so it matches a literal dot, not "any character"). 
-            // Then replace the glob wildcard "*" with ".*" (which means "any sequence of characters" in regex). 
-            // Finally, anchor with "^" and "$" so the pattern matches the full file name (e.g. "*.csv" won't match "data.csv.bak").
-            // Examples:
-            //   "*.csv"       → "^.*\.csv$"       → matches "data.csv", "report.csv"
-            //   "data_*.txt"  → "^data_.*\.txt$"   → matches "data_01.txt", "data_abc.txt"
-            //   "report.csv"  → "^report\.csv$"    → matches only "report.csv" (not "reportXcsv")
-            const regexPattern: string = '^' + spec.filePattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$';
-            const matchingFiles: FileMetadataVo[] = remoteFiles.filter(file =>
-                path.basename(file.fileName).match(new RegExp(regexPattern))
-            );
+            // Step 3: Find files matching the spec's pattern.
+            //
+            // Pattern grammar (Unix-style, only the last segment may glob):
+            //   "*.csv"                 root-level files matching the glob
+            //   "data.csv"              a specific root-level file
+            //   "stationA/"             every file directly inside stationA/ (trailing slash = "all files")
+            //   "stationA/*.csv"        CSV files directly inside stationA/
+            //   "folder1/folder2/"      every file directly inside folder1/folder2/
+            //
+            // The directory portion is literal — no wildcards there. Matches
+            // are exact-parent only (not recursive subtree). Directory
+            // patterns require the connector's `recursive` flag to be on;
+            // otherwise the flat listing has no path-carrying entries and
+            // the pattern silently matches nothing (surfaced by the warning
+            // below).
+            const matchingFiles: FileMetadataVo[] = remoteFiles.filter(file => this.matchesFilePattern(spec.filePattern, file));
 
             if (matchingFiles.length === 0) {
                 this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
@@ -373,6 +377,43 @@ export class ConnectorImportProcessorService {
 
             newConnectorLog.executionActivities.push(newExecutionActivity);
         }
+    }
+
+   /**
+    * Returns true when `file`'s parent directory equals the pattern's
+    * directory portion AND its basename matches the pattern's filename glob. 
+    * Both checks use posix path semantics regardless of host OS.
+    * @param pattern 
+    * @param file 
+    * @returns 
+    */
+    private matchesFilePattern(pattern: string, file: FileMetadataVo): boolean {
+        const { dir, glob } = this.splitFilePattern(pattern);
+        if (path.posix.dirname(file.fileName) !== dir) return false;
+        // Escape regex-special characters in the glob, then translate the
+        // glob wildcard "*" to ".*". Anchor with "^"/"$" so partial
+        // matches don't slip through (e.g. "*.csv" won't match "data.csv.bak").
+        const regex = new RegExp('^' + glob.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+        return regex.test(path.posix.basename(file.fileName));
+    }
+
+    /**
+     * Splits a connector `filePattern` into its literal directory portion
+     * and its filename glob. See the comment block above the caller for
+     * the pattern grammar and examples.
+     */
+    private splitFilePattern(pattern: string): { dir: string; glob: string } {
+        // Trailing "/" means "all files directly inside this directory".
+        if (pattern.endsWith('/')) {
+            const dir = pattern.slice(0, -1);
+            return { dir: dir === '' ? '.' : dir, glob: '*' };
+        }
+        const lastSlash = pattern.lastIndexOf('/');
+        if (lastSlash < 0) {
+            // No directory portion — pattern is a filename glob at the connector root.
+            return { dir: '.', glob: pattern };
+        }
+        return { dir: pattern.slice(0, lastSlash), glob: pattern.slice(lastSlash + 1) };
     }
 
     /**

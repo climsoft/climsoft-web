@@ -1,0 +1,96 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewProductClick()">
+        Add
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="onOpenSuperset()"
+        title="Open Apache Superset to author or edit dashboards">
+        <i class="bi bi-box-arrow-up-right me-1"></i>Open Superset
+      </button>
+      <div>
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadProducts()" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body px-0">
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+          <col style="width: 25%;" />
+          <col style="width: 15%;" />
+          <col style="width: 38%;" />
+          <col style="width: 8%;" />
+          <col style="width: 7%;" />
+          <col style="width: 5%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th aria-label="Row indicator"></th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="category" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Category</th>
+            <th>Description</th>
+            <th>Disabled</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr class="app-cursor-pointer" *ngFor="let product of pageItems"
+            [class.text-muted]="product.disabled"
+            (click)="onEditProductClick(product)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category || '—' }}</td>
+            <td>{{ product.description || '—' }}</td>
+            <td>{{ product.disabled ? 'Yes' : 'No' }}</td>
+            <td>
+              <span *ngIf="product.systemKey" class="badge bg-secondary">Shipped</span>
+              <span *ngIf="!product.systemKey" class="badge bg-primary">Custom</span>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm"
+                  [ngClass]="product.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                  [title]="product.disabled ? 'Enable product' : 'Disable product'"
+                  (click)="onToggleDisabledClick(product, $event)">
+                  <i class="bi" [ngClass]="product.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                </button>
+                <button *ngIf="!product.systemKey" type="button" class="btn btn-sm btn-outline-danger"
+                  title="Delete product" (click)="onDeleteClick(product, $event)">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <span *ngIf="product.systemKey" class="text-muted" title="Shipped product — cannot be deleted">
+                  <i class="bi bi-lock"></i>
+                </span>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="pageItems.length === 0">
+            <td colspan="7" class="text-center text-muted py-4">
+              No climate products yet. Click "Add" to register one.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <app-product-input-dialog #dlgProductInput (ok)="onProductSaved()" />
+
+  <app-delete-confirmation-dialog #dlgDeleteConfirm [title]="'Delete Climate Product'"
+    (okConfirmed)="onDeleteConfirm()">
+    <p>Are you sure you want to delete <strong>{{ selectedProduct?.name || '' }}</strong>?</p>
+  </app-delete-confirmation-dialog>
+
+  <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled
+    [itemName]="selectedProduct?.name || ''"
+    [itemType]="'climate product'"
+    [isCurrentlyDisabled]="selectedProduct?.disabled || false"
+    [operationType]="'display'"
+    (toggleConfirmed)="onToggleDisabledConfirm()" />
+</div>

@@ -39,7 +39,7 @@
     <hr />
 
     <div *ngIf="connector.connectorType === ConnectorTypeEnum.IMPORT">
-        <app-import-file-server-params [importFileServerParameters]="importFileServerParameters" />
+        <app-import-file-server-params #importFileServerParams [importFileServerParameters]="importFileServerParameters" />
     </div>
 
     <div *ngIf="connector.connectorType === ConnectorTypeEnum.EXPORT">

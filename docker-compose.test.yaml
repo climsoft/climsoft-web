@@ -1,10 +1,25 @@
 
+x-superset-build: &superset-build
+  build:
+    context: ./superset
+    dockerfile: Dockerfile
+
+x-superset-env: &superset-env
+  SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
+  SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://postgres:${DB_PASSWORD}@climsoft_db:5432/superset"
+  REDIS_URL: "redis://climsoft_superset_redis:6379/0"
+
+x-climsoft-db-env: &climsoft-db-env
+  DB_HOST: climsoft_db
+  DB_NAME: "${DB_NAME}"
+  DB_PASSWORD: "${DB_PASSWORD}"
+
 services:
   climsoft_nginx_proxy:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: climsoft-nginx-proxy
+    container_name: climsoft-test-nginx-proxy
     ports: # Expose to external network
       - "${HOST_HTTP_PORT}:80"
       #- "${HOST_HTTPS_PORT}:443" # Use this if HTTPS is required
@@ -13,6 +28,7 @@ services:
     depends_on:
       - climsoft_pwa
       - climsoft_api
+      - climsoft_superset
     networks:
       - climsoft_network
 
@@ -20,7 +36,7 @@ services:
     build:
       context: ./front-end/pwa
       dockerfile: Dockerfile
-    container_name: climsoft-pwa
+    container_name: climsoft-test-pwa
     environment:
       HOST_IP_ADDRESS: "${HOST_IP_ADDRESS}" # used in config.json.
       HOST_HTTP_PORT: "${HOST_HTTP_PORT}" # used in config.json.
@@ -35,13 +51,11 @@ services:
     build:
       context: ./back-end/api
       dockerfile: Dockerfile
-    container_name: climsoft-api
+    container_name: climsoft-test-api
     environment:
-      DB_HOST: climsoft_db
+      <<: *climsoft-db-env
       DB_PORT: 5432
-      DB_NAME: "${DB_NAME}"
       DB_USERNAME: postgres
-      DB_PASSWORD: "${DB_PASSWORD}"
       ENCRYPTION_SECRET: "${ENCRYPTION_SECRET}"
       FIRST_INSTALL: "${FIRST_INSTALL}"
       V4_SAVE: "${V4_SAVE}"
@@ -64,6 +78,11 @@ services:
       DUCKDB_RUNNER_ENABLED: "true"
       DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
       DUCKDB_RUNNER_PORT: 5104
+      SUPERSET_ENABLED: "true"
+      SUPERSET_HOST: climsoft_superset
+      SUPERSET_PORT: 8088
+      SUPERSET_SERVICE_USERNAME: "${SUPERSET_SERVICE_USERNAME}"
+      SUPERSET_SERVICE_PASSWORD: "${SUPERSET_SERVICE_PASSWORD}"
     expose:
       - 3000
     depends_on:
@@ -79,7 +98,7 @@ services:
     build:
       context: ./back-end/runners/python
       dockerfile: Dockerfile
-    container_name: climsoft-python-runner
+    container_name: climsoft-test-python-runner
     profiles: ["adapters-python"]
     expose:
       - 5101
@@ -93,7 +112,7 @@ services:
     build:
       context: ./back-end/runners/r
       dockerfile: Dockerfile
-    container_name: climsoft-r-runner
+    container_name: climsoft-test-r-runner
     profiles: ["adapters-r"]
     expose:
       - 5102
@@ -107,7 +126,7 @@ services:
     build:
       context: ./back-end/runners/javascript
       dockerfile: Dockerfile
-    container_name: climsoft-javascript-runner
+    container_name: climsoft-test-javascript-runner
     profiles: ["adapters-javascript"]
     expose:
       - 5103
@@ -121,7 +140,7 @@ services:
     build:
       context: ./back-end/runners/duckdb
       dockerfile: Dockerfile
-    container_name: climsoft-duckdb-runner
+    container_name: climsoft-test-duckdb-runner
     profiles: ["adapters-duckdb"]
     expose:
       - 5104
@@ -131,9 +150,92 @@ services:
     networks:
       - climsoft_network
 
+  climsoft_superset_redis:
+    image: redis:7-alpine
+    container_name: climsoft-test-superset-redis
+    expose:
+      - 6379
+    networks:
+      - climsoft_network
+
+  climsoft_superset_init:
+    <<: *superset-build
+    container_name: climsoft-test-superset-init
+    command: ["/app/init.sh"]
+    environment:
+      <<: [*superset-env, *climsoft-db-env]
+      ADMIN_USERNAME: "${SUPERSET_ADMIN_USERNAME}"
+      ADMIN_PASSWORD: "${SUPERSET_ADMIN_PASSWORD}"
+      SERVICE_USERNAME: "${SUPERSET_SERVICE_USERNAME}"
+      SERVICE_PASSWORD: "${SUPERSET_SERVICE_PASSWORD}"
+    depends_on:
+      climsoft_db:
+        condition: service_healthy
+      climsoft_superset_redis:
+        condition: service_started
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - ./superset/init.sh:/app/init.sh
+      - ./superset/ensure_superset_db.py:/app/ensure_superset_db.py
+      - ./superset/init_datasets.py:/app/init_datasets.py
+      - ./superset/datasets:/app/datasets
+      - ./superset/products:/app/products
+    networks:
+      - climsoft_network
+
+  climsoft_superset:
+    <<: *superset-build
+    container_name: climsoft-test-superset
+    command: ["/app/docker/entrypoints/run-server.sh"]
+    environment:
+      <<: *superset-env
+      SERVER_WORKER_AMOUNT: 2
+      SERVER_WORKER_CLASS: gevent
+      SERVER_THREADS_AMOUNT: 100
+      GUNICORN_TIMEOUT: 120
+    ports:
+      - "8088:8088"
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - climsoft_test_superset:/app/superset_home
+    networks:
+      - climsoft_network
+
+  climsoft_superset_worker:
+    <<: *superset-build
+    container_name: climsoft-test-superset-worker
+    command: ["/app/worker.sh"]
+    environment:
+      <<: *superset-env
+      CELERY_CONCURRENCY: 2
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - climsoft_network
+
+  climsoft_superset_beat:
+    <<: *superset-build
+    container_name: climsoft-test-superset-beat
+    command: ["/app/beat.sh"]
+    environment:
+      <<: *superset-env
+    depends_on:
+      climsoft_superset_init:
+        condition: service_completed_successfully
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - climsoft_network
+
   climsoft_db:
     image: postgis/postgis:17-3.5
-    container_name: climsoft-db
+    container_name: climsoft-test-db
     environment:
       POSTGRES_DB: "${DB_NAME}" # Default database postgres will create, required when setting up postgres the first time.
       POSTGRES_USER: postgres # Uses the default postgres username for simplicity, required when setting up postgres the first time.
@@ -155,6 +257,7 @@ volumes:
   climsoft_test_database:
   climsoft_test_operations:
   climsoft_test_adapters:
+  climsoft_test_superset:
 
 networks:
   climsoft_network:

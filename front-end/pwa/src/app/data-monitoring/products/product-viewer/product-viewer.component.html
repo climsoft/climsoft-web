@@ -1,0 +1,19 @@
+<div class="product-viewer-wrapper d-flex flex-column h-100">
+
+  <div *ngIf="product" class="product-header px-3 py-2 border-bottom d-flex align-items-center">
+    <i class="bi bi-bar-chart-line text-primary me-2"></i>
+    <span class="fw-semibold">{{ product.name }}</span>
+    <span *ngIf="product.description" class="text-muted small ms-2">— {{ product.description }}</span>
+  </div>
+
+  <div *ngIf="loading" class="d-flex justify-content-center align-items-center flex-grow-1">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger m-3">{{ errorMessage }}</div>
+
+  <div #dashboardContainer class="superset-container flex-grow-1" [class.d-none]="loading || !!errorMessage"></div>
+
+</div>

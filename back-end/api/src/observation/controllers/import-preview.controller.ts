@@ -19,9 +19,9 @@ export class ImportPreviewController {
     public async upload(
         @UploadedFile(new ParseFilePipe({
             validators: [
-                // 1GB to accomodate preview of large files. Note, should always be same us that used in `observationsController` for upload endpoint to ensure smooth preview of files uploaded for import.
+                // 5GB to accomodate preview of large files. Note, should always be same us that used in `observationsController` for upload endpoint to ensure smooth preview of files uploaded for import.
                 // In future, this should come from environment.
-                new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
+                new MaxFileSizeValidator({ maxSize: (1024 * 1024 * 1024) * 5 }),
                 new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
             ]
         })) file: Express.Multer.File,
@@ -87,7 +87,7 @@ export class ImportPreviewController {
         @Param('sourceId', ParseIntPipe) sourceId: number,
         @UploadedFile(new ParseFilePipe({
             validators: [
-                new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
+                new MaxFileSizeValidator({ maxSize: (1024 * 1024 * 1024) * 5 }), // 5GB to accomodate preview of large files. Note, should always be same us that used in `ImportPreviewController` for upload endpoint to ensure smooth preview of files uploaded for import.
                 new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
             ]
         })) file: Express.Multer.File,

@@ -61,6 +61,7 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
     ExecutionDetailDialogComponent,
     ImportFilesTableComponent,
     ExportFilesTableComponent,
+
   ],
   imports: [
     SharedModule,

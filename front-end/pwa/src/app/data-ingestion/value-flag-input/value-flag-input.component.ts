@@ -363,8 +363,9 @@ export class ValueFlagInputComponent implements OnChanges {
     if (`${this.valueFlagInput}-${this.comment}` === this.originalValues) {
       this.observationEntry.change = 'no_change';
     } else if (this.observationEntry.observation.value === null && this.observationEntry.observation.flagId === null) {
-      this.validationErrorMessage = 'Value and flag cannot be both empty. To clear the field, clear the comment'
-      this.observationEntry.change = 'invalid_change';
+      // Back end does not allow both value and flag to be null. So if both are null then it is considered as no change
+      // TODO. In future, the user should be given a warning that the deletion changes will not be saved. For now, just consider it as no change.
+      this.observationEntry.change = 'no_change';
     } else {
       this.observationEntry.change = 'valid_change';
     }
@@ -389,7 +390,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
       // Step 2.
       // Check if it's a pure integer (no decimals). 
-      if (/^\d+$/.test(input)) {
+      if (/^[+-]?\d+$/.test(input)) {
         response.flag = null;
         response.value = parseInt(input, 10);
         return response;
@@ -398,7 +399,7 @@ export class ValueFlagInputComponent implements OnChanges {
       // Step 3.
       // Check if it starts with digits followed by alphanumeric/special chars. 
       // Values should strictly follow the number first then character format.
-      const mixed = input.match(/^(\d+)([^0-9].*)$/);
+      const mixed = input.match(/^([+-]?\d+)([^0-9].*)$/);
       if (mixed) {
         const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(mixed[2]);
         if (flagFound) {

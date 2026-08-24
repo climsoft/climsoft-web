@@ -58,6 +58,9 @@ app.post('/run', async (req, res) => {
   try {
     console.log('Received run request with body:', req.body);
     const body = req.body;
+    if (!body) {
+      return res.json(errorSummary('RUNTIME_ERROR', 'Request body must be JSON'));
+    }
     const required = ['scriptDirName', 'operationId', 'inputRelPath', 'outputRelPath', 'timeoutSeconds'];
     const missing = required.filter(k => !(k in body));
     if (missing.length > 0) {
@@ -103,6 +106,7 @@ app.post('/run', async (req, res) => {
     const start = Date.now();
 
     let conn;
+    let timedOut = false;
     try {
       const instance = await DuckDBInstance.create(':memory:');
       conn = await instance.connect();
@@ -120,14 +124,31 @@ app.post('/run', async (req, res) => {
       await conn.run(`SET VARIABLE climsoft_metadata = '${metadataFile.replace(/'/g, "''")}';`);
       await conn.run(`SET VARIABLE climsoft_warnings = '${warningsFile.replace(/'/g, "''")}';`);
 
-      // Step 3: TODO. per-statement timeout so a runaway query doesn't hang the runner.
-      // TODO. DuckDB does not have a native SQL configuration option (like a SET statement_timeout) to limit total query execution time so find a way of enforcing a timeout. 
-      // The node-api has a `statement_timeout` option on the connection, but it is not exposed via SQL. The following line is commented out because it does not work:
-      //await conn.run(`SET statement_timeout = '${timeoutSeconds}s';`);
+      // Step 3: enforce a per-run wall-clock timeout. DuckDB has no SQL-level
+      // `statement_timeout`, so we drive it from JavaScript: a setTimeout fires
+      // `conn.interrupt()` which signals the running query to cancel at its
+      // next safe point. The cancellation surfaces as a thrown error that the
+      // outer catch below translates into a TIMEOUT response via the
+      // `timedOut` flag. Only the user SQL is bounded here — extension
+      // install/load runs on its own budget (large first-time downloads must
+      // not race this wall clock).
+      const timeoutHandle = setTimeout(() => {
+        timedOut = true;
+        console.warn(`Query exceeded timeout of ${timeoutSeconds}s — interrupting.`);
+        try {
+          conn.interrupt();
+        } catch (interruptErr) {
+          console.error('conn.interrupt() failed:', interruptErr);
+        }
+      }, timeoutSeconds * 1000);
 
       // Step 4: execute the user's SQL.
-      console.log('Executing user SQL:\n', userSql);
-      await conn.run(userSql);
+      try {
+        console.log('Executing user SQL:\n', userSql);
+        await conn.run(userSql);
+      } finally {
+        clearTimeout(timeoutHandle);
+      }
 
       conn.closeSync();
     } catch (err) {
@@ -140,8 +161,7 @@ app.post('/run', async (req, res) => {
       fs.writeFileSync(stdoutFile, '');
       fs.writeFileSync(stderrFile, stderr);
 
-      const isTimeout = /timeout/i.test(stderr) || /interrupt/i.test(stderr);
-      if (isTimeout) {
+      if (timedOut) {
         return res.json({
           status: 'timeout',
           durationMs,

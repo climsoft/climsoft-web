@@ -6,9 +6,9 @@ import { AdaptersService } from '../services/adapters.service';
 import { ViewAdapterSpecificationModel } from '../models/view-adapter-specification.model';
 import { CreateAdapterSpecificationModel } from '../models/create-adapter-specification.model';
 import { UpdateAdapterSpecificationModel } from '../models/update-adapter-specification.model';
-import { AdapterLanguageEnum } from '../models/adapter-language.enum';
+import { ADAPTER_LANGUAGE_LABELS, AdapterLanguageEnum } from '../models/adapter-language.enum';
 import { AdapterUploadPreviewResponseModel, FileTreeEntry } from '../models/adapter-upload-preview-response.model';
-import { CANONICAL_ENTRY_POINT, MANIFEST_FILENAMES } from '../models/adapter-language-conventions';
+import { LANGUAGE_CONVENTIONS } from '../models/adapter-language-conventions';
 
 @Component({
   selector: 'app-adapter-detail-dialog',
@@ -65,6 +65,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
       this.title = 'New Adapter';
       this.adapter = {
         id: 0,
+        systemKey: null,
         name: '',
         description: '',
         language: AdapterLanguageEnum.SQL,
@@ -104,6 +105,14 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         this.selectedFileName = '';
       },
     });
+  }
+
+  protected get isSystemAdapter(): boolean {
+    return !!this.adapter?.systemKey;
+  }
+
+  protected get languageLabel(): string {
+    return ADAPTER_LANGUAGE_LABELS[this.adapter?.language] ?? this.adapter?.language ?? '';
   }
 
   protected onLanguageSelected(language: AdapterLanguageEnum | null): void {
@@ -155,18 +164,19 @@ export class AdapterDetailDialogComponent implements OnDestroy {
   }
 
   protected fileIsEntryPoint(file: FileTreeEntry): boolean {
-    return !file.isDirectory && file.path === CANONICAL_ENTRY_POINT[this.adapter.language];
+    return !file.isDirectory && file.path === LANGUAGE_CONVENTIONS[this.adapter.language].entryPoint;
   }
 
   protected fileIsManifest(file: FileTreeEntry): boolean {
     if (file.isDirectory) return false;
-    return MANIFEST_FILENAMES[this.adapter.language].includes(file.path);
+    return file.path === LANGUAGE_CONVENTIONS[this.adapter.language].manifest;
   }
 
   /**
    * Whether the save button should be enabled.
    */
   protected get canSave(): boolean {
+    if (this.isSystemAdapter) return true;
     if (!this.adapter.name || !this.adapter.language || !this.adapter.scriptDirName || !this.adapterPreviewResponse) return false;
     if (this.adapterPreviewResponse.manifestError || this.adapterPreviewResponse.entryPointError) return false;
     return true;
@@ -199,7 +209,7 @@ export class AdapterDetailDialogComponent implements OnDestroy {
         name: this.adapter.name,
         description: this.adapter.description,
         language: this.adapter.language,
-        scriptDirName: this.adapter.scriptDirName!,
+        scriptDirName: this.adapter.scriptDirName,
         disabled: this.adapter.disabled,
         comment: this.adapter.comment || null,
       };

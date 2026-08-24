@@ -62,6 +62,13 @@ run_handler <- function(req) {
 
   # Step 1: set up the per-script renv library if it doesn't exist yet
   if (!dir.exists(env_dir)) {
+    # Cap network operations. renv has no wall-clock timeout of its own, so
+    # we set base R's internet timeout (honored by download.file and friends
+    # under the hood) to bound individual package downloads. Same "at least
+    # 600s, or the request timeout if larger" convention as the Python and
+    # JavaScript runners' install budgets.
+    old_timeout <- getOption("timeout")
+    options(timeout = max(timeout_secs, 600))
     result <- tryCatch({
       dir.create(env_dir, recursive = TRUE, showWarnings = FALSE)
       lockfile <- file.path(script_dir, "renv.lock")
@@ -84,6 +91,7 @@ run_handler <- function(req) {
       writeLines(paste("Install error:", conditionMessage(e)), install_log)
       list(ok = FALSE, msg = conditionMessage(e))
     })
+    options(timeout = old_timeout)
 
     if (!result$ok) {
       return(list(

@@ -2,6 +2,15 @@ import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { AdapterLanguageEnum } from "../enums/adapter-language.enum";
 
+export interface AdapterSpecificationLogVo extends BaseLogVo {
+    name: string;
+    description: string | null;
+    language: AdapterLanguageEnum;
+    scriptDirName: string;
+    disabled: boolean;
+    comment: string | null;
+}
+
 /**
  * A user-uploaded script that translates a foreign file format to/from the
  * canonical format the existing import/export pipelines understand.
@@ -35,6 +44,9 @@ export class AdapterSpecificationEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id!: number;
 
+    @Column({ name: "system_key", type: "varchar", unique: true, nullable: true })
+    systemKey!: string | null;
+
     @Column({ name: "name", type: "varchar", unique: true })
     name!: string;
 
@@ -56,7 +68,7 @@ export class AdapterSpecificationEntity extends AppBaseEntity {
     @Column({ name: "script_dir_name", type: "varchar", unique: true })
     scriptDirName!: string;
 
-    @Column({ type: "boolean", default: false })
+    @Column({ name: "disabled", type: "boolean", default: false })
     @Index()
     disabled!: boolean;
 
@@ -64,5 +76,5 @@ export class AdapterSpecificationEntity extends AppBaseEntity {
     comment!: string | null;
 
     @Column({ name: "log", type: "jsonb", nullable: true })
-    log!: BaseLogVo[] | null;
+    log!: AdapterSpecificationLogVo[] | null;
 }

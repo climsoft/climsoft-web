@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
-import { DateTimeFormat, ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
+import { DateTimeFormat, FlagDefinition, ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Observable, switchMap, take } from 'rxjs';
@@ -12,6 +12,7 @@ import { RawPreviewResponse, TransformedPreviewResponse } from '../models/import
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewAdapterSpecificationModel } from 'src/app/metadata/adapters/models/view-adapter-specification.model';
 import { ConfirmationDialogComponent } from 'src/app/shared/controls/confirmation-dialog/confirmation-dialog.component';
+import { AdaptersService } from '../../adapters/services/adapters.service';
 
 type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'interval' | 'value' | 'review';
 
@@ -59,6 +60,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         private pagesDataService: PagesDataService,
         private sourcesCacheService: SourcesCacheService,
         private importPreviewService: ImportPreviewService,
+        private adaptersService: AdaptersService,
     ) {
         // Reset all state
         this.resetSamplePreview();
@@ -77,10 +79,16 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (source) {
             this.title = 'Edit Import Specification';
             this.viewSource = structuredClone(source);
-            console.log('Loaded source specification for editing:', this.viewSource.parameters);
             this.initPreviewFromSavedFile();
             // Mark all steps as visited for existing specifications
             this.wizardSteps.forEach(s => this.visitedSteps.add(s));
+
+            if (this.viewSource.adapterId) {
+                this.adaptersService.findOne(this.viewSource.adapterId).pipe(
+                    take(1)
+                ).subscribe(res => { this.selectedAdapter = res; });
+            }
+
         } else {
             this.title = 'New Import Specification';
 
@@ -439,6 +447,16 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         }
     }
 
+    /**
+     * Handles flag-mode transitions from the flag-detail component.
+     * The `flagDefinition.separateColumn` variant assumes a `valueDefinition`
+     * exists; the wizard prevents the user from picking it in wide-pivot mode
+     * via `canUseSeparateColumn` on the child.
+     */
+    protected onFlagDefinitionChange(flagDef: FlagDefinition | undefined): void {
+        this.tabularImportParams.flagDefinition = flagDef;
+    }
+
     protected get showNavigation(): boolean {
         return !!this.rawPreviewResponse.sessionId || (this.viewSource?.id > 0);
     }
@@ -474,7 +492,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             sampleFileOperationId: this.rawPreviewResponse.sessionId,
             utcOffset: this.viewSource.utcOffset,
             parameters: this.viewSource.parameters,
-            adapterId: this.selectedAdapter?.id || null,
+            adapterId: this.viewSource.adapterId || null,
             disabled: this.viewSource.disabled,
             comment: this.viewSource.comment || null,
         };

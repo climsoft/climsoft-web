@@ -1,4 +1,4 @@
-import { ImportSourceTabularParamsDto, DateTimeDefinition, DatePart, DayColumns, TimePart, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ImportSourceTabularParamsDto, DateTimeDefinition, DatePart, DayColumns, TimePart, ValueDefinition, FlagToFetch } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
@@ -134,7 +134,6 @@ export class TabularImportTransformer {
         }
         return sql;
     }
-
 
     private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId: string | null): string[] {
         const sql: string[] = [];
@@ -355,7 +354,7 @@ export class TabularImportTransformer {
             // Map back to hour-of-day (00..23). Hours start at 0, unlike days at 1,
             // so the offset is `- firstColumnPosition` not `- firstColumnPosition + 1`.
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET time_col = lpad(substr(hour_col, 7)::INTEGER - ${firstColumnPosition}, 2, '0') || ':00:00'`);
+            sql.push(`UPDATE ${tableName} SET time_col = lpad((substr(hour_col, 7)::INTEGER - ${firstColumnPosition})::VARCHAR, 2, '0') || ':00:00'`);
             return '%H:%M:%S';
         }
         throw new Error('Time part must define defaultHour, singleColumn, hourAndMinuteColumns, or hourColumnsRange');
@@ -364,47 +363,51 @@ export class TabularImportTransformer {
     private static buildAlterValueColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
         const sql: string[] = [];
 
+        //--------------------------
+        // Value column
         if (tabularDef.valueDefinition !== undefined) {
             const valueDefinition: ValueDefinition = tabularDef.valueDefinition;
-            //--------------------------
-            // Value column
             sql.push(`ALTER TABLE ${tableName} RENAME column${valueDefinition.valueColumnPosition} TO ${this.VALUE_PROPERTY_NAME}`);
-            //--------------------------
-
-            //--------------------------
-            // Flag column
-            if (valueDefinition.flagDefinition !== undefined) {
-                const flagDefinition: FlagDefinition = valueDefinition.flagDefinition;
-                sql.push(`ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
-
-                if (flagDefinition.flagsToFetch) {
-                    // flagsToFetch databaseId is already a flag table id (integer), use directly
-                    sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false));
-                } else {
-                    // No explicit mapping — map string abbreviations to integer IDs using a CASE statement
-                    const caseParts = flags.map(f => `WHEN UPPER(${this.FLAG_PROPERTY_NAME}) = '${f.abbreviation.toUpperCase()}' THEN ${f.id}`);
-                    if (caseParts.length > 0) {
-                        sql.push(`UPDATE ${tableName} SET ${this.FLAG_PROPERTY_NAME} = CASE ${caseParts.join(' ')} ELSE NULL END WHERE ${this.FLAG_PROPERTY_NAME} IS NOT NULL`);
-                    }
-                }
-
-            } else {
-                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} INTEGER DEFAULT NULL`);
-            }
-            //--------------------------
-
-        } else {
-            // Just add the flag column because the value column should have been added when stacking elements of date columns
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} INTEGER DEFAULT NULL`);
         }
+        // Otherwise the `value` column was produced by a wide-pivot UNPIVOT
+        // in an earlier step (element / day / hour range).
+        //--------------------------
+
+        //--------------------------
+        // Flag column — discriminated on `tabularDef.flagDefinition`:
+        //   separateColumn → rename a file column and map its source strings
+        //   inline         → split the value column by regex and map the flag
+        //   undefined      → add a NULL-default VARCHAR flag_id column so the
+        //                    rest of the pipeline sees a uniform column type
+        //                    (final TYPE INTEGER cast handles VARCHAR NULL fine).
+        const flagDef = tabularDef.flagDefinition;
+        if (flagDef?.separateColumn) {
+            const sep = flagDef.separateColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${sep.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
+            sql.push(...this.buildFlagIdMappingSQL(tableName, sep.flagsToFetch, flags));
+        } else if (flagDef?.inline) {
+            sql.push(...this.buildInlineFlagSplitSQL(tableName));
+            sql.push(...this.buildFlagIdMappingSQL(tableName, flagDef.inline.flagsToFetch, flags));
+        } else {
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`);
+        }
+        //--------------------------
 
         // Get all missing value indicators in quoted format
         const missingValueIndicators: string[] = importDef.sourceMissingValueIndicators.split(',').map(f => `'${f}'`).filter(f => f);
 
-        let missingValueCondition: string = `${this.VALUE_PROPERTY_NAME} IS NULL`;
+        let valueMissingCondition: string = `${this.VALUE_PROPERTY_NAME} IS NULL`;
         if (missingValueIndicators.length > 0) {
-            missingValueCondition = `${missingValueCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${missingValueIndicators.join(',')})`;
+            valueMissingCondition = `${valueMissingCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${missingValueIndicators.join(',')})`;
         }
+
+        // A row is treated as missing only when BOTH the value is empty AND
+        // there is no meaningful flag. This preserves trace-only cells such
+        // as ('', 'T'), where the flag alone carries the observation.
+        // When no flag column is configured, `flag_id` is a NULL default for
+        // every row, so this narrows to just the value-missing check.
+        const flagAbsentCondition: string = `${this.FLAG_PROPERTY_NAME} IS NULL OR ${this.FLAG_PROPERTY_NAME} = ''`;
+        const missingValueCondition: string = `(${valueMissingCondition}) AND (${flagAbsentCondition})`;
 
         if (sourceDef.allowMissingValue) {
             // Set missing flag if missing are allowed to be imported.
@@ -430,6 +433,56 @@ export class TabularImportTransformer {
         return sql;
     }
 
+    /**
+     * Maps the `flag_id` VARCHAR column from source strings to database flag
+     * ids. Callers must have already ensured `flag_id` exists on the table
+     * (either via a column rename or via {@link buildInlineFlagSplitSQL}).
+     *
+     * Two modes, same as {@link FlagDefinition.flagsToFetch}:
+     *   - Explicit mapping: rows whose source string isn't in the list are
+     *     deleted; the rest are updated to the mapped integer id (encoded in
+     *     the VARCHAR column; final TYPE INTEGER cast happens later).
+     *   - Fallback: match source string case-insensitively against
+     *     `flags.abbreviation`; unmatched strings become NULL.
+     */
+    private static buildFlagIdMappingSQL(
+        tableName: string,
+        flagsToFetch: FlagToFetch[] | undefined,
+        allFlags: ViewFlagDto[],
+    ): string[] {
+        if (flagsToFetch) {
+            return DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagsToFetch, false);
+        }
+        const caseParts = allFlags.map(f =>
+            `WHEN UPPER(${this.FLAG_PROPERTY_NAME}) = '${f.abbreviation.toUpperCase()}' THEN ${f.id}`
+        );
+        if (caseParts.length === 0) return [];
+        return [
+            `UPDATE ${tableName} SET ${this.FLAG_PROPERTY_NAME} = CASE ${caseParts.join(' ')} ELSE NULL END WHERE ${this.FLAG_PROPERTY_NAME} IS NOT NULL`,
+        ];
+    }
+
+    /**
+     * Splits an inline value+flag `value` column into separate `value` and
+     * `flag_id` VARCHAR columns using the trailing-alphabetic-run convention.
+     *   '0.5T' → value='0.5', flag_id='T'
+     *   '-1.2' → value='-1.2', flag_id=NULL
+     *   'T'    → value=NULL,   flag_id='T'   (missing-value logic decides fate)
+     *   ''     → value=NULL,   flag_id=NULL
+     *
+     * NULLIF normalises "empty match" and "empty leftover" to NULL so the
+     * downstream missing-value check and flag-mapping logic behave uniformly
+     * regardless of which path produced the columns.
+     */
+    private static buildInlineFlagSplitSQL(tableName: string): string[] {
+        return [
+            `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR`,
+            `UPDATE ${tableName} SET ` +
+                `${this.FLAG_PROPERTY_NAME} = NULLIF(regexp_extract(${this.VALUE_PROPERTY_NAME}, '[A-Za-z]+$'), ''), ` +
+                `${this.VALUE_PROPERTY_NAME} = NULLIF(regexp_replace(${this.VALUE_PROPERTY_NAME}, '[A-Za-z]+$', ''), '')`,
+        ];
+    }
+
     private static buildYearMonthDaySQL(tableName: string, yearColPos: number, monthColPos: number, dayColumns: DayColumns): string[] {
         const sql: string[] = [];
         sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${yearColPos} TO year_col`);
@@ -449,7 +502,7 @@ export class TabularImportTransformer {
             // Nulls are excluded because they represent non-existent days (e.g. Feb 31st).
             sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}))`);
             // Extract the numeric day part from the column name (e.g. 'column5' -> 5) and zero-pad it.
-            sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${firstColumnPosition} + 1, 2, '0')`);
+            sql.push(`UPDATE ${tableName} SET day_col = lpad((substr(day_col, 7)::INTEGER - ${firstColumnPosition} + 1)::VARCHAR, 2, '0')`);
         } else {
             throw new Error('Day columns must define either singleColumn or columnsRange');
         }

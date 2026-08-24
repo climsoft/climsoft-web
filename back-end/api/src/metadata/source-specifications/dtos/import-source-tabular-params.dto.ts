@@ -64,7 +64,8 @@ export class FlagToFetch {
     databaseId!: number;
 }
 
-export class FlagDefinition {
+/** Separate-column branch of {@link FlagDefinition}. */
+export class SeparateFlagColumn {
     @IsInt()
     @Min(1)
     flagColumnPosition!: number;
@@ -75,17 +76,62 @@ export class FlagDefinition {
     flagsToFetch?: FlagToFetch[];
 }
 
+/**
+ * Inline-flag branch of {@link FlagDefinition}. Cells in the `value` column
+ * carry a trailing alphabetic run interpreted as a flag abbreviation.
+ * Example: `0.5T` splits into value `0.5` and flag `T`.
+ *
+ * Applies uniformly whether the `value` column comes from an explicit
+ * `valueDefinition.valueColumnPosition` or from a wide-pivot UNPIVOT
+ * (multiple elements, day columns range, or hour columns range).
+ *
+ * The split rule itself is fixed — trailing `[A-Za-z]+` is the flag; the
+ * numeric prefix is the value. Both parts may be empty and are handled by
+ * the existing missing-value logic.
+ */
+export class InlineFlag {
+    /**
+     * Optional source flag string → database flag id mapping. When omitted,
+     * the extracted flag string is matched case-insensitively against
+     * `flags.abbreviation` — same semantics as `SeparateFlagColumn.flagsToFetch`.
+     */
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => FlagToFetch)
+    flagsToFetch?: FlagToFetch[];
+}
+
+/**
+ * Flag configuration.
+ *
+ * Discriminated shape: exactly one of `separateColumn` or `inline` must be
+ * set when the object is present. Matches the pattern used by
+ * {@link ElementDefinition} and {@link DateTimeDefinition}.
+ *
+ * - `separateColumn` — a dedicated file column holds the flag string.
+ *                      Requires a `valueDefinition` since it needs a
+ *                      separate value column to sit alongside.
+ * - `inline`         — cells in the `value` column carry a trailing
+ *                      alphabetic run as the flag. Works for both explicit
+ *                      and wide-pivot value sources.
+ */
+export class FlagDefinition {
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => SeparateFlagColumn)
+    separateColumn?: SeparateFlagColumn;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => InlineFlag)
+    inline?: InlineFlag;
+}
+
 export class ValueDefinition {
     /** Value column position. */
     @IsInt()
     @Min(1)
     valueColumnPosition!: number;
-
-    /** Flag column position. Optional */
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => FlagDefinition)
-    flagDefinition?: FlagDefinition;
 }
 
 
@@ -279,8 +325,11 @@ export enum DateTimeFormat {
 
     // 12-hour clock with AM/PM (Excel and US-locale form entries)
     YMD_DASH_HM_AMPM = '%Y-%m-%d %I:%M %p',
+    YMD_DASH_HMS_AMPM = '%Y-%m-%d %I:%M:%S %p',    // 2023-12-13 10:30:00 AM
     DMY_SLASH_HM_AMPM = '%d/%m/%Y %I:%M %p',
+    DMY_SLASH_HMS_AMPM = '%d/%m/%Y %I:%M:%S %p',   // 13/12/2023 10:30:00 AM
     MDY_SLASH_HM_AMPM = '%m/%d/%Y %I:%M %p',
+    MDY_SLASH_HMS_AMPM = '%m/%d/%Y %I:%M:%S %p',   // 12/13/2023 10:30:00 AM
 
     // Dot-separated (German / Russian / Eastern European locales)
     DMY_DOT_HMS = '%d.%m.%Y %H:%M:%S',
@@ -473,6 +522,17 @@ export class ImportSourceTabularParamsDto {
     @ValidateNested()
     @Type(() => ValueDefinition)
     valueDefinition?: ValueDefinition;
+
+    /**
+     * Optional flag configuration. When set, exactly one of `separateColumn`
+     * or `inline` must be populated. `separateColumn` additionally requires
+     * `valueDefinition` to be set (a separate flag column implies a separate
+     * value column). The wizard enforces this at authoring time.
+     */
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => FlagDefinition)
+    flagDefinition?: FlagDefinition;
 
     @IsOptional()
     @ValidateNested()

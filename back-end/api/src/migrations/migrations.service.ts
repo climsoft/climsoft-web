@@ -20,10 +20,12 @@ import { DataSource } from 'typeorm';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
+import { ProductsService } from 'src/products/services/products.service';
+import { SYSTEM_PRODUCTS } from './system-products-defaults';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.6'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.7'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -39,6 +41,7 @@ export class MigrationsService {
     private flagsService: FlagsService,
     private qcSpecsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
     private sourcesService: SourceSpecificationsService,
+    private productsService: ProductsService,
 
   ) { }
 
@@ -109,6 +112,13 @@ export class MigrationsService {
     await this.seedFirstUser();
     await this.seedMetadata();
     await this.seedGeneralSettings();
+
+    // TODO. seed system products. This is temporary until we have a proper product management system
+    //await this.seedSystemProducts();
+
+    //TODO. seed climsoft system adapters authored by climsoft developers
+    // await this.seedSystemAdapters();
+
   }
 
   private async seedTriggers() {
@@ -263,6 +273,24 @@ export class MigrationsService {
         this.logger.log(`Range threshold updated -  ${qc.id} - ${qc.name}`)
       }
     }
+  }
+
+  private async seedSystemProducts(): Promise<void> {
+    for (const product of SYSTEM_PRODUCTS) {
+      await this.productsService.upsertSystemProduct(
+        product.systemKey,
+        product.supersetUuid,
+        product.name,
+        product.description,
+        product.category,
+        1,
+      );
+    }
+    this.logger.log('System products seeded');
+  }
+
+  private async seedSystemAdapters(): Promise<void> {
+    // TODO. Seed system adapters authored by climsoft developers. This is temporary until we have a proper adapter management system
   }
 
   /**

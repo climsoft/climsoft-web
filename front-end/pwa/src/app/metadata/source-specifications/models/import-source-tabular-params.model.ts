@@ -1,15 +1,39 @@
-export interface FlagDefinition {
+/** Separate-column branch of {@link FlagDefinition}. */
+export interface SeparateFlagColumn {
     flagColumnPosition: number;
     flagsToFetch?: { sourceId: string, databaseId: number }[];
 }
 
-export interface ValueDefinition {
+/**
+ * Inline-flag branch of {@link FlagDefinition}. Cells in the `value` column
+ * carry a trailing alphabetic run interpreted as a flag abbreviation.
+ * Example: `0.5T` splits into value `0.5` and flag `T`.
+ *
+ * Applies uniformly whether the `value` column comes from an explicit
+ * `valueDefinition.valueColumnPosition` or from a wide-pivot UNPIVOT.
+ */
+export interface InlineFlag {
+    /** Optional source flag string → database flag id mapping. When omitted,
+     *  the extracted flag string is matched case-insensitively against
+     *  `flags.abbreviation`. */
+    flagsToFetch?: { sourceId: string, databaseId: number }[];
+}
 
+/**
+ * Flag configuration.
+ *
+ * Discriminated shape: exactly one of `separateColumn` or `inline` must be set
+ * when the object is present. Matches the pattern used by `ElementDefinition`
+ * and `DateTimeDefinition`.
+ */
+export interface FlagDefinition {
+    separateColumn?: SeparateFlagColumn;
+    inline?: InlineFlag;
+}
+
+export interface ValueDefinition {
     /** Value column position. */
     valueColumnPosition: number,
-
-    /** Flag column position. Optional */
-    flagDefinition?: FlagDefinition,
 }
 
 /**
@@ -179,8 +203,11 @@ export enum DateTimeFormat {
 
     // 12-hour clock with AM/PM (Excel and US-locale form entries)
     YMD_DASH_HM_AMPM = '%Y-%m-%d %I:%M %p',
+    YMD_DASH_HMS_AMPM = '%Y-%m-%d %I:%M:%S %p',    // 2023-12-13 10:30:00 AM
     DMY_SLASH_HM_AMPM = '%d/%m/%Y %I:%M %p',
+    DMY_SLASH_HMS_AMPM = '%d/%m/%Y %I:%M:%S %p',   // 13/12/2023 10:30:00 AM
     MDY_SLASH_HM_AMPM = '%m/%d/%Y %I:%M %p',
+    MDY_SLASH_HMS_AMPM = '%m/%d/%Y %I:%M:%S %p',   // 12/13/2023 10:30:00 AM
 
     // Dot-separated (German / Russian / Eastern European locales)
     DMY_DOT_HMS = '%d.%m.%Y %H:%M:%S',
@@ -348,6 +375,13 @@ export interface ImportSourceTabularParamsModel {
     datetimeDefinition: DateTimeDefinition;
 
     valueDefinition?: ValueDefinition;
+
+    /**
+     * Optional flag configuration. When set, exactly one of `separateColumn`
+     * or `inline` must be populated. `separateColumn` also requires
+     * `valueDefinition` to be set — the wizard enforces this at authoring time.
+     */
+    flagDefinition?: FlagDefinition;
 
     commentDefinition?: CommentDefinition;
 
