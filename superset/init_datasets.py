@@ -8,8 +8,8 @@ import sys
 DATASETS_DIR = "/app/datasets"
 DB_HOST = os.environ.get("DB_HOST", "climsoft_db")
 DB_NAME = os.environ.get("DB_NAME", "climsoft")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-CLIMSOFT_DB_URI = f"postgresql://postgres:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
+READER_PASSWORD = os.environ.get("CLIMSOFT_READER_PASSWORD", "")
+CLIMSOFT_DB_URI = f"postgresql://climsoft_reader:{READER_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
 
 
 def main():
