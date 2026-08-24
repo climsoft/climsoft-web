@@ -64,7 +64,8 @@ export class FlagToFetch {
     databaseId!: number;
 }
 
-export class FlagDefinition {
+/** Separate-column branch of {@link FlagDefinition}. */
+export class SeparateFlagColumn {
     @IsInt()
     @Min(1)
     flagColumnPosition!: number;
@@ -76,9 +77,9 @@ export class FlagDefinition {
 }
 
 /**
- * When set on {@link ImportSourceTabularParamsDto.inlineFlagRule}, cells in
- * the observation `value` column carry a trailing alphabetic run interpreted
- * as a flag abbreviation. Example: `0.5T` splits into value `0.5` and flag `T`.
+ * Inline-flag branch of {@link FlagDefinition}. Cells in the `value` column
+ * carry a trailing alphabetic run interpreted as a flag abbreviation.
+ * Example: `0.5T` splits into value `0.5` and flag `T`.
  *
  * Applies uniformly whether the `value` column comes from an explicit
  * `valueDefinition.valueColumnPosition` or from a wide-pivot UNPIVOT
@@ -88,11 +89,11 @@ export class FlagDefinition {
  * numeric prefix is the value. Both parts may be empty and are handled by
  * the existing missing-value logic.
  */
-export class InlineFlagRule {
+export class InlineFlag {
     /**
      * Optional source flag string → database flag id mapping. When omitted,
      * the extracted flag string is matched case-insensitively against
-     * `flags.abbreviation` — same semantics as `FlagDefinition.flagsToFetch`.
+     * `flags.abbreviation` — same semantics as `SeparateFlagColumn.flagsToFetch`.
      */
     @IsOptional()
     @ValidateNested({ each: true })
@@ -100,17 +101,37 @@ export class InlineFlagRule {
     flagsToFetch?: FlagToFetch[];
 }
 
+/**
+ * Flag configuration.
+ *
+ * Discriminated shape: exactly one of `separateColumn` or `inline` must be
+ * set when the object is present. Matches the pattern used by
+ * {@link ElementDefinition} and {@link DateTimeDefinition}.
+ *
+ * - `separateColumn` — a dedicated file column holds the flag string.
+ *                      Requires a `valueDefinition` since it needs a
+ *                      separate value column to sit alongside.
+ * - `inline`         — cells in the `value` column carry a trailing
+ *                      alphabetic run as the flag. Works for both explicit
+ *                      and wide-pivot value sources.
+ */
+export class FlagDefinition {
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => SeparateFlagColumn)
+    separateColumn?: SeparateFlagColumn;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => InlineFlag)
+    inline?: InlineFlag;
+}
+
 export class ValueDefinition {
     /** Value column position. */
     @IsInt()
     @Min(1)
     valueColumnPosition!: number;
-
-    /** Flag column position. Optional */
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => FlagDefinition)
-    flagDefinition?: FlagDefinition;
 }
 
 
@@ -503,14 +524,15 @@ export class ImportSourceTabularParamsDto {
     valueDefinition?: ValueDefinition;
 
     /**
-     * Opt-in: cells in the `value` column carry a trailing flag suffix.
-     * Mutually exclusive with `valueDefinition.flagDefinition` — if both are
-     * set, the explicit flag column takes precedence and this is ignored.
+     * Optional flag configuration. When set, exactly one of `separateColumn`
+     * or `inline` must be populated. `separateColumn` additionally requires
+     * `valueDefinition` to be set (a separate flag column implies a separate
+     * value column). The wizard enforces this at authoring time.
      */
     @IsOptional()
     @ValidateNested()
-    @Type(() => InlineFlagRule)
-    inlineFlagRule?: InlineFlagRule;
+    @Type(() => FlagDefinition)
+    flagDefinition?: FlagDefinition;
 
     @IsOptional()
     @ValidateNested()

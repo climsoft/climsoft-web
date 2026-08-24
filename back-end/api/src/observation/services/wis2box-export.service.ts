@@ -33,8 +33,9 @@ export class Wis2BoxExportService implements OnModuleInit {
         this.conditionalConvert(v, ['c', '°c', 'celsius', 'deg c', 'degc', 'degrees c', 'degrees celsius'], `ROUND(${v} + 273.15, 2)`);
     private readonly knotsToMs = (v: string) =>
         this.conditionalConvert(v, ['kt', 'kts', 'kn', 'knot', 'knots'], `ROUND(${v} * 0.51444, 2)`);
+    // Cloud base heights are reported in tens of meters, so decimal precision is not needed. Round to nearest meter.
     private readonly feetToMeters = (v: string) =>
-        this.conditionalConvert(v, ['ft', 'feet', 'foot'], `ROUND(${v} * 0.3048, 2)`);
+        this.conditionalConvert(v, ['ft', 'feet', 'foot'], `ROUND(${v} * 0.3048, 0)`);
     // 9 oktas -> 113% is intentional: WMO okta code 9 = "sky obscured".
     private readonly oktasToPerc = (v: string) =>
         this.conditionalConvert(v, ['okta', 'oktas'], `ROUND((${v} * 100) / 8, 0)`);

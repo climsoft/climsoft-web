@@ -1,4 +1,4 @@
-import { ImportSourceTabularParamsDto, DateTimeDefinition, DatePart, DayColumns, TimePart, ValueDefinition, FlagDefinition, FlagToFetch } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ImportSourceTabularParamsDto, DateTimeDefinition, DatePart, DayColumns, TimePart, ValueDefinition, FlagToFetch } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
@@ -363,47 +363,35 @@ export class TabularImportTransformer {
     private static buildAlterValueColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
         const sql: string[] = [];
 
-        // Whether the flag column has already been set up (renamed from the
-        // flag-column path, or created + populated by the inline-flag split).
-        // False means we still need to add a NULL-default flag column so the
-        // rest of the pipeline sees a uniform `flag_id VARCHAR` column.
-        let flagColumnConfigured = false;
-
+        //--------------------------
+        // Value column
         if (tabularDef.valueDefinition !== undefined) {
             const valueDefinition: ValueDefinition = tabularDef.valueDefinition;
-            //--------------------------
-            // Value column
             sql.push(`ALTER TABLE ${tableName} RENAME column${valueDefinition.valueColumnPosition} TO ${this.VALUE_PROPERTY_NAME}`);
-            //--------------------------
-
-            //--------------------------
-            // Flag column — explicit column wins over inline-flag rule if both are set.
-            if (valueDefinition.flagDefinition !== undefined) {
-                const flagDefinition: FlagDefinition = valueDefinition.flagDefinition;
-                sql.push(`ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
-                sql.push(...this.buildFlagIdMappingSQL(tableName, flagDefinition.flagsToFetch, flags));
-                flagColumnConfigured = true;
-            }
-            //--------------------------
         }
+        // Otherwise the `value` column was produced by a wide-pivot UNPIVOT
+        // in an earlier step (element / day / hour range).
+        //--------------------------
 
-        // Inline-flag split applies whenever the value column exists AND no
-        // explicit flag column was configured. Works uniformly for both
-        // long-format sources (valueDefinition set) and wide-pivot sources
-        // (value column produced by an UNPIVOT in an earlier step).
-        if (!flagColumnConfigured && tabularDef.inlineFlagRule !== undefined) {
+        //--------------------------
+        // Flag column — discriminated on `tabularDef.flagDefinition`:
+        //   separateColumn → rename a file column and map its source strings
+        //   inline         → split the value column by regex and map the flag
+        //   undefined      → add a NULL-default VARCHAR flag_id column so the
+        //                    rest of the pipeline sees a uniform column type
+        //                    (final TYPE INTEGER cast handles VARCHAR NULL fine).
+        const flagDef = tabularDef.flagDefinition;
+        if (flagDef?.separateColumn) {
+            const sep = flagDef.separateColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${sep.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
+            sql.push(...this.buildFlagIdMappingSQL(tableName, sep.flagsToFetch, flags));
+        } else if (flagDef?.inline) {
             sql.push(...this.buildInlineFlagSplitSQL(tableName));
-            sql.push(...this.buildFlagIdMappingSQL(tableName, tabularDef.inlineFlagRule.flagsToFetch, flags));
-            flagColumnConfigured = true;
-        }
-
-        if (!flagColumnConfigured) {
-            // No flag information at all. Add a NULL-default VARCHAR column
-            // so downstream conditions like `flag_id = ''` bind cleanly for
-            // every path. The final TYPE INTEGER cast at the bottom of this
-            // method converts VARCHAR NULL → INTEGER NULL without complaint.
+            sql.push(...this.buildFlagIdMappingSQL(tableName, flagDef.inline.flagsToFetch, flags));
+        } else {
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`);
         }
+        //--------------------------
 
         // Get all missing value indicators in quoted format
         const missingValueIndicators: string[] = importDef.sourceMissingValueIndicators.split(',').map(f => `'${f}'`).filter(f => f);

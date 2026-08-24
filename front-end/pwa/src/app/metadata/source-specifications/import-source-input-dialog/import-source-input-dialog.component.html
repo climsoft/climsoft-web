@@ -138,10 +138,8 @@
 
                         <div class="mt-2">
                             <app-import-source-flag-detail
-                                [flagDefinition]="tabularImportParams.valueDefinition?.flagDefinition"
+                                [flagDefinition]="tabularImportParams.flagDefinition"
                                 (flagDefinitionChange)="onFlagDefinitionChange($event)"
-                                [inlineFlagRule]="tabularImportParams.inlineFlagRule"
-                                (inlineFlagRuleChange)="onInlineFlagRuleChange($event)"
                                 [canUseSeparateColumn]="!!tabularImportParams.valueDefinition" />
                         </div>
 

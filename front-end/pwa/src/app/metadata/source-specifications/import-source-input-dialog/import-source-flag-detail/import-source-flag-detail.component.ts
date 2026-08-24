@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
-import { FlagDefinition, InlineFlagRule } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
+import { FlagDefinition } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { IdMapping } from '../../id-mapping-table/id-mapping-table.component';
 
@@ -27,10 +27,9 @@ export class ImportSourceFlagDetailComponent implements OnChanges {
   @Input() public flagDefinition: FlagDefinition | undefined;
   @Output() public flagDefinitionChange = new EventEmitter<FlagDefinition | undefined>();
 
-  @Input() public inlineFlagRule: InlineFlagRule | undefined;
-  @Output() public inlineFlagRuleChange = new EventEmitter<InlineFlagRule | undefined>();
-
-  /** True unless the parent has committed to a wide-pivot value source. */
+  /** True unless the parent has committed to a wide-pivot value source.
+   *  Hides the SEPARATE mode option — a separate flag column requires a
+   *  separate value column to sit alongside. */
   @Input() public canUseSeparateColumn: boolean = true;
 
   /**
@@ -71,20 +70,16 @@ export class ImportSourceFlagDetailComponent implements OnChanges {
   protected onModeSelection(mode: FlagMode): void {
     this.mode = mode;
 
-    // Reset both slots; only the chosen one gets populated. The parent's
-    // change handlers keep the model in sync via the emits below.
-    this.flagDefinition = undefined;
-    this.inlineFlagRule = undefined;
-
     if (mode === FlagMode.SEPARATE) {
-      this.flagDefinition = { flagColumnPosition: 0, flagsToFetch: undefined };
+      this.flagDefinition = { separateColumn: { flagColumnPosition: 0, flagsToFetch: undefined } };
     } else if (mode === FlagMode.INLINE) {
-      this.inlineFlagRule = { flagsToFetch: undefined };
+      this.flagDefinition = { inline: { flagsToFetch: undefined } };
+    } else {
+      this.flagDefinition = undefined;
     }
 
     this.rebuildModeButtons();
     this.flagDefinitionChange.emit(this.flagDefinition);
-    this.inlineFlagRuleChange.emit(this.inlineFlagRule);
   }
 
   protected readonly modeLabel = (mode: FlagMode): string => {
@@ -96,8 +91,8 @@ export class ImportSourceFlagDetailComponent implements OnChanges {
   };
 
   private deriveModeFromInputs(): FlagMode {
-    if (this.flagDefinition) return FlagMode.SEPARATE;
-    if (this.inlineFlagRule) return FlagMode.INLINE;
+    if (this.flagDefinition?.separateColumn) return FlagMode.SEPARATE;
+    if (this.flagDefinition?.inline) return FlagMode.INLINE;
     return FlagMode.NONE;
   }
 
@@ -115,14 +110,14 @@ export class ImportSourceFlagDetailComponent implements OnChanges {
   // ─── Separate-column mode ──────────────────────────────────────────────
 
   protected onFetchFlagsChange(fetch: boolean): void {
-    if (!this.flagDefinition) return;
-    this.flagDefinition.flagsToFetch = fetch ? [] : undefined;
+    if (!this.flagDefinition?.separateColumn) return;
+    this.flagDefinition.separateColumn.flagsToFetch = fetch ? [] : undefined;
     this.flagDefinitionChange.emit(this.flagDefinition);
   }
 
   protected onMappingsChange(mappings: IdMapping[]): void {
-    if (!this.flagDefinition) return;
-    this.flagDefinition.flagsToFetch = mappings.map(m => ({
+    if (!this.flagDefinition?.separateColumn) return;
+    this.flagDefinition.separateColumn.flagsToFetch = mappings.map(m => ({
       sourceId: m.sourceId,
       databaseId: Number(m.databaseId),
     }));
@@ -132,17 +127,17 @@ export class ImportSourceFlagDetailComponent implements OnChanges {
   // ─── Inline-flag mode ──────────────────────────────────────────────────
 
   protected onInlineFetchFlagsChange(fetch: boolean): void {
-    if (!this.inlineFlagRule) return;
-    this.inlineFlagRule.flagsToFetch = fetch ? [] : undefined;
-    this.inlineFlagRuleChange.emit(this.inlineFlagRule);
+    if (!this.flagDefinition?.inline) return;
+    this.flagDefinition.inline.flagsToFetch = fetch ? [] : undefined;
+    this.flagDefinitionChange.emit(this.flagDefinition);
   }
 
   protected onInlineMappingsChange(mappings: IdMapping[]): void {
-    if (!this.inlineFlagRule) return;
-    this.inlineFlagRule.flagsToFetch = mappings.map(m => ({
+    if (!this.flagDefinition?.inline) return;
+    this.flagDefinition.inline.flagsToFetch = mappings.map(m => ({
       sourceId: m.sourceId,
       databaseId: Number(m.databaseId),
     }));
-    this.inlineFlagRuleChange.emit(this.inlineFlagRule);
+    this.flagDefinitionChange.emit(this.flagDefinition);
   }
 }
