@@ -3,7 +3,6 @@ x-superset-build: &superset-build
   build:
     context: ./superset
     dockerfile: Dockerfile
-  profiles: ["superset"]
 
 x-superset-env: &superset-env
   SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-superset_dev_secret_change_in_prod}
@@ -80,7 +79,6 @@ services:
   climsoft_superset_redis:
     image: redis:7
     container_name: climsoft-dev-superset-redis
-    profiles: ["superset"]
     ports:
       - "6379:6379"
 
@@ -97,6 +95,7 @@ services:
       DB_HOST: climsoft_db
       DB_NAME: climsoft
       DB_PASSWORD: ${DB_PASSWORD:-my_password}
+      CLIMSOFT_READER_PASSWORD: ${CLIMSOFT_READER_PASSWORD:-reader_password}
     depends_on:
       climsoft_db:
         condition: service_healthy

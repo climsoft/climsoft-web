@@ -157,6 +157,7 @@ services:
       ADMIN_PASSWORD: "${SUPERSET_ADMIN_PASSWORD}"
       SERVICE_USERNAME: "${SUPERSET_SERVICE_USERNAME}"
       SERVICE_PASSWORD: "${SUPERSET_SERVICE_PASSWORD}"
+      CLIMSOFT_READER_PASSWORD: "${CLIMSOFT_READER_PASSWORD}"
     depends_on:
       climsoft_db:
         condition: service_healthy
