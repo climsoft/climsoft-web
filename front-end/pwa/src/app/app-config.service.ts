@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, isDevMode } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -26,14 +26,12 @@ export class AppConfigService {
 
     // Because of PWA required capability. Just always use the document location
     console.log('origin url: ', this.document.location.origin);
-    // this.document.location.origin === 'http://localhost:4200'
-    if (isDevMode()) { // TODO. Test this to make sure that ng build always returns the correct environment mode: development or production
-      this._apiBaseUrl = `http://localhost:3000`;
-      this._supersetBaseUrl = `http://localhost:8088`;
-    } else {
-      this._apiBaseUrl = `${this.document.location.origin}/api`;
-      this._supersetBaseUrl = `${this.document.location.origin}/superset`;
-    }
+    // Same in dev and prod: both now sit behind an nginx origin that proxies
+    // /api and /superset (docker-compose.dev.yaml's climsoft_nginx_proxy,
+    // localhost:8080 by default, mirrors nginx.conf's routing for dev), so
+    // there's no need to special-case isDevMode() here anymore.
+    this._apiBaseUrl = `${this.document.location.origin}/api`;
+    this._supersetBaseUrl = `${this.document.location.origin}/superset`;
     console.log('API url: ', this._apiBaseUrl);
   }
 

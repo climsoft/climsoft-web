@@ -21,12 +21,95 @@ services:
       - "5432:5432"
     volumes:
       - climsoft_dev_data:/var/lib/postgresql/data
-      - ./back-end/api/temp/operations:/var/lib/postgresql/operations
+      - climsoft_dev_operations:/var/lib/postgresql/operations
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Runs `nest start --watch` against the bind-mounted source below, so edits
+  # on the host hot-reload same as running `npm run start:dev` natively.
+  # devMode stays on (FIRST_INSTALL is left unset) so schema sync, the dev
+  # encryption secret, and runner/Superset enablement all default the same
+  # way they do when the API is run on the host.
+  climsoft_api:
+    build:
+      context: ./back-end/api
+      dockerfile: Dockerfile.dev
+    container_name: climsoft-dev-api
+    environment:
+      DB_HOST: climsoft_db
+      DB_PASSWORD: ${DB_PASSWORD:-my_password}
+      PYTHON_RUNNER_HOST: climsoft_python_runner
+      R_RUNNER_HOST: climsoft_r_runner
+      JAVASCRIPT_RUNNER_HOST: climsoft_javascript_runner
+      DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
+      SUPERSET_HOST: climsoft_superset
+      # Only relevant if a legacy Climsoft v4 database is reachable from the
+      # host; harmless otherwise. Requires the extra_hosts entry below on
+      # native Linux Docker (Docker Desktop maps this automatically).
+      V4_DB_HOST: ${V4_DB_HOST:-host.docker.internal}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+    depends_on:
+      climsoft_db:
+        condition: service_healthy
+    volumes:
+      - ./back-end/api:/app
+      - climsoft_dev_api_node_modules:/app/node_modules
+      - climsoft_dev_operations:/app/temp/operations
+      - climsoft_dev_adapters:/app/temp/adapters
+      - climsoft_dev_samples:/app/temp/samples
+    # process.cwd() in devMode resolves to /app, so the API reads/writes
+    # temp/{operations,adapters,samples} — mounted above as named volumes
+    # (not bind mounts) shared with the runner/db containers below, which
+    # each expect their own flat /app/operations, /app/adapters paths.
+    # These are Docker-managed storage, not a repo-relative directory: on
+    # Linux, inspect them directly (no Docker Desktop VM in the way) via
+    # `docker volume inspect climsoft-web_climsoft_dev_operations` for the
+    # Mountpoint, or `docker compose exec climsoft_api ls /app/temp/adapters`.
+
+  # Fronts the API, Superset, and the PWA with the same request-handling
+  # nginx.conf applies in test/prod (upload size limits, timeouts, buffering
+  # on /api/; websocket upgrade for /superset/ and, here, for Angular's
+  # live-reload/HMR channel on /) — so bugs that only manifest through that
+  # proxy layer (e.g. an upload size bypass) surface here instead of only in
+  # docker-compose.test.yaml. Unlike nginx.conf, location / proxies to
+  # climsoft_pwa's `ng serve` (port 4200), not an nginx-served static build —
+  # dev never builds the PWA. AppConfigService resolves apiBaseUrl/
+  # supersetBaseUrl from document.location.origin in both dev and prod now
+  # that both sit behind an nginx origin, so it no longer branches on
+  # isDevMode() for this.
+  climsoft_nginx_proxy:
+    image: nginx:1.27.1-alpine
+    container_name: climsoft-dev-nginx-proxy
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${HOST_HTTP_PORT:-8080}:80"
+    depends_on:
+      - climsoft_api
+      - climsoft_superset
+      - climsoft_pwa
+
+  # Runs `ng serve` against the bind-mounted source below. Published directly
+  # on 4200 too (in addition to being reachable via climsoft_nginx_proxy
+  # above) as a quick direct-access option that skips the proxy hop.
+  climsoft_pwa:
+    build:
+      context: ./front-end/pwa
+      dockerfile: Dockerfile.dev
+    container_name: climsoft-dev-pwa
+    ports:
+      - "4200:4200"
+    depends_on:
+      - climsoft_api
+    volumes:
+      - ./front-end/pwa:/app
+      - climsoft_dev_pwa_node_modules:/app/node_modules
 
   climsoft_python_runner:
     build:
@@ -37,8 +120,8 @@ services:
     ports:
       - "5101:5101"
     volumes:
-      - ./back-end/api/temp/adapters:/app/adapters
-      - ./back-end/api/temp/operations:/app/operations
+      - climsoft_dev_adapters:/app/adapters
+      - climsoft_dev_operations:/app/operations
 
   climsoft_r_runner:
     build:
@@ -49,8 +132,8 @@ services:
     ports:
       - "5102:5102"
     volumes:
-      - ./back-end/api/temp/adapters:/app/adapters
-      - ./back-end/api/temp/operations:/app/operations
+      - climsoft_dev_adapters:/app/adapters
+      - climsoft_dev_operations:/app/operations
 
   climsoft_javascript_runner:
     build:
@@ -61,8 +144,8 @@ services:
     ports:
       - "5103:5103"
     volumes:
-      - ./back-end/api/temp/adapters:/app/adapters
-      - ./back-end/api/temp/operations:/app/operations
+      - climsoft_dev_adapters:/app/adapters
+      - climsoft_dev_operations:/app/operations
 
   climsoft_duckdb_runner:
     build:
@@ -73,8 +156,8 @@ services:
     ports:
       - "5104:5104"
     volumes:
-      - ./back-end/api/temp/adapters:/app/adapters
-      - ./back-end/api/temp/operations:/app/operations
+      - climsoft_dev_adapters:/app/adapters
+      - climsoft_dev_operations:/app/operations
 
   climsoft_superset_redis:
     image: redis:7
@@ -154,3 +237,8 @@ services:
 
 volumes:
   climsoft_dev_data:
+  climsoft_dev_api_node_modules:
+  climsoft_dev_pwa_node_modules:
+  climsoft_dev_operations:
+  climsoft_dev_adapters:
+  climsoft_dev_samples:

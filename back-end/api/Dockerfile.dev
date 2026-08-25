@@ -1,0 +1,25 @@
+# Dev-only image, used by docker-compose.dev.yaml.
+#
+# `npm ci` here seeds the image's /app/node_modules layer. At runtime,
+# docker-compose.dev.yaml bind-mounts the source over /app for hot-reload
+# and mounts a named volume at /app/node_modules, which Docker initialises
+# from this image layer on first start (then persists across restarts).
+FROM node:20.17.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+# entrypoint.sh (used by the production Dockerfile) is intentionally not
+# copied here: it hard-fails unless every one of DB_HOST/DB_PORT/DB_NAME/
+# DB_USERNAME/DB_PASSWORD/ENCRYPTION_SECRET/FIRST_INSTALL/V4_* is set, but
+# docker-compose.dev.yaml deliberately leaves FIRST_INSTALL unset so
+# AppConfig.devMode stays true and its dev defaults apply. Running that
+# script here would break every dev container start.
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]

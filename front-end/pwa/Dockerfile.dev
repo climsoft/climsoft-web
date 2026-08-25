@@ -1,0 +1,25 @@
+# Dev-only image, used by docker-compose.dev.yaml.
+#
+# `npm ci` here seeds the image's /app/node_modules layer. At runtime,
+# docker-compose.dev.yaml bind-mounts the source over /app for hot-reload
+# and mounts a named volume at /app/node_modules, which Docker initialises
+# from this image layer on first start (then persists across restarts).
+FROM node:20.17.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+# entrypoint.sh (used by the production Dockerfile) is intentionally not
+# copied here: it generates assets/config.json for the nginx-served static
+# build, but `ng serve`'s dev-mode code path (app-config.service.ts,
+# isDevMode() branch) never reads config.json — it hardcodes
+# localhost:3000/localhost:8088 directly, so there's nothing for it to do.
+
+EXPOSE 4200
+
+# --host 0.0.0.0 so the dev server is reachable from outside the container.
+CMD ["npm", "start", "--", "--host", "0.0.0.0"]
