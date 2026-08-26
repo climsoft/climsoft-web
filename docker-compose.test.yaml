@@ -26,9 +26,9 @@ services:
     #volumes:
       #- ./certs:/etc/nginx/certs:ro # Use this if HTTPS is required
     depends_on:
-      - climsoft_pwa
       - climsoft_api
       - climsoft_superset
+      - climsoft_pwa
     networks:
       - climsoft_network
 
@@ -37,9 +37,6 @@ services:
       context: ./front-end/pwa
       dockerfile: Dockerfile
     container_name: climsoft-test-pwa
-    environment:
-      HOST_IP_ADDRESS: "${HOST_IP_ADDRESS}" # used in config.json.
-      HOST_HTTP_PORT: "${HOST_HTTP_PORT}" # used in config.json.
     expose: 
       - 80 # Expose to internal network only.
     depends_on:
@@ -54,8 +51,6 @@ services:
     container_name: climsoft-test-api
     environment:
       <<: *climsoft-db-env
-      DB_PORT: 5432
-      DB_USERNAME: postgres
       ENCRYPTION_SECRET: "${ENCRYPTION_SECRET}"
       FIRST_INSTALL: "${FIRST_INSTALL}"
       V4_SAVE: "${V4_SAVE}"
@@ -68,21 +63,21 @@ services:
       V4_DB_UTCOFFSET: "${V4_DB_UTCOFFSET}"
       PYTHON_RUNNER_ENABLED: "true"
       PYTHON_RUNNER_HOST: climsoft_python_runner
-      PYTHON_RUNNER_PORT: 5101
       R_RUNNER_ENABLED: "true"
       R_RUNNER_HOST: climsoft_r_runner
-      R_RUNNER_PORT: 5102
       JAVASCRIPT_RUNNER_ENABLED: "true"
       JAVASCRIPT_RUNNER_HOST: climsoft_javascript_runner
-      JAVASCRIPT_RUNNER_PORT: 5103
       DUCKDB_RUNNER_ENABLED: "true"
       DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
-      DUCKDB_RUNNER_PORT: 5104
       SUPERSET_ENABLED: "true"
       SUPERSET_HOST: climsoft_superset
-      SUPERSET_PORT: 8088
       SUPERSET_SERVICE_USERNAME: "${SUPERSET_SERVICE_USERNAME}"
       SUPERSET_SERVICE_PASSWORD: "${SUPERSET_SERVICE_PASSWORD}"
+    # Only relevant if a legacy Climsoft v4 database is reachable from the
+    # host; harmless otherwise. Required for V4_DB_HOST=host.docker.internal
+    # to resolve on native Linux Docker (Docker Desktop maps this automatically).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     expose:
       - 3000
     depends_on:
@@ -174,13 +169,6 @@ services:
         condition: service_healthy
       climsoft_superset_redis:
         condition: service_started
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
-      - ./superset/init.sh:/app/init.sh
-      - ./superset/ensure_superset_db.py:/app/ensure_superset_db.py
-      - ./superset/init_datasets.py:/app/init_datasets.py
-      - ./superset/datasets:/app/datasets
-      - ./superset/products:/app/products
     networks:
       - climsoft_network
 
@@ -200,7 +188,6 @@ services:
       climsoft_superset_init:
         condition: service_completed_successfully
     volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
       - climsoft_test_superset:/app/superset_home
     networks:
       - climsoft_network
@@ -215,8 +202,6 @@ services:
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
     networks:
       - climsoft_network
 
@@ -229,8 +214,6 @@ services:
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
     networks:
       - climsoft_network
 

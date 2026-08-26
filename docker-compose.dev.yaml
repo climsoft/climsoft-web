@@ -5,73 +5,11 @@ x-superset-build: &superset-build
     dockerfile: Dockerfile
 
 x-superset-env: &superset-env
-  SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-superset_dev_secret_change_in_prod}
-  SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://postgres:${DB_PASSWORD:-my_password}@climsoft_db:5432/superset"
+  SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+  SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://postgres:${DB_PASSWORD}@climsoft_db:5432/superset"
   REDIS_URL: "redis://climsoft_superset_redis:6379/0"
 
 services:
-  climsoft_db:
-    image: postgis/postgis:17-3.5
-    container_name: climsoft-dev-db
-    environment:
-      POSTGRES_DB: climsoft
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-my_password}
-    ports:
-      - "5432:5432"
-    volumes:
-      - climsoft_dev_data:/var/lib/postgresql/data
-      - climsoft_dev_operations:/var/lib/postgresql/operations
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  # Runs `nest start --watch` against the bind-mounted source below, so edits
-  # on the host hot-reload same as running `npm run start:dev` natively.
-  # devMode stays on (FIRST_INSTALL is left unset) so schema sync, the dev
-  # encryption secret, and runner/Superset enablement all default the same
-  # way they do when the API is run on the host.
-  climsoft_api:
-    build:
-      context: ./back-end/api
-      dockerfile: Dockerfile.dev
-    container_name: climsoft-dev-api
-    environment:
-      DB_HOST: climsoft_db
-      DB_PASSWORD: ${DB_PASSWORD:-my_password}
-      PYTHON_RUNNER_HOST: climsoft_python_runner
-      R_RUNNER_HOST: climsoft_r_runner
-      JAVASCRIPT_RUNNER_HOST: climsoft_javascript_runner
-      DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
-      SUPERSET_HOST: climsoft_superset
-      # Only relevant if a legacy Climsoft v4 database is reachable from the
-      # host; harmless otherwise. Requires the extra_hosts entry below on
-      # native Linux Docker (Docker Desktop maps this automatically).
-      V4_DB_HOST: ${V4_DB_HOST:-host.docker.internal}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "3000:3000"
-    depends_on:
-      climsoft_db:
-        condition: service_healthy
-    volumes:
-      - ./back-end/api:/app
-      - climsoft_dev_api_node_modules:/app/node_modules
-      - climsoft_dev_operations:/app/temp/operations
-      - climsoft_dev_adapters:/app/temp/adapters
-      - climsoft_dev_samples:/app/temp/samples
-    # process.cwd() in devMode resolves to /app, so the API reads/writes
-    # temp/{operations,adapters,samples} — mounted above as named volumes
-    # (not bind mounts) shared with the runner/db containers below, which
-    # each expect their own flat /app/operations, /app/adapters paths.
-    # These are Docker-managed storage, not a repo-relative directory: on
-    # Linux, inspect them directly (no Docker Desktop VM in the way) via
-    # `docker volume inspect climsoft-web_climsoft_dev_operations` for the
-    # Mountpoint, or `docker compose exec climsoft_api ls /app/temp/adapters`.
-
   # Fronts the API, Superset, and the PWA with the same request-handling
   # nginx.conf applies in test/prod (upload size limits, timeouts, buffering
   # on /api/; websocket upgrade for /superset/ and, here, for Angular's
@@ -87,13 +25,15 @@ services:
     image: nginx:1.27.1-alpine
     container_name: climsoft-dev-nginx-proxy
     volumes:
-      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf
     ports:
-      - "${HOST_HTTP_PORT:-8080}:80"
+      - "${HOST_HTTP_PORT}:80"
     depends_on:
       - climsoft_api
       - climsoft_superset
       - climsoft_pwa
+    networks:
+      - climsoft_network
 
   # Runs `ng serve` against the bind-mounted source below. Published directly
   # on 4200 too (in addition to being reachable via climsoft_nginx_proxy
@@ -110,6 +50,74 @@ services:
     volumes:
       - ./front-end/pwa:/app
       - climsoft_dev_pwa_node_modules:/app/node_modules
+    networks:
+      - climsoft_network
+
+  # Runs `nest start --watch` against the bind-mounted source below, so edits
+  # on the host hot-reload same as running `npm run start:dev` natively.
+  # AppConfig no longer has a devMode/FIRST_INSTALL-unset fallback path — every
+  # setting below is required, same as docker-compose.test.yaml, with values
+  # chosen to preserve today's dev-friendly behavior (auto schema sync,
+  # runners/Superset enabled).
+  climsoft_api:
+    build:
+      context: ./back-end/api
+      dockerfile: Dockerfile.dev
+    container_name: climsoft-dev-api
+    environment:
+      DB_HOST: climsoft_db
+      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ENCRYPTION_SECRET: ${ENCRYPTION_SECRET}
+      FIRST_INSTALL: "yes"
+      PYTHON_RUNNER_ENABLED: "true"
+      PYTHON_RUNNER_HOST: climsoft_python_runner
+      R_RUNNER_ENABLED: "true"
+      R_RUNNER_HOST: climsoft_r_runner
+      JAVASCRIPT_RUNNER_ENABLED: "true"
+      JAVASCRIPT_RUNNER_HOST: climsoft_javascript_runner
+      DUCKDB_RUNNER_ENABLED: "true"
+      DUCKDB_RUNNER_HOST: climsoft_duckdb_runner
+      SUPERSET_ENABLED: "true"
+      SUPERSET_HOST: climsoft_superset
+      SUPERSET_SERVICE_USERNAME: ${SUPERSET_SERVICE_USERNAME}
+      SUPERSET_SERVICE_PASSWORD: ${SUPERSET_SERVICE_PASSWORD}
+      V4_SAVE: ${V4_SAVE}
+      V4_IMPORT: ${V4_IMPORT}
+      # Only relevant if a legacy Climsoft v4 database is reachable from the
+      # host; harmless otherwise. Requires the extra_hosts entry below on
+      # native Linux Docker (Docker Desktop maps this automatically).
+      V4_DB_HOST: ${V4_DB_HOST}
+      V4_DB_PORT: ${V4_DB_PORT}
+      V4_DB_NAME: ${V4_DB_NAME}
+      V4_DB_USERNAME: ${V4_DB_USERNAME}
+      V4_DB_PASSWORD: ${V4_DB_PASSWORD}
+      V4_DB_UTCOFFSET: ${V4_DB_UTCOFFSET}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+    depends_on:
+      climsoft_db:
+        condition: service_healthy
+    volumes:
+      - ./back-end/api:/app
+      - climsoft_dev_api_node_modules:/app/node_modules
+      - climsoft_dev_operations:/app/operations
+      - climsoft_dev_adapters:/app/adapters
+      - climsoft_dev_samples:/app/samples
+    # FileIOService always uses flat /app/{operations,adapters,samples} paths
+    # (same in dev, test, and prod) — the three mounts above are named volumes,
+    # not bind mounts, so — same trick as /app/node_modules — they shadow the
+    # ./back-end/api:/app bind mount at those exact paths and never leak into
+    # the host's back-end/api/ working tree. adapters/operations are the same
+    # volumes the runner/db containers below mount at their own flat paths.
+    # These are Docker-managed storage, not a repo-relative directory: on
+    # Linux, inspect them directly (no Docker Desktop VM in the way) via
+    # `docker volume inspect climsoft-web_climsoft_dev_operations` for the
+    # Mountpoint, or `docker compose exec climsoft_api ls /app/adapters`.
+    networks:
+      - climsoft_network
 
   climsoft_python_runner:
     build:
@@ -122,6 +130,8 @@ services:
     volumes:
       - climsoft_dev_adapters:/app/adapters
       - climsoft_dev_operations:/app/operations
+    networks:
+      - climsoft_network
 
   climsoft_r_runner:
     build:
@@ -134,6 +144,8 @@ services:
     volumes:
       - climsoft_dev_adapters:/app/adapters
       - climsoft_dev_operations:/app/operations
+    networks:
+      - climsoft_network
 
   climsoft_javascript_runner:
     build:
@@ -146,6 +158,8 @@ services:
     volumes:
       - climsoft_dev_adapters:/app/adapters
       - climsoft_dev_operations:/app/operations
+    networks:
+      - climsoft_network
 
   climsoft_duckdb_runner:
     build:
@@ -158,12 +172,16 @@ services:
     volumes:
       - climsoft_dev_adapters:/app/adapters
       - climsoft_dev_operations:/app/operations
+    networks:
+      - climsoft_network
 
   climsoft_superset_redis:
     image: redis:7
     container_name: climsoft-dev-superset-redis
     ports:
       - "6379:6379"
+    networks:
+      - climsoft_network
 
   climsoft_superset_init:
     <<: *superset-build
@@ -171,26 +189,21 @@ services:
     command: ["/app/init.sh"]
     environment:
       <<: *superset-env
-      ADMIN_USERNAME: ${SUPERSET_ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD:-admin}
-      SERVICE_USERNAME: ${SUPERSET_SERVICE_USERNAME:-climsoft_service}
-      SERVICE_PASSWORD: ${SUPERSET_SERVICE_PASSWORD:-climsoft_service}
+      ADMIN_USERNAME: ${SUPERSET_ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD}
+      SERVICE_USERNAME: ${SUPERSET_SERVICE_USERNAME}
+      SERVICE_PASSWORD: ${SUPERSET_SERVICE_PASSWORD}
       DB_HOST: climsoft_db
-      DB_NAME: climsoft
-      DB_PASSWORD: ${DB_PASSWORD:-my_password}
-      CLIMSOFT_READER_PASSWORD: ${CLIMSOFT_READER_PASSWORD:-reader_password}
+      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CLIMSOFT_READER_PASSWORD: ${CLIMSOFT_READER_PASSWORD}
     depends_on:
       climsoft_db:
         condition: service_healthy
       climsoft_superset_redis:
         condition: service_started
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
-      - ./superset/init.sh:/app/init.sh
-      - ./superset/ensure_superset_db.py:/app/ensure_superset_db.py
-      - ./superset/init_datasets.py:/app/init_datasets.py
-      - ./superset/datasets:/app/datasets
-      - ./superset/products:/app/products
+    networks:
+      - climsoft_network
 
   climsoft_superset:
     <<: *superset-build
@@ -207,8 +220,8 @@ services:
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - climsoft_network
 
   climsoft_superset_worker:
     <<: *superset-build
@@ -220,8 +233,8 @@ services:
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - climsoft_network
 
   climsoft_superset_beat:
     <<: *superset-build
@@ -232,13 +245,36 @@ services:
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
+    networks:
+      - climsoft_network
+
+  climsoft_db:
+    image: postgis/postgis:17-3.5
+    container_name: climsoft-dev-db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - climsoft_dev_data:/var/lib/postgresql/data
+      - climsoft_dev_operations:/var/lib/postgresql/operations
+    networks:
+      - climsoft_network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   climsoft_dev_data:
-  climsoft_dev_api_node_modules:
-  climsoft_dev_pwa_node_modules:
   climsoft_dev_operations:
   climsoft_dev_adapters:
   climsoft_dev_samples:
+  climsoft_dev_api_node_modules:
+  climsoft_dev_pwa_node_modules:
+
+networks:
+  climsoft_network:

@@ -26,7 +26,6 @@ COPY --chown=superset:superset ensure_superset_db.py /app/ensure_superset_db.py
 COPY --chown=superset:superset init_datasets.py /app/init_datasets.py
 COPY --chown=superset:superset datasets/ /app/datasets/
 COPY --chown=superset:superset climsoft_logo.png /app/superset/static/assets/images/climsoft_logo.png
-# TODO (Phase 6): Replace with COPY --chown=superset:superset products/ /app/products/ once shipped dashboard ZIPs are committed
-RUN mkdir -p /app/products && chown superset:superset /app/products
+COPY --chown=superset:superset products/ /app/products/
 
 USER superset
