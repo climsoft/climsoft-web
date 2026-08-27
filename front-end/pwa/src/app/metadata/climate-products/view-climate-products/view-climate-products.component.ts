@@ -70,8 +70,11 @@ export class ViewClimateProductsComponent {
     this.loadProducts();
   }
 
-  protected onOpenSuperset(): void {
-    window.open(this.appConfigService.supersetBaseUrl, '_blank');
+  protected async onOpenSuperset(): Promise<void> {
+    const url = await this.appConfigService.getSupersetBaseUrl();
+    if (url) {
+      window.open(url, '_blank');
+    }
   }
 
   protected onToggleDisabledClick(product: ViewProductModel, event: Event): void {

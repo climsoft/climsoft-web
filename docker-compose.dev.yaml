@@ -12,25 +12,27 @@ x-superset-env: &superset-env
 services:
   # Fronts the API, Superset, and the PWA with the same request-handling
   # nginx.conf applies in test/prod (upload size limits, timeouts, buffering
-  # on /api/; websocket upgrade for /superset/ and, here, for Angular's
-  # live-reload/HMR channel on /) — so bugs that only manifest through that
-  # proxy layer (e.g. an upload size bypass) surface here instead of only in
-  # docker-compose.test.yaml. Unlike nginx.conf, location / proxies to
-  # climsoft_pwa's `ng serve` (port 4200), not an nginx-served static build —
-  # dev never builds the PWA. AppConfigService resolves apiBaseUrl/
-  # supersetBaseUrl from document.location.origin in both dev and prod now
-  # that both sit behind an nginx origin, so it no longer branches on
-  # isDevMode() for this.
+  # on /api/; websocket upgrade for Superset's own server block and, here,
+  # for Angular's live-reload/HMR channel on /) — so bugs that only manifest
+  # through that proxy layer (e.g. an upload size bypass) surface here
+  # instead of only in docker-compose.test.yaml. Unlike nginx.conf, location
+  # / proxies to climsoft_pwa's `ng serve` (port 4200), not an nginx-served
+  # static build — dev never builds the PWA. 
   climsoft_nginx_proxy:
-    image: nginx:1.27.1-alpine
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
     container_name: climsoft-dev-nginx-proxy
+    environment:
+      # Substituted into nginx.dev.conf's Superset server block by the
+      # envsubst-on-templates mechanism wired up in Dockerfile.dev.
+      SUPERSET_HOSTNAME: ${SUPERSET_HOSTNAME}
     volumes:
-      - ./nginx.dev.conf:/etc/nginx/nginx.conf
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf.template
     ports:
       - "${HOST_HTTP_PORT}:80"
     depends_on:
       - climsoft_api
-      - climsoft_superset
       - climsoft_pwa
     networks:
       - climsoft_network
@@ -106,16 +108,6 @@ services:
       - climsoft_dev_operations:/app/operations
       - climsoft_dev_adapters:/app/adapters
       - climsoft_dev_samples:/app/samples
-    # FileIOService always uses flat /app/{operations,adapters,samples} paths
-    # (same in dev, test, and prod) — the three mounts above are named volumes,
-    # not bind mounts, so — same trick as /app/node_modules — they shadow the
-    # ./back-end/api:/app bind mount at those exact paths and never leak into
-    # the host's back-end/api/ working tree. adapters/operations are the same
-    # volumes the runner/db containers below mount at their own flat paths.
-    # These are Docker-managed storage, not a repo-relative directory: on
-    # Linux, inspect them directly (no Docker Desktop VM in the way) via
-    # `docker volume inspect climsoft-web_climsoft_dev_operations` for the
-    # Mountpoint, or `docker compose exec climsoft_api ls /app/adapters`.
     networks:
       - climsoft_network
 
@@ -178,6 +170,7 @@ services:
   climsoft_superset_redis:
     image: redis:7
     container_name: climsoft-dev-superset-redis
+    profiles: ["superset"]
     ports:
       - "6379:6379"
     networks:
@@ -186,6 +179,7 @@ services:
   climsoft_superset_init:
     <<: *superset-build
     container_name: climsoft-dev-superset-init
+    profiles: ["superset"]
     command: ["/app/init.sh"]
     environment:
       <<: *superset-env
@@ -208,6 +202,7 @@ services:
   climsoft_superset:
     <<: *superset-build
     container_name: climsoft-dev-superset
+    profiles: ["superset"]
     command: ["/app/docker/entrypoints/run-server.sh"]
     environment:
       <<: *superset-env
@@ -215,17 +210,26 @@ services:
       SERVER_WORKER_CLASS: gevent
       SERVER_THREADS_AMOUNT: 100
       GUNICORN_TIMEOUT: 120
-    ports:
-      - "8088:8088"
+    expose:
+      - 8088
     depends_on:
       climsoft_superset_init:
         condition: service_completed_successfully
+    # Overrides the apache/superset base image's own baked-in HEALTHCHECK,
+    # which polls every few seconds by default and floods `docker compose logs` 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 3600s
+      timeout: 10s
+      retries: 2
+      start_period: 30s
     networks:
       - climsoft_network
 
   climsoft_superset_worker:
     <<: *superset-build
     container_name: climsoft-dev-superset-worker
+    profiles: ["superset"]
     command: ["/app/worker.sh"]
     environment:
       <<: *superset-env
@@ -239,6 +243,7 @@ services:
   climsoft_superset_beat:
     <<: *superset-build
     container_name: climsoft-dev-superset-beat
+    profiles: ["superset"]
     command: ["/app/beat.sh"]
     environment:
       <<: *superset-env

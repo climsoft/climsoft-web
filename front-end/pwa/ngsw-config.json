@@ -3,9 +3,7 @@
   "index": "/index.html",
   "navigationUrls": [
     "/**",
-    "!/api/**",
-    "!/superset",
-    "!/superset/**"
+    "!/api/**"
   ],
   "assetGroups": [
     {

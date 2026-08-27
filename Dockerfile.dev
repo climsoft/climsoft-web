@@ -1,0 +1,25 @@
+# Dev-only image, used by docker-compose.dev.yaml.
+#
+# Only wires up the same envsubst-on-templates mechanism as the production
+# nginx image (see ./Dockerfile) — nginx.dev.conf itself is bind-mounted at
+# runtime (docker-compose.dev.yaml), not baked in here, so config edits take
+# effect on a container restart, no rebuild needed.
+FROM nginx:1.27.1-alpine
+
+# The base image's own entrypoint script (runs automatically before CMD)
+# looks for *.template files and substitutes env vars (${SUPERSET_HOSTNAME},
+# see nginx.dev.conf) into them at container start. By default it reads from
+# /etc/nginx/templates/ and writes into /etc/nginx/conf.d/ — a layout meant
+# for a base nginx.conf that does `include /etc/nginx/conf.d/*.conf;`. This
+# repo instead keeps everything in one flat file, so both are redirected to
+# /etc/nginx itself: docker-compose.dev.yaml bind-mounts nginx.dev.conf as
+# nginx.conf.template directly into /etc/nginx (found there because of the
+# first var below), and the substituted result is written back out as
+# /etc/nginx/nginx.conf (because of the second) — the exact path nginx reads
+# on startup — with no templates/ or conf.d/ subdirectories involved at all.
+ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx
+ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+
+# Run nginx
+# Same as the base image's own default CMD — restated explicitly to match
+CMD ["nginx", "-g", "daemon off;"]
