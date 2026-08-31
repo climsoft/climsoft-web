@@ -13,12 +13,6 @@ RUN npm ci
 
 COPY . .
 
-# entrypoint.sh (used by the production Dockerfile) is intentionally not
-# copied here: it generates assets/config.json for the nginx-served static
-# build, but `ng serve`'s dev-mode code path (app-config.service.ts,
-# isDevMode() branch) never reads config.json — it hardcodes
-# localhost:3000/localhost:8088 directly, so there's nothing for it to do.
-
 EXPOSE 4200
 
 # --host 0.0.0.0 so the dev server is reachable from outside the container.
