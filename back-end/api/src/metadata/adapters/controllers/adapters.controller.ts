@@ -5,7 +5,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { AppConfig } from 'src/app.config';
 import { AdapterLanguageEnum } from '../enums/adapter-language.enum';
 import { AdaptersService } from '../services/adapters.service';
 import { CreateAdapterSpecificationDto } from '../dtos/create-adapter-specification.dto';
@@ -108,7 +107,7 @@ export class AdaptersController {
         @Body('language') language: AdapterLanguageEnum,
         @UploadedFile(new ParseFilePipe({
             validators: [
-                new MaxFileSizeValidator({ maxSize: AppConfig.adapters.maxUploadSizeBytes }),
+                new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
                 new FileTypeValidator({
                     fileType: /(application\/zip|application\/x-zip-compressed|application\/octet-stream)/,
                     fallbackToMimetype: true,

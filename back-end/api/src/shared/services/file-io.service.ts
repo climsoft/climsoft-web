@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
-import { AppConfig } from 'src/app.config';
 
 /**
  * Every file-processing operation (import, export, adapter test run, preview)
@@ -41,16 +40,11 @@ export class FileIOService implements OnModuleInit, OnModuleDestroy {
     private _dbOperationsDir!: string;
 
     public async onModuleInit() {
-        if (AppConfig.devMode) {
-            const tempDir: string = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp');
-            this._apiOperationsDir = path.posix.join(tempDir, 'operations');
-            this._apiAdaptersDir = path.posix.join(tempDir, 'adapters');
-            this._apiSamplesDir = path.posix.join(tempDir, 'samples');
-        } else {
-            this._apiOperationsDir = '/app/operations';
-            this._apiAdaptersDir = '/app/adapters';
-            this._apiSamplesDir = '/app/samples';
-        }
+        // Same flat paths in dev, test, and prod. 
+        // This assumes that these directories are always mounted as volumes in the respective containers.
+        this._apiOperationsDir = '/app/operations';
+        this._apiAdaptersDir = '/app/adapters';
+        this._apiSamplesDir = '/app/samples';
 
         // Database container path — the same operations volume is mounted at a different path in the Postgres container.
         this._dbOperationsDir = '/var/lib/postgresql/operations';

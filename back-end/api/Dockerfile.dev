@@ -1,0 +1,18 @@
+# Dev-only image, used by docker-compose.dev.yaml.
+#
+# `npm ci` here seeds the image's /app/node_modules layer. At runtime,
+# docker-compose.dev.yaml bind-mounts the source over /app for hot-reload
+# and mounts a named volume at /app/node_modules, which Docker initialises
+# from this image layer on first start (then persists across restarts).
+FROM node:20.17.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]

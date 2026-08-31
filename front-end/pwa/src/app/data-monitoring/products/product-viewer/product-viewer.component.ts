@@ -58,12 +58,13 @@ export class ProductViewerComponent implements OnInit, OnDestroy {
             });
     }
 
-    private embed(supersetUuid: string, initialToken: string): void {
+    private async embed(supersetUuid: string, initialToken: string): Promise<void> {
         let firstToken = true;
+        const supersetDomain = await this.appConfigService.getSupersetBaseUrl();
 
         embedDashboard({
             id: supersetUuid,
-            supersetDomain: this.appConfigService.supersetBaseUrl,
+            supersetDomain,
             mountPoint: this.container.nativeElement,
             fetchGuestToken: () => {
                 if (firstToken) {
