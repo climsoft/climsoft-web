@@ -10,35 +10,18 @@ import express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  //------------------------------------------------------
-  // TODO. Code below is meant to be an implementation of allowed origins for enforcing CORS security measures 
-  // const allowedOrigins: string[] = [];
-  // if (process.env.WEB_APP_ALLOWED_ORIGINS) {
-  //   allowedOrigins.push(...StringUtils.mapCommaSeparatedStringToStringArray(process.env.WEB_APP_ALLOWED_ORIGINS.toString()));
-  // } else {
-  //   allowedOrigins.push('http://localhost:4200');
-  // }
+  // Every controller route lives under /api (e.g. /api/users, not /users).
+  // nginx's /api/ location forwards the path through unchanged to match —
+  // no rewrite needed there, since this is the single source of truth for
+  // the prefix rather than something nginx has to reconstruct on its own.
+  app.setGlobalPrefix('api');
 
+  //------------------------------------------------------
 
   app.enableCors({
-    // TODO. Investigate how CORS should be correctly set up to ensure support for different deployment options and security.
-    // origin:  process.env.WEB_APP_BASE_URLs ? process.env.WEB_APP_BASE_URLs : 'http://localhost:4200' , 
+    // TODO. Investigate how API can be made to allow CORSs.
     origin: (origin: any, callback: any) => {
-      //console.log(`Client Origin - ${origin}`); 
-
-      // TODO. In future implement CORs security feature to enable users to determine origin setting based on their security requirements.
       callback(null, true); // Allow the request
-
-
-      // TODO Code below is meant to enfors allowed origins
-      // Allow requests with no `Origin` (e.g., from desktop and mobile apps)
-      // Only allows requests from trusted web app origins. This is needed because web browsers require it
-      // if (!origin || allowedOrigins.includes(origin)) {
-      //   callback(null, true); // Allow the request
-      // } else {
-      //   console.error(`Origin ${origin} NOT allowed by CORS`);
-      //   callback(new Error(`Origin ${origin} NOT allowed by CORS`));
-      // }
     },
     credentials: true
   });
