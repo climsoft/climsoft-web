@@ -30,13 +30,19 @@ BEGIN
             )
         );
         NEW.log := COALESCE(OLD.log, '[]'::JSONB) || log_entry;
-    -- Track data column changes only
+    -- Track data and entry user column changes only.
+    -- entry_user_id is included so that a write which changes nothing but the
+    -- acting user (e.g. a different user re-submitting the same value, or
+    -- re-running QC over unchanged data) still leaves a provenance trail.
+    -- entry_date_time is deliberately NOT tracked here: func_set_entry_date_time
+    -- bumps it on every UPDATE to track date time of entry change.
     ELSIF (
         NEW.value IS DISTINCT FROM OLD.value OR
         NEW.flag_id IS DISTINCT FROM OLD.flag_id OR
         NEW.qc_status IS DISTINCT FROM OLD.qc_status OR
         NEW.comment IS DISTINCT FROM OLD.comment OR
-        NEW.deleted IS DISTINCT FROM OLD.deleted
+        NEW.deleted IS DISTINCT FROM OLD.deleted OR
+        NEW.entry_user_id IS DISTINCT FROM OLD.entry_user_id
     ) THEN
         log_entry := jsonb_build_object(
             'value', OLD.value,

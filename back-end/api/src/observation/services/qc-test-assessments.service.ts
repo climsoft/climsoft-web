@@ -16,7 +16,6 @@ export class QCTestAssessmentsService {
     public async performQC(queryDto: ViewObservationQueryDTO, userId: number) {
         // TODO. Define a filter dto for qc. It should always require a date range.
 
-
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {
@@ -34,11 +33,10 @@ export class QCTestAssessmentsService {
         }
 
         const query = `
-        SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) IS TRUE) ) AS qc_fails  
-        FROM (SELECT * FROM observations WHERE ${whereExpression}) AS observation_record
+        SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) = 'failed') ) AS qc_fails
+        FROM observations AS observation_record
+        WHERE ${whereExpression}
         `;
-
-        //console.log('qc query: ', query, ' | query dto: ', queryDto)
 
         // As of 14/06/2025 it was noticed that when this is called multiple times a deadlock occurs at the nodejs level.
         // postgres seems to lock the table as well. So it is important to narrow the selection as much as possible.
