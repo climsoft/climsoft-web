@@ -9,6 +9,11 @@ DECLARE
     all_qc_tests_log JSONB := '[]'::JSONB;
     final_qc_status observations_qc_status_enum := 'passed'; -- TODO. use the correct column type of observations table
 BEGIN
+    -- A soft-deleted observation must never take part in any QC operation.
+    IF observation_record.deleted THEN
+        RETURN FALSE;
+    END IF;
+
     -- Skip QC if value is NULL
     IF observation_record.value IS NULL THEN
         RETURN TRUE; -- TODO. Set the QC status of the record to 'none'. Conceptually speaking, NULL values can't pass QC tests because they don't exist!
@@ -212,6 +217,7 @@ BEGIN
           AND level = observation_record.level
           AND interval = observation_record.interval
           AND date_time < observation_record.date_time
+          AND deleted = FALSE
         ORDER BY date_time DESC
         LIMIT (consecutive_records - 1) -- minus 1 because current observation record is excluded by the `date_time < observation_record.date_time` filter
     ) sub;
@@ -240,6 +246,7 @@ BEGIN
       AND level = observation_record.level
       AND interval = observation_record.interval
       AND date_time < observation_record.date_time
+      AND deleted = FALSE
     ORDER BY date_time DESC
     LIMIT 1; -- Note date_time < observation_record.date_time already skips current record
 
@@ -282,7 +289,8 @@ BEGIN
 				AND element_id = reference_id
 				AND level = observation_record.level
 				AND interval = observation_record.interval
-				AND date_time = observation_record.date_time				
+				AND date_time = observation_record.date_time
+				AND deleted = FALSE
 			LIMIT 1;
 
     -- If either value is NULL, treat as PASS (do not flag)
@@ -343,8 +351,9 @@ BEGIN
 			WHERE station_id = observation_record.station_id
 				AND element_id = reference_id
 				AND level = observation_record.level
-				AND interval = observation_record.interval 
-				AND date_time = observation_record.date_time				
+				AND interval = observation_record.interval
+				AND date_time = observation_record.date_time
+				AND deleted = FALSE
 			LIMIT 1;
 
     -- As with relational comparison: if either value is NULL, treat as PASS (do not flag)
@@ -465,6 +474,7 @@ BEGIN
       AND level = observation_record.level
       AND interval = observation_record.interval
       AND date_time < observation_record.date_time
+      AND deleted = FALSE
     ORDER BY date_time DESC
     LIMIT 1;
 
