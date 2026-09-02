@@ -20,7 +20,7 @@ export class QCAssessmentsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations/quality-control`;
   }
 
-  public performQC(qcSelection: ViewObservationQueryModel): Observable<{ message: string, qcFails: number }> {
-    return this.http.post<{ message: string, qcFails: number }>(`${this.endPointUrl}/perform-qc`, qcSelection);
+  public performQC(qcSelection: ViewObservationQueryModel): Observable<{ message: string, qcFails: number, totalChecked: number }> {
+    return this.http.post<{ message: string, qcFails: number, totalChecked: number }>(`${this.endPointUrl}/perform-qc`, qcSelection);
   }
 }
