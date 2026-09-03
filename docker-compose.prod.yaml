@@ -1,6 +1,6 @@
 
 x-superset-image: &superset-image
-  image: climsoftdevelopers/climsoft-superset:preview-3.0.3
+  image: climsoftdevelopers/climsoft-superset:preview-3.0.4
 
 x-superset-env: &superset-env
   SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
@@ -14,7 +14,7 @@ x-climsoft-db-env: &climsoft-db-env
 
 services:
   climsoft_nginx_proxy:
-    image: climsoftdevelopers/climsoft-nginx-proxy:preview-3.0.3
+    image: climsoftdevelopers/climsoft-nginx-proxy:preview-3.0.4
     container_name: climsoft-nginx-proxy
     restart: always
     environment:
@@ -31,7 +31,7 @@ services:
       - climsoft_network
 
   climsoft_pwa:
-    image: climsoftdevelopers/climsoft-pwa:preview-3.0.3
+    image: climsoftdevelopers/climsoft-pwa:preview-3.0.4
     container_name: climsoft-pwa
     restart: always
     expose:
@@ -42,7 +42,7 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: climsoftdevelopers/climsoft-api:preview-3.0.3
+    image: climsoftdevelopers/climsoft-api:preview-3.0.4
     container_name: climsoft-api
     restart: always
     environment:
@@ -86,7 +86,7 @@ services:
       - climsoft_network
 
   climsoft_python_runner:
-    image: climsoftdevelopers/climsoft-python-runner:preview-3.0.3
+    image: climsoftdevelopers/climsoft-python-runner:preview-3.0.4
     container_name: climsoft-python-runner
     restart: always
     profiles: ["adapters-python"]
@@ -99,7 +99,7 @@ services:
       - climsoft_network
 
   climsoft_r_runner:
-    image: climsoftdevelopers/climsoft-r-runner:preview-3.0.3
+    image: climsoftdevelopers/climsoft-r-runner:preview-3.0.4
     container_name: climsoft-r-runner
     restart: always
     profiles: ["adapters-r"]
@@ -112,7 +112,7 @@ services:
       - climsoft_network
 
   climsoft_javascript_runner:
-    image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.3
+    image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.4
     container_name: climsoft-javascript-runner
     restart: always
     profiles: ["adapters-javascript"]
@@ -125,7 +125,7 @@ services:
       - climsoft_network
 
   climsoft_duckdb_runner:
-    image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.3
+    image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.4
     container_name: climsoft-duckdb-runner
     restart: always
     profiles: ["adapters-duckdb"]

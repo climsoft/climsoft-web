@@ -25,7 +25,7 @@ import { SYSTEM_PRODUCTS } from './system-products-defaults';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.7'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.8'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(

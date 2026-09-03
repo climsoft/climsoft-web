@@ -64,8 +64,13 @@ export class PerformQCDialogComponent {
     this.qcAssessmentsService.performQC(this.qcSelection).pipe(
       take(1),
     ).subscribe({
-      next: () => {
+      next: (response) => {
         this.open = false;
+        this.pagesDataService.showToast({
+          title: 'QC Assessment',
+          message: `${response.totalChecked} observation${response.totalChecked === 1 ? '' : 's'} checked, ${response.qcFails} failed`,
+          type: ToastEventTypeEnum.SUCCESS,
+        });
         this.ok.emit();
       },
       error: (err) => {

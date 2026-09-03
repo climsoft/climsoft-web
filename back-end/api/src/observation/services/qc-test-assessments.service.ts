@@ -16,7 +16,6 @@ export class QCTestAssessmentsService {
     public async performQC(queryDto: ViewObservationQueryDTO, userId: number) {
         // TODO. Define a filter dto for qc. It should always require a date range.
 
-
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {
@@ -33,21 +32,33 @@ export class QCTestAssessmentsService {
             whereExpression = whereExpression + ` AND qc_status = '${queryDto.qcStatus}'`;
         }
 
+        // Run QC once per selected observation inside a MATERIALIZED CTE, then
+        // summarise. func_execute_qc_tests is VOLATILE and writes back each row's
+        // qc_status / qc_test_log as a side effect; materialising the CTE pins it
+        // to exactly one call per filtered row regardless of the outer query or
+        // the chosen plan. The outer SELECT is then a pure read. The qc_status
+        // predicate in whereExpression is evaluated against pre-QC state during
+        // the single scan, so it stays consistent even as the run mutates rows.
         const query = `
-        SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) IS TRUE) ) AS qc_fails  
-        FROM (SELECT * FROM observations WHERE ${whereExpression}) AS observation_record
+        WITH qc AS MATERIALIZED (
+            SELECT func_execute_qc_tests(observation_record, ${userId}) AS status
+            FROM observations AS observation_record
+            WHERE ${whereExpression}
+        )
+        SELECT COUNT(*)                                 AS total_checked,
+               COUNT(*) FILTER (WHERE status = 'failed') AS qc_fails
+        FROM qc
         `;
-
-        //console.log('qc query: ', query, ' | query dto: ', queryDto)
 
         // As of 14/06/2025 it was noticed that when this is called multiple times a deadlock occurs at the nodejs level.
         // postgres seems to lock the table as well. So it is important to narrow the selection as much as possible.
         const results: any = await this.observationRepo.query(query);
-        const qcFails: number = results ? results[0].qc_fails : 0;
+        const qcFails: number = results?.[0] ? Number(results[0].qc_fails) : 0;
+        const totalChecked: number = results?.[0] ? Number(results[0].total_checked) : 0;
 
         this.eventEmitter.emit('observations.quality-controlled');
 
-        return { message: 'success', qcFails: qcFails };
+        return { message: 'success', qcFails: qcFails, totalChecked: totalChecked };
     }
 
     private getQueryFilter(queryDto: ViewObservationQueryDTO): string {

@@ -1,47 +1,92 @@
---- qc record function. Returns true when one qc tests fails and false when none fails or no qc was was done
-CREATE OR REPLACE FUNCTION func_execute_qc_tests(
-    observation_record RECORD, -- TODO. Use the row type of observations table
-    user_id INT4
-) RETURNS BOOL AS $$
+--- Drop every existing overload of the QC functions, then (further below) CREATE
+--- them fresh. This is done instead of relying on CREATE OR REPLACE because
+--- CREATE OR REPLACE cannot change a function's return type, and a changed
+--- parameter-type signature is added as a *new* overload rather than replacing
+--- the old one. Signatures are expected to keep evolving, so the script always
+--- rebuilds from a clean slate on every load. Because the drop above is
+--- unconditional, the statements below use plain CREATE (not CREATE OR REPLACE)
+--- so a pre-existing definition surfaces as an error instead of being masked.
+DO $$
 DECLARE
-    qc_test RECORD; -- TODO. Use the row type of qc_test_specifications table
+    _sig TEXT;
+BEGIN
+    FOR _sig IN
+        SELECT format('%I(%s)', p.proname, pg_get_function_identity_arguments(p.oid))
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname IN (
+            'func_execute_qc_tests',
+            'func_perform_range_threshold_test',
+            'func_perform_flat_line_test',
+            'func_get_last_values_of_similar_observation',
+            'func_perform_spike_test',
+            'func_perform_relational_comparison_test',
+            'func_perform_contextual_consistency_test',
+            'func_perform_diurnal_test',
+            'func_perform_spatial_consistency_test',
+            'func_eval_condition'
+          )
+    LOOP
+        EXECUTE 'DROP FUNCTION IF EXISTS ' || _sig;
+    END LOOP;
+END $$;
+
+
+--- QC orchestrator. Runs every applicable, enabled QC test against a single
+--- observation row, writes back the resulting qc_status / qc_test_log (only when
+--- they actually changed), and returns the resulting status.
+CREATE FUNCTION func_execute_qc_tests(
+    observation_record observations,
+    user_id INT4
+) RETURNS observations_qc_status_enum AS $$
+DECLARE
+    qc_test qc_tests%ROWTYPE;
     qc_test_log JSONB;
     all_qc_tests_log JSONB := '[]'::JSONB;
-    final_qc_status observations_qc_status_enum := 'passed'; -- TODO. use the correct column type of observations table
+    final_qc_status observations_qc_status_enum := 'passed';
 BEGIN
-    -- Skip QC if value is NULL
-    IF observation_record.value IS NULL THEN
-        RETURN TRUE; -- TODO. Set the QC status of the record to 'none'. Conceptually speaking, NULL values can't pass QC tests because they don't exist!
+    -- A soft-deleted observation must never take part in any QC operation.
+    IF observation_record.deleted THEN
+        RETURN observation_record.qc_status;
     END IF;
 
-    -- Loop through all relevant QC tests
-    FOR qc_test IN
-        SELECT *
-        FROM qc_tests
-        WHERE element_id = observation_record.element_id
-          AND observation_level = observation_record.level
-          AND observation_interval = observation_record.interval
-          AND disabled = FALSE
-    LOOP
-        BEGIN
-			-- RAISE NOTICE 'Executing test ID %, type %', qc_test.id, qc_test.qc_test_type;
+    IF observation_record.value IS NULL THEN
+        -- A NULL value cannot be quality controlled - it does not exist.
+        -- Reset the QC state to 'none' rather than leaving a stale status behind.
+        final_qc_status := 'none';
+        all_qc_tests_log := NULL;
+    ELSE
+        -- Loop through all relevant, enabled QC tests for this element/level/interval.
+        FOR qc_test IN
+            SELECT *
+            FROM qc_tests
+            WHERE element_id = observation_record.element_id
+              AND observation_level = observation_record.level
+              AND observation_interval = observation_record.interval
+              AND disabled = FALSE
+        LOOP
+            -- NOTE: intentionally no exception handling around a test call.
+            -- A test that errors (malformed parameters, an unimplemented
+            -- qc_test_type, ...) is a developer/configuration error and must
+            -- abort the run loudly rather than be silently swallowed.
             CASE qc_test.qc_test_type
                 WHEN 'range_threshold' THEN
-                    qc_test_log := func_perform_range_threshold_test(observation_record, qc_test); 
+                    qc_test_log := func_perform_range_threshold_test(observation_record, qc_test);
                 WHEN 'flat_line' THEN
                     qc_test_log := func_perform_flat_line_test(observation_record, qc_test);
-				WHEN 'spike' THEN
+                WHEN 'spike' THEN
                     qc_test_log := func_perform_spike_test(observation_record, qc_test);
                 WHEN 'relational_comparison' THEN
                     qc_test_log := func_perform_relational_comparison_test(observation_record, qc_test);
                 WHEN 'contextual_consistency' THEN
                     qc_test_log := func_perform_contextual_consistency_test(observation_record, qc_test);
-				WHEN 'diurnal' THEN
+                WHEN 'diurnal' THEN
                     qc_test_log := func_perform_diurnal_test(observation_record, qc_test);
-				WHEN 'spatial_consistency' THEN
+                WHEN 'spatial_consistency' THEN
                     qc_test_log := func_perform_spatial_consistency_test(observation_record, qc_test);
-				ELSE
-					RAISE EXCEPTION 'Unsupported QC test type: %', qc_test.qc_test_type;
+                ELSE
+                    RAISE EXCEPTION 'Unsupported QC test type: %', qc_test.qc_test_type;
             END CASE;
 
             IF qc_test_log IS NOT NULL THEN
@@ -50,38 +95,42 @@ BEGIN
                     final_qc_status := 'failed';
                 END IF;
             END IF;
-        EXCEPTION
-            WHEN OTHERS THEN
-                RAISE NOTICE 'QC test % failed with error: %', qc_test.qc_test_type, SQLERRM;
-        END;
-    END LOOP;
+        END LOOP;
 
-    -- If no QC logs were generated (no relevant tests) then set qc status to none and reset the qc log
-    IF all_qc_tests_log = '[]'::JSONB THEN
-		final_qc_status := 'none';
-		all_qc_tests_log := NULL;
+        -- No applicable test produced a log => nothing was quality controlled.
+        IF all_qc_tests_log = '[]'::JSONB THEN
+            final_qc_status := 'none';
+            all_qc_tests_log := NULL;
+        END IF;
     END IF;
 
-    -- Update the observation record. TODO. Use table alias
-    UPDATE observations
+    -- Persist only when the outcome actually changed. This keeps entry_user_id
+    -- (and the observations log trigger) in step with real state transitions and
+    -- avoids dead-tuple / WAL churn on repeated no-op QC sweeps.
+    UPDATE observations AS obs
     SET qc_status = final_qc_status,
         qc_test_log = all_qc_tests_log,
-		entry_user_id = user_id
-    WHERE station_id = observation_record.station_id
-      AND element_id = observation_record.element_id
-      AND level = observation_record.level
-      AND interval = observation_record.interval
-      AND source_id = observation_record.source_id
-      AND date_time = observation_record.date_time;
-RETURN final_qc_status = 'failed'; -- TODO. This function should eventually not return anything
+        entry_user_id = user_id
+    WHERE obs.station_id = observation_record.station_id
+      AND obs.element_id = observation_record.element_id
+      AND obs.level = observation_record.level
+      AND obs.interval = observation_record.interval
+      AND obs.source_id = observation_record.source_id
+      AND obs.date_time = observation_record.date_time
+      AND (
+            obs.qc_status IS DISTINCT FROM final_qc_status
+         OR obs.qc_test_log IS DISTINCT FROM all_qc_tests_log
+      );
+
+    RETURN final_qc_status;
 END;
 $$ LANGUAGE plpgsql;
 
 
 --- Range threshold ---
-CREATE OR REPLACE FUNCTION func_perform_range_threshold_test(
-    observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_range_threshold_test(
+    observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
     lower_threshold FLOAT8;
@@ -135,9 +184,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 --- Flat line test
-CREATE OR REPLACE FUNCTION func_perform_flat_line_test(
-	observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_flat_line_test(
+	observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
     consecutive_records INT4;
@@ -195,8 +244,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 --- Returns last values of similar observation
-CREATE OR REPLACE FUNCTION func_get_last_values_of_similar_observation(
-    observation_record RECORD,
+CREATE FUNCTION func_get_last_values_of_similar_observation(
+    observation_record observations,
     consecutive_records INT4
 ) RETURNS FLOAT8[] AS $$
 DECLARE
@@ -212,6 +261,7 @@ BEGIN
           AND level = observation_record.level
           AND interval = observation_record.interval
           AND date_time < observation_record.date_time
+          AND deleted = FALSE
         ORDER BY date_time DESC
         LIMIT (consecutive_records - 1) -- minus 1 because current observation record is excluded by the `date_time < observation_record.date_time` filter
     ) sub;
@@ -220,9 +270,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 --- spike test
-CREATE OR REPLACE FUNCTION func_perform_spike_test(
-	observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_spike_test(
+	observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
 	spike_threshold FLOAT8;
@@ -232,7 +282,7 @@ BEGIN
  	-- Extract the spikeThreshold from the qc_test parameters
     spike_threshold := (qc_test.parameters->>'spikeThreshold')::FLOAT8;
 
-    -- Retrieve the value from the 3rd previous consecutive record (ordered by date_time)
+    -- Retrieve the value from the immediately preceding record (ordered by date_time)
     SELECT value INTO last_value
     FROM observations
     WHERE station_id = observation_record.station_id
@@ -240,10 +290,11 @@ BEGIN
       AND level = observation_record.level
       AND interval = observation_record.interval
       AND date_time < observation_record.date_time
+      AND deleted = FALSE
     ORDER BY date_time DESC
     LIMIT 1; -- Note date_time < observation_record.date_time already skips current record
 
-     -- Check if the third previous value exists and the absolute difference exceeds the threshold
+     -- Check if the previous value exists and the absolute difference exceeds the threshold
     IF last_value IS NOT NULL AND ABS(observation_record.value - last_value) >= spike_threshold THEN
         qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
             'context', jsonb_build_object(
@@ -261,15 +312,15 @@ END;
 $$ LANGUAGE plpgsql;
 
 --- Relational comparison test ---
-CREATE OR REPLACE FUNCTION func_perform_relational_comparison_test(
-    observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_relational_comparison_test(
+    observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
     reference_value FLOAT8;
 	reference_id INT4;
 	reference_condition VARCHAR;
-    qc_test_log JSONB;  
+    qc_test_log JSONB;
 BEGIN
 	-- Decode the JSON parameters to extract reference_id and condition
 	reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
@@ -282,7 +333,8 @@ BEGIN
 				AND element_id = reference_id
 				AND level = observation_record.level
 				AND interval = observation_record.interval
-				AND date_time = observation_record.date_time				
+				AND date_time = observation_record.date_time
+				AND deleted = FALSE
 			LIMIT 1;
 
     -- If either value is NULL, treat as PASS (do not flag)
@@ -309,9 +361,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 --- Contextual consistency test ---
-CREATE OR REPLACE FUNCTION func_perform_contextual_consistency_test(
-    observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_contextual_consistency_test(
+    observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
 	reference_id INT4;
@@ -324,7 +376,7 @@ DECLARE
     reference_value FLOAT8;
     primary_matches BOOL;
     reference_matches BOOL;
-    qc_test_log JSONB;  
+    qc_test_log JSONB;
 BEGIN
 	-- Decode the JSON parameters to extract reference_id and condition
 	reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
@@ -343,8 +395,9 @@ BEGIN
 			WHERE station_id = observation_record.station_id
 				AND element_id = reference_id
 				AND level = observation_record.level
-				AND interval = observation_record.interval 
-				AND date_time = observation_record.date_time				
+				AND interval = observation_record.interval
+				AND date_time = observation_record.date_time
+				AND deleted = FALSE
 			LIMIT 1;
 
     -- As with relational comparison: if either value is NULL, treat as PASS (do not flag)
@@ -353,7 +406,7 @@ BEGIN
         RETURN qc_test_log;
     END IF;
 
-    -- Evaluate each side against its threshold using the same helper 
+    -- Evaluate each side against its threshold using the same helper
     primary_matches := func_eval_condition(observation_record.value, primary_condition, primary_threshold);
     reference_matches := func_eval_condition(reference_value, reference_condition, reference_threshold);
 
@@ -409,9 +462,9 @@ $$ LANGUAGE plpgsql;
 --- Wrap-around: startHour: 18, endHour: 5 covers hours 18..23 and 0..5.
 --- If no previous observation exists, the test is skipped (cannot determine trend).
 ---
-CREATE OR REPLACE FUNCTION func_perform_diurnal_test(
-    observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_diurnal_test(
+    observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
     params JSONB;
@@ -465,6 +518,7 @@ BEGIN
       AND level = observation_record.level
       AND interval = observation_record.interval
       AND date_time < observation_record.date_time
+      AND deleted = FALSE
     ORDER BY date_time DESC
     LIMIT 1;
 
@@ -522,9 +576,9 @@ $$ LANGUAGE plpgsql;
 ---
 ---   If Station A has no location set, the test is also skipped.
 ---
-CREATE OR REPLACE FUNCTION func_perform_spatial_consistency_test(
-    observation_record RECORD,
-    qc_test RECORD
+CREATE FUNCTION func_perform_spatial_consistency_test(
+    observation_record observations,
+    qc_test qc_tests
 ) RETURNS JSONB AS $$
 DECLARE
     params JSONB;
@@ -596,7 +650,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Perform comparison check (left op right)
-CREATE OR REPLACE FUNCTION func_eval_condition(
+CREATE FUNCTION func_eval_condition(
     left_value FLOAT8,
     condition VARCHAR,
     right_value FLOAT8

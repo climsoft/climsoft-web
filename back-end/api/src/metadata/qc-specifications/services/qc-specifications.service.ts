@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QCSpecificationEntity } from '../entities/qc-specification.entity';
@@ -22,8 +22,31 @@ export class QCSpecificationsService implements OnModuleInit {
         );
     }
 
+    // QC test types that have a corresponding SQL implementation in
+    // sql-scripts/qc-tests/qc-tests-functions.sql (the func_execute_qc_tests CASE).
+    // A spec whose type is missing here would make func_execute_qc_tests raise
+    // 'Unsupported QC test type' and abort the whole QC run, so such specs are
+    // rejected at create/update time until the SQL branch exists.
+    private static readonly IMPLEMENTED_QC_TEST_TYPES: ReadonlySet<QCTestTypeEnum> = new Set([
+        QCTestTypeEnum.RANGE_THRESHOLD,
+        QCTestTypeEnum.FLAT_LINE,
+        QCTestTypeEnum.SPIKE,
+        QCTestTypeEnum.RELATIONAL_COMPARISON,
+        QCTestTypeEnum.CONTEXTUAL_CONSISTENCY,
+        QCTestTypeEnum.DIURNAL,
+        QCTestTypeEnum.SPATIAL_CONSISTENCY,
+    ]);
+
     async onModuleInit(): Promise<void> {
         await this.cache.init();
+    }
+
+    private assertQCTestTypeImplemented(qcTestType: QCTestTypeEnum): void {
+        if (!QCSpecificationsService.IMPLEMENTED_QC_TEST_TYPES.has(qcTestType)) {
+            throw new BadRequestException(
+                `QC test type '${qcTestType}' is not yet implemented and cannot be created or enabled`,
+            );
+        }
     }
 
     private async loadCacheData(): Promise<CacheLoadResult<ViewQCSpecificationDto>> {
@@ -74,6 +97,8 @@ export class QCSpecificationsService implements OnModuleInit {
     }
 
     public async create(dto: CreateQCSpecificationDto, userId: number): Promise<ViewQCSpecificationDto> {
+        this.assertQCTestTypeImplemented(dto.qcTestType);
+
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
             name: dto.name,
@@ -96,6 +121,8 @@ export class QCSpecificationsService implements OnModuleInit {
     }
 
     public async update(id: number, dto: CreateQCSpecificationDto, userId: number): Promise<ViewQCSpecificationDto> {
+        this.assertQCTestTypeImplemented(dto.qcTestType);
+
         const qctest = await this.findEntity(id);
         qctest.name = dto.name;
         qctest.description = dto.description ? dto.description : null;
