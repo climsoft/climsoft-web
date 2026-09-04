@@ -118,13 +118,34 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>QC Status</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let row of viewQCTestLog">
-                                    <td>{{ row.name }}</td>
-                                    <td>{{ row.qcStatus }}</td>
+                                <tr *ngFor="let qcTestLog of viewQCTestLog">
+                                    <td>{{ qcTestLog.name }}</td>
+                                    <td>
+                                        <span class="badge" [ngClass]="{
+                                            'bg-primary': qcTestLog.qcTestType === 'range_threshold', 
+                                            'bg-info': qcTestLog.qcTestType === 'flat_line',
+                                            'bg-warning text-dark': qcTestLog.qcTestType === 'spike', 
+                                            'bg-secondary': qcTestLog.qcTestType === 'relational_comparison', 
+                                            'bg-success': qcTestLog.qcTestType === 'contextual_consistency', 
+                                            'bg-dark': qcTestLog.qcTestType === 'spatial_consistency', 
+                                            'bg-danger': qcTestLog.qcTestType === 'diurnal' 
+                                            }">
+                                            {{ qcTestLog.qcTestTypeName }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" [ngClass]="{
+                                            'bg-success': qcTestLog.qcStatus === 'passed',
+                                            'bg-danger': qcTestLog.qcStatus === 'failed'
+                                            }">
+                                            {{ qcTestLog.qcStatus }}
+                                        </span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

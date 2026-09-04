@@ -13,6 +13,7 @@ import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-c
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';
 import { ViewFlagModel } from 'src/app/metadata/flags/models/view-flag.model';
 import { DialogComponent } from 'src/app/shared/controls/dialog/dialog.component';
+import { map } from 'rxjs/internal/operators/map';
 
 /**
  * Component for data entry of observations
@@ -21,6 +22,11 @@ import { DialogComponent } from 'src/app/shared/controls/dialog/dialog.component
 interface RangeThreshold {
   lowerThreshold: number;
   upperThreshold: number;
+}
+
+interface QCTestLog extends ViewQCTestLog {
+  qcTestType: QCTestTypeEnum;
+  qcTestTypeName: string;
 }
 
 @Component({
@@ -71,7 +77,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected duplicateObservation: ViewObservationModel | undefined;
   protected viewObservationLog!: ViewObservationLogModel[];
   protected duplicateObservationLog!: ViewObservationLogModel[];
-  protected viewQCTestLog!: ViewQCTestLog[];
+  protected viewQCTestLog!: QCTestLog[];
   protected comment: string = '';
   protected title: string = '';
 
@@ -277,13 +283,17 @@ export class ValueFlagInputComponent implements OnChanges {
     // 'history' tab uses viewObservationLog / duplicateObservationLog that were
     // already precomputed in ngOnChanges, so nothing to do for it here.
     if (this.activeTab === 'qctests') {
-      this.viewQCTestLog = [];
-      if (this.observationEntry.observation.qcTestLog) {
-        for (const obsQcTestLog of this.observationEntry.observation.qcTestLog) {
-          const qcTestMetadata = this.cachedMetadataService.getQCTest(obsQcTestLog.qcTestId);
-          this.viewQCTestLog.push({ id: obsQcTestLog.qcTestId, name: qcTestMetadata.name, qcStatus: obsQcTestLog.qcStatus })
-        }
-      }
+      this.viewQCTestLog = this.observationEntry.observation.qcTestLog ? this.observationEntry.observation.qcTestLog.map((log: any) => {
+        const qcTestMetadata = this.cachedMetadataService.getQCTest(log.qcTestId);
+        // TODO. In future, also visualise the context of the failed QC tests.
+        return {
+          id: log.qcTestId,
+          name: qcTestMetadata.name,
+          qcStatus: log.qcStatus,
+          qcTestType: qcTestMetadata.qcTestType,
+          qcTestTypeName: qcTestMetadata.qcTestTypeName
+        };
+      }) : [];
     }
   }
 
