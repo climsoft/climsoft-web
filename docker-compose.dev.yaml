@@ -23,6 +23,7 @@ services:
       context: ./
       dockerfile: Dockerfile.dev
     container_name: climsoft-dev-nginx-proxy
+    restart: unless-stopped
     environment:
       # Substituted into nginx.dev.conf's Superset server block by the
       # envsubst-on-templates mechanism wired up in Dockerfile.dev.
@@ -45,6 +46,7 @@ services:
       context: ./front-end/pwa
       dockerfile: Dockerfile.dev
     container_name: climsoft-dev-pwa
+    restart: unless-stopped
     ports:
       - "4200:4200"
     depends_on:
@@ -66,6 +68,7 @@ services:
       context: ./back-end/api
       dockerfile: Dockerfile.dev
     container_name: climsoft-dev-api
+    restart: unless-stopped
     environment:
       DB_HOST: climsoft_db
       DB_NAME: ${DB_NAME}
@@ -116,6 +119,7 @@ services:
       context: ./back-end/runners/python
       dockerfile: Dockerfile
     container_name: climsoft-dev-python-runner
+    restart: unless-stopped
     profiles: ["adapters-python"]
     ports:
       - "5101:5101"
@@ -130,6 +134,7 @@ services:
       context: ./back-end/runners/r
       dockerfile: Dockerfile
     container_name: climsoft-dev-r-runner
+    restart: unless-stopped
     profiles: ["adapters-r"]
     ports:
       - "5102:5102"
@@ -144,6 +149,7 @@ services:
       context: ./back-end/runners/javascript
       dockerfile: Dockerfile
     container_name: climsoft-dev-javascript-runner
+    restart: unless-stopped
     profiles: ["adapters-javascript"]
     ports:
       - "5103:5103"
@@ -158,6 +164,7 @@ services:
       context: ./back-end/runners/duckdb
       dockerfile: Dockerfile
     container_name: climsoft-duckdb-runner
+    restart: unless-stopped
     profiles: ["adapters-duckdb"]
     ports:
       - "5104:5104"
@@ -170,6 +177,7 @@ services:
   climsoft_superset_redis:
     image: redis:7
     container_name: climsoft-dev-superset-redis
+    restart: unless-stopped
     profiles: ["superset"]
     ports:
       - "6379:6379"
@@ -202,6 +210,7 @@ services:
   climsoft_superset:
     <<: *superset-build
     container_name: climsoft-dev-superset
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/docker/entrypoints/run-server.sh"]
     environment:
@@ -229,6 +238,7 @@ services:
   climsoft_superset_worker:
     <<: *superset-build
     container_name: climsoft-dev-superset-worker
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/worker.sh"]
     environment:
@@ -243,6 +253,7 @@ services:
   climsoft_superset_beat:
     <<: *superset-build
     container_name: climsoft-dev-superset-beat
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/beat.sh"]
     environment:
@@ -256,6 +267,7 @@ services:
   climsoft_db:
     image: postgis/postgis:17-3.5
     container_name: climsoft-dev-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: postgres

@@ -16,7 +16,7 @@ services:
   climsoft_nginx_proxy:
     image: climsoftdevelopers/climsoft-nginx-proxy:preview-3.0.4
     container_name: climsoft-nginx-proxy
-    restart: always
+    restart: unless-stopped
     environment:
       # Substituted into nginx.conf's Superset server block by the base
       # image's envsubst-on-templates entrypoint (wired up in the image's
@@ -33,7 +33,7 @@ services:
   climsoft_pwa:
     image: climsoftdevelopers/climsoft-pwa:preview-3.0.4
     container_name: climsoft-pwa
-    restart: always
+    restart: unless-stopped
     expose:
       - 80 # Expose to internal network only.
     depends_on:
@@ -44,7 +44,7 @@ services:
   climsoft_api:
     image: climsoftdevelopers/climsoft-api:preview-3.0.4
     container_name: climsoft-api
-    restart: always
+    restart: unless-stopped
     environment:
       <<: *climsoft-db-env
       ENCRYPTION_SECRET: "${ENCRYPTION_SECRET}"
@@ -88,7 +88,7 @@ services:
   climsoft_python_runner:
     image: climsoftdevelopers/climsoft-python-runner:preview-3.0.4
     container_name: climsoft-python-runner
-    restart: always
+    restart: unless-stopped
     profiles: ["adapters-python"]
     expose:
       - 5101
@@ -101,7 +101,7 @@ services:
   climsoft_r_runner:
     image: climsoftdevelopers/climsoft-r-runner:preview-3.0.4
     container_name: climsoft-r-runner
-    restart: always
+    restart: unless-stopped
     profiles: ["adapters-r"]
     expose:
       - 5102
@@ -114,7 +114,7 @@ services:
   climsoft_javascript_runner:
     image: climsoftdevelopers/climsoft-javascript-runner:preview-3.0.4
     container_name: climsoft-javascript-runner
-    restart: always
+    restart: unless-stopped
     profiles: ["adapters-javascript"]
     expose:
       - 5103
@@ -127,7 +127,7 @@ services:
   climsoft_duckdb_runner:
     image: climsoftdevelopers/climsoft-duckdb-runner:preview-3.0.4
     container_name: climsoft-duckdb-runner
-    restart: always
+    restart: unless-stopped
     profiles: ["adapters-duckdb"]
     expose:
       - 5104
@@ -141,7 +141,7 @@ services:
     image: redis:7-alpine
     container_name: climsoft-superset-redis
     profiles: ["superset"]
-    restart: always
+    restart: unless-stopped
     expose:
       - 6379
     networks:
@@ -171,7 +171,7 @@ services:
     <<: *superset-image
     container_name: climsoft-superset
     profiles: ["superset"]
-    restart: always
+    restart: unless-stopped
     command: ["/app/docker/entrypoints/run-server.sh"]
     environment:
       <<: *superset-env
@@ -204,7 +204,7 @@ services:
     <<: *superset-image
     container_name: climsoft-superset-worker
     profiles: ["superset"]
-    restart: always
+    restart: unless-stopped
     command: ["/app/worker.sh"]
     environment:
       <<: *superset-env
@@ -218,7 +218,7 @@ services:
     <<: *superset-image
     container_name: climsoft-superset-beat
     profiles: ["superset"]
-    restart: always
+    restart: unless-stopped
     command: ["/app/beat.sh"]
     environment:
       <<: *superset-env
@@ -231,7 +231,7 @@ services:
   climsoft_db:
     image: postgis/postgis:17-3.5
     container_name: climsoft-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: "${DB_NAME}"
       POSTGRES_USER: postgres
