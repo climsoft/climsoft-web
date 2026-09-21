@@ -163,7 +163,7 @@ services:
     build:
       context: ./back-end/runners/duckdb
       dockerfile: Dockerfile
-    container_name: climsoft-duckdb-runner
+    container_name: climsoft-dev-duckdb-runner
     restart: unless-stopped
     profiles: ["adapters-duckdb"]
     ports:
