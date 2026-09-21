@@ -8,7 +8,7 @@ interface DelimiterOption {
 const DELIMITER_OPTIONS: DelimiterOption[] = [
   { symbol: undefined, name: 'Auto-detect' },
   { symbol: ',', name: 'Comma' },
-  { symbol: '\t', name: 'Tab' },
+  { symbol: '\\t', name: 'Tab' },
   { symbol: '|', name: 'Pipe' },
   { symbol: ';', name: 'Semicolon' },
   { symbol: '-', name: 'Hyphen' },
