@@ -1,4 +1,5 @@
-<app-drop-down-container [(displayDropDown)]="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
+<app-drop-down-container [displayDropDown]="displayDropDown" (displayDropDownChange)="showDropDown($event)"
+  [maxHeight]="dropDownOptionMaxHeight">
   <div main-content>
     <div *ngIf="label" class="fw-bold" [title]="labelTitle">
       <label [for]="id? id:label">{{ label }} </label>
@@ -6,11 +7,11 @@
       <span *ngIf="displaylabelFullColon">:</span>
     </div>
     <div
-      [class.input-group]="displayExtraInfoOption || displaySearchOption || displaySettingOption ||  displayCancelOption ||displayDropDownOption ||  warningMessage || errorMessage">
+      [class.input-group]="type === 'password' || displayExtraInfoOption || displaySearchOption || displaySettingOption ||  displayCancelOption ||displayDropDownOption ||  warningMessage || errorMessage">
 
       <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
-      <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
-        class="form-control form-control-sm form-control-sm " [autocomplete]="'off'" [title]="inputTitle"
+      <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="inputType"
+        class="form-control form-control-sm form-control-sm " [autocomplete]="autocomplete" [title]="inputTitle"
         [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly" [ngClass]="['border-'+ borderSize]"
         [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
         [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
@@ -18,8 +19,8 @@
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
-      <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
-        [autocomplete]="'off'" [title]="inputTitle" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
+      <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="inputType" class="form-control form-control-sm"
+        [autocomplete]="autocomplete" [title]="inputTitle" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
         [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
         [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
         [class.app-cursor-pointer]="displayDropDownOption" [value]="value ?? ''" [attr.min]="min" [attr.max]="max"
@@ -28,6 +29,13 @@
 
       <!-- Note in all the buttons below, btn-input-group class is needed to prevent tab selection on enter key press -->
       <!-- Any button added here should have its *ngIf flag as part of this div [class.input-group] above -->
+
+      <button *ngIf="type === 'password'" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+        [disabled]="disabled" [title]="passwordVisible ? 'Hide password' : 'Show password'"
+        [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'"
+        [attr.aria-pressed]="passwordVisible" (click)="onPasswordVisibilityClick()">
+        <i class="bi" [class.bi-eye]="!passwordVisible" [class.bi-eye-slash]="passwordVisible"></i>
+      </button>
 
       <button *ngIf="warningMessage && !errorMessage" type="button"
         class="btn btn-sm btn-outline-warning btn-input-group" (click)="dlgWarningMessage.openDialog()">

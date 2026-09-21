@@ -20,7 +20,14 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   @Input() public displayAdvancedSearchOption: boolean = false;
   @Output() public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
-  protected filteredOptions: T[] = [...this.options];
+  /**
+   * Whether the option list is currently built. Same reason as the single-select
+   * control: the list is projected into `app-text-input`, and projected content
+   * is created by the view that declares it, so the drop down container's own
+   * `*ngIf` never deferred building one element per option. Gating here does.
+   */
+  protected dropDownOpen: boolean = false;
+  protected filteredOptions: T[] = [];
   protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -28,7 +35,10 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
       if (!this.options) this.options = []; // should never be undefined       
-      this.filteredOptions = [...this.options];
+      // Copied only while the list is on screen — see `dropDownOpen`.
+      if (this.dropDownOpen) {
+        this.filteredOptions = [...this.options];
+      }
     }
 
     if (changes['selectedOptions']) {
@@ -103,6 +113,9 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
    * Move selected options to the top
    */
   protected onDropDownDisplayed(): void {
+    this.dropDownOpen = true;
+    this.filteredOptions = [...this.options];
+
     //----------------------------------------------------------------
     // Sort filtered options to have the selected options as first items in the filtered options array
     //----------------------------------------------------------------
@@ -127,8 +140,16 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     // Set the focus to the search input
     // Set timeout used to give Angular change detection time to render the above the reorder elements
     setTimeout(() => {
-      this.searchInput.focus();
+      // Optional chained because the search input only exists while the list is
+      // built, and a close can race in ahead of this timeout.
+      this.searchInput?.focus();
     }, 0);
+  }
+
+  /** Release the built list when the drop down closes. */
+  protected onDropDownClosed(): void {
+    this.dropDownOpen = false;
+    this.filteredOptions = [];
   }
 
 }
