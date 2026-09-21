@@ -89,6 +89,7 @@ services:
     volumes:
       - climsoft_test_operations:/app/operations
       - climsoft_test_adapters:/app/adapters
+      - climsoft_test_samples:/app/samples
     networks:
       - climsoft_network
 
@@ -210,8 +211,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    volumes:
-      - climsoft_test_superset:/app/superset_home
     networks:
       - climsoft_network
 
@@ -269,7 +268,7 @@ volumes:
   climsoft_test_database:
   climsoft_test_operations:
   climsoft_test_adapters:
-  climsoft_test_superset:
+  climsoft_test_samples:
 
 networks:
   climsoft_network:
