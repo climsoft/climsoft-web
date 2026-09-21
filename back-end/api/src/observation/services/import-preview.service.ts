@@ -213,17 +213,46 @@ export class ImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(workingDir, session.workingFileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+        // Getting of preview data fails when DuckDB's CSV sniffer cannot parse the file based on selected or guessed delimiter.
+        // So catch the error and return an empty preview table in that case.
+        // TODO. Send a warning message to the client so they know the preview is not available.
+        let previewData: PreviewTableData = { columns: [], rows: [], totalRowCount: 0 };
+        try {
+            await DuckDBUtils.createTableFromFile(
+                this.fileIOService.duckDbConn,
+                importFilePathName,
+                tableName,
+                false,
+                session.rowsToSkip,
+                this.MAX_PREVIEW_ROWS,
+                session.delimiter);
 
-        const previewData: PreviewTableData = {
-            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
-        };
+            previewData = {
+                columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
+                rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
+                totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
+            };
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+            await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+        } catch (error) {
+            // If the preview table creation fails, we still want to return the session info and original file lines.
+            this.logger.error(`Failed to create preview table for session ${session.sessionId}: ${error}`);
+        }
 
-        const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+        // Getting of skipped data fails when DuckDB's CSV sniffer cannot parse the file based on selected or guessed delimiter.
+        // So catch the error and return an empty skippedData table in that case. 
+        // TODO. Send a warning message to the client so they know the skipped data is not available.
+        let skippedData: PreviewTableData = { columns: [], rows: [], totalRowCount: 0 };
+        try {
+            skippedData = await DuckDBUtils.getSkippedData(
+                this.fileIOService,
+                importFilePathName,
+                session.rowsToSkip,
+                this.MAX_PREVIEW_ROWS,
+                session.delimiter);
+        } catch (error) {
+            this.logger.error(`Failed to get skipped data for preview session ${session.sessionId}: ${error}`);
+        }
 
         // Read the head of the **original** uploaded file (pre-adapter) so
         // users can compare the raw bytes against DuckDB's parsed view.
