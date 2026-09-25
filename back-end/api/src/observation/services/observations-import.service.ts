@@ -19,6 +19,7 @@ import { FlagsService } from 'src/metadata/flags/services/flags.service';
 import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
 import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { FileProcessingError } from 'src/metadata/file-processing-error.model';
+import { DuckDBConnection } from '@duckdb/node-api';
 
 @Injectable()
 export class ObservationImportService {
@@ -83,10 +84,9 @@ export class ObservationImportService {
         intermediateDir: string,
         outputDir: string,
         userId: number,
-        stationId: string | null): Promise<FileProcessingError | void> {
+        stationId: string | null,
+        conn?: DuckDBConnection): Promise<FileProcessingError | void> {
         const sourceDef = this.sourcesService.find(sourceId);
-
-        this.logger.log(`Processing file import ${inputFilePathName} to dir ${outputDir} for source ${sourceDef.name} (id: ${sourceDef.id})`);
 
         let duckDbInputFilePathName: string = inputFilePathName;
 
@@ -101,7 +101,7 @@ export class ObservationImportService {
             duckDbInputFilePathName = path.posix.join(intermediateDir, result.outputFiles[0].name);
         }
 
-        return this.transformForImport(sourceId, duckDbInputFilePathName, outputDir, userId, stationId);
+        return this.transformForImport(sourceId, duckDbInputFilePathName, outputDir, userId, stationId, conn);
     }
 
     /**
@@ -119,7 +119,8 @@ export class ObservationImportService {
         inputFilePathName: string,
         outputDir: string,
         userId: number,
-        stationId: string | null): Promise<FileProcessingError | void> {
+        stationId: string | null,
+        conn?: DuckDBConnection): Promise<FileProcessingError | void> {
         const sourceDef = this.sourcesService.find(sourceId);
 
         if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
@@ -133,7 +134,7 @@ export class ObservationImportService {
         const importSourceDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
 
         if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-            return await this.processTabularSource(sourceDef, inputFilePathName, outputDir, userId, stationId);
+            return await this.processTabularSource(sourceDef, inputFilePathName, outputDir, userId, stationId, conn);
         } else {
             throw new Error('Source structure not supported yet');
         }
@@ -183,10 +184,16 @@ export class ObservationImportService {
         outputDir: string,
         userId: number,
         stationId: string | null,
+        conn?: DuckDBConnection,
     ): Promise<FileProcessingError | void> {
         const startTime = Date.now();
 
-        this.logger.log(`processing file ${inputFilePathName} for database import`);
+        // Callers processing one file at a time get the shared connection.
+        // Callers processing several at once pass their own, because
+        // statements on a single connection are serialised.
+        const duckDbConn: DuckDBConnection = conn ?? this.fileIOService.duckDbConn;
+
+        //this.logger.log(`processing file ${inputFilePathName} for database import`);
 
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
@@ -199,34 +206,42 @@ export class ObservationImportService {
         //---------------------------------
         // Step 1
         // Read the file, create table and execute transformations
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, false, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
+        await DuckDBUtils.createTableFromFile(duckDbConn, inputFilePathName, tableName, false, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
-        const elements: CreateViewElementDto[] = this.elementsService.find();
-        const flags: ViewFlagDto[] = this.flagsService.find();
-        const error: FileProcessingError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, flags, stationId, userId);
+        try {
+            const elements: CreateViewElementDto[] = this.elementsService.find();
+            const flags: ViewFlagDto[] = this.flagsService.find();
+            const error: FileProcessingError | void = await TabularImportTransformer.executeTransformation(duckDbConn, tableName, sourceId, sourceDef, elements, flags, stationId, userId);
 
-        if (error) {
-            this.logger.warn(`Errors found during data transformation for file ${inputFilePathName}`);
-            return error;
+            if (error) {
+                return error;
+            }
+
+            //---------------------------------
+            // Step 2
+            // Write the transformed table to a file
+            await TabularImportTransformer.exportTransformedDataToFile(duckDbConn, tableName, outputFilePathName);
+        } finally {
+            // Always drop the table to prevent a connector processing thousands of files 
+            // from piling up thousands of tables in the shared duckdb instance.
+            await duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
         }
-
-        //---------------------------------
-        // Step 2
-        // Write the transformed table to a file and drop the table
-        await TabularImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, outputFilePathName);
-        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
-
-        this.logger.log(`DuckDB processing took ${Date.now() - startTime} milliseconds`);
     }
 
     /**
      * Import processed CSV file to database using PostgreSQL COPY command.
      * Uses a staging table approach to handle duplicates efficiently.
+     *
+     * Returns the number of observations written — Postgres's own row count
+     * for the upsert, so new and overwritten observations both count, which is
+     * what "imported" means for a re-read file. Taken from the statement that
+     * commits rather than from DuckDB's count before export, so it is the
+     * number that actually landed, and it costs nothing extra.
      */
-    public async importProcessedFileToDatabase(inputFilePathName: string,): Promise<void> {
+    public async importProcessedFileToDatabase(inputFilePathName: string,): Promise<number> {
         const startTime = Date.now();
 
-        this.logger.log(`Importing file ${inputFilePathName} into database`);
+        // this.logger.log(`Importing file ${inputFilePathName} into database`);
 
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -273,14 +288,14 @@ export class ObservationImportService {
                         ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME};
                 `;
 
-            await queryRunner.query(upsertQuery);
+            const upsertResult = await queryRunner.query(upsertQuery, undefined, true);
+            const importedRows: number = upsertResult.affected ?? 0;
 
             await queryRunner.commitTransaction();
 
-            this.logger.log(`Successfully imported ${inputFilePathName} into database`);
-
             this.eventEmitter.emit('observations.saved');
 
+            return importedRows;
         } catch (error) {
             await queryRunner.rollbackTransaction();
 
@@ -291,7 +306,5 @@ export class ObservationImportService {
         } finally {
             await queryRunner.release();
         }
-
-        this.logger.log(`PostgreSQL import took ${Date.now() - startTime} milliseconds`);
     }
 }
