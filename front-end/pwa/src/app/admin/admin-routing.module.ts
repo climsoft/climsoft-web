@@ -6,8 +6,7 @@ import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
-import { ViewJobQueueComponent } from './job-queue/components/view-job-queue/view-job-queue.component';
-import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
+import { ViewConnectorRunsComponent } from './connector-runs/components/view-connector-runs/view-connector-runs.component';
 const routes: Routes = [
   {
     path: '',
@@ -38,12 +37,8 @@ const routes: Routes = [
         component: ViewUsersComponent,
       },
       {
-        path: 'view-job-queue',
-        component: ViewJobQueueComponent,
-      },
-      {
-        path: 'view-connector-logs',
-        component: ViewConnectorLogsComponent,
+        path: 'view-connector-runs',
+        component: ViewConnectorRunsComponent,
       },
     ]
   }

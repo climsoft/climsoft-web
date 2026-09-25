@@ -7,7 +7,7 @@ import { StringUtils } from 'src/shared/utils/string.utils';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBConnection } from '@duckdb/node-api';
 import { ViewSourceSpecificationModel } from 'src/metadata/source-specifications/dtos/view-source-specification.model';
-import { FileProcessingError } from 'src/metadata/file-processing-error.model';
+import { FileProcessingError, FileProcessingErrorType } from 'src/metadata/file-processing-error.model';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -107,6 +107,29 @@ export class TabularImportTransformer {
             },
         ];
 
+        // Two row counts bracket the steps, and they are the only two. A table
+        // that is empty after the steps would otherwise flow on unremarked:
+        // exported as a header-only CSV, COPYed and INSERTed as zero rows,
+        // committed — and counted by the connector as a successfully imported
+        // file.
+        //
+        // Neither count is needed for dates. The Date/Time step parses with a
+        // bare `strptime` and fails the file outright on a date that does not
+        // match, so it never silently empties the table.
+
+        // A file with no data rows at all — only a header, or fewer lines than
+        // `rowsToSkip`. Caught before the steps so it is reported as what it is,
+        // rather than as whichever step first stumbles over an empty table
+        // (typically a misleading "column position out of range").
+        if (await DuckDBUtils.getRowCount(conn, tableName) === 0) {
+            return {
+                type: FileProcessingErrorType.NO_DATA,
+                message: tabularDef.rowsToSkip > 0
+                    ? `The file has no data rows after skipping the first ${tabularDef.rowsToSkip} row(s).`
+                    : 'The file has no data rows.',
+            };
+        }
+
         for (const step of steps) {
             try {
                 // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
@@ -118,6 +141,20 @@ export class TabularImportTransformer {
                 // Stop processing — later steps may depend on this one.
                 return ImportErrorUtils.classifyDuckDbError(error, step.name);
             }
+        }
+
+        // Rows can still be discarded legitimately, and a file can lose all of
+        // them: a value-less row is dropped when the specification does not
+        // import missing values, a wide day/hour layout's UNPIVOT drops empty
+        // cells, and rows for stations or elements outside the specification's
+        // mappings are deleted. None of that is an error, and all of it can
+        // leave nothing to import — which is `empty`, not `success`.
+        if (await DuckDBUtils.getRowCount(conn, tableName) === 0) {
+            return {
+                type: FileProcessingErrorType.NO_DATA,
+                message: `No observations remained after transformation: every row was either missing its value or excluded by the specification's station or element mappings.`,
+                detail: `Nothing is wrong with the specification. A data logger recording with its instruments disconnected typically produces files like this.`,
+            };
         }
     }
 
@@ -144,6 +181,14 @@ export class TabularImportTransformer {
 
             if (stationDefinition.stationsToFetch) {
                 sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true));
+                // The mapping's UPDATEs leave the table with outstanding updates,
+                // and SET NOT NULL below — and in the Element and Level steps
+                // after it — cannot build its index over those while any other
+                // connection has a transaction open. Without this rebuild every
+                // file of a specification with a station mapping failed with
+                // "Cannot create index with outstanding updates" under concurrent
+                // workers (160/160 measured). See buildAlterDateTimeColumnSQL.
+                sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName}`);
             }
 
             // Ensure there are no nulls in the station column
@@ -232,7 +277,16 @@ export class TabularImportTransformer {
                 sql.push(`UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = 'column${element.columnPosition}'`);
             }
 
-            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} SET NOT NULL`);
+            // No SET NOT NULL here. It could never fire: UNPIVOT puts the
+            // source column *name* in this column, never a null, and every
+            // name is mapped by the loop above because `colNames` comes from
+            // the same `columnsMapping`. It was also blocking — an index built
+            // over a table still carrying outstanding row versions from those
+            // UPDATEs, which DuckDB refuses whenever another transaction is
+            // open. Measured 119 failures in 120 files at four workers; this
+            // branch simply had not been exercised, because the specification
+            // under test used `noElement`. See buildAlterDateTimeColumnSQL for
+            // the full explanation and the rule about where such DDL may go.
             sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER`);
 
         } else {
@@ -242,7 +296,11 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildAlterDateTimeColumnSQL(sourceDef: ViewSourceSpecificationModel, importDef: ImportSourceTabularParamsDto, tableName: string): string[] {
+    private static buildAlterDateTimeColumnSQL(
+        sourceDef: ViewSourceSpecificationModel,
+        importDef: ImportSourceTabularParamsDto,
+        tableName: string,
+    ): string[] {
         const sql: string[] = [];
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
@@ -267,34 +325,84 @@ export class TabularImportTransformer {
             // Build the time side; populate `time_col` with the file format kept in `timeFormatStr`.
             const timeFormatStr = this.buildTimePartSQL(sql, tableName, time);
 
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
-            sql.push(`UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            // Created populated, by a rebuild, rather than added empty and then
+            // filled by an UPDATE. The SET NOT NULL at the end of this step
+            // depends on it. An added column starts out NULL on every row, and
+            // while any other connection holds a transaction open DuckDB keeps
+            // those NULL row versions — which the NOT NULL check then sees,
+            // failing every file with "NOT NULL constraint failed:
+            // combined_date_time_col" although no date is missing. Not even the
+            // ALTER TYPE rewrite below discards them. Measured: every separated
+            // date/time file failed under four concurrent workers (and none on a
+            // single connection, which is why it went unnoticed); none fail with
+            // the rebuild. It is also one pass over the table instead of two.
+            sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT *, date_col || ' ' || time_col AS ${this.DATE_TIME_PROPERTY_NAME} FROM ${tableName}`);
             expectedDatetimeFormat = `${dateFormatStr} ${timeFormatStr}`;
 
         } else {
             throw new Error("Date time interpretation not valid");
         }
 
-        // Convert all values to a valid sql timestamp using the format specified
-        // Note, some files can be messy and can hang duckdb when `strptime` is used directly. So always use `try_strptime` to sanitise the file first
-        sql.push(`UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = try_strptime(${this.DATE_TIME_PROPERTY_NAME}, '${expectedDatetimeFormat}')`);
-        sql.push(`DELETE FROM ${tableName} WHERE ${this.DATE_TIME_PROPERTY_NAME} IS NULL`);
-        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL`);
-
-        // As of 09/07/2026 DuckDB ALTER COLUMN fails if values of conflicting types have occurred in the table at any point, even if they have been deleted
-        // as a workaround they the create or replace table statement has to be executed to remove the history of conflicting types before altering the column type.
-        sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName}`);
-        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '%Y-%m-%d %H:%M:%S')`);
-
-        // If date times are not in UTC then convert them to utc
+        // Parse the dates with a bare `strptime`, so a date that does not match
+        // the format fails the whole file with DuckDB's own error — which names
+        // the offending value and the format, and which the error classifier
+        // turns into DATETIME_FORMAT_MISMATCH. The connector records that as
+        // `failed`, and retries it every run, so correcting the specification
+        // brings the file in with no further action.
+        //
+        // This replaced a `try_strptime` + DELETE pair that dropped every
+        // non-matching row and imported the rest. It existed because a bare
+        // `strptime` was believed to hang DuckDB on messy files. Retested
+        // 22/09/2026 on @duckdb/node-api 1.4.4-r.1 and 1.5.5-r.5 and it does
+        // not: 200,000 non-matching rows, logger files consisting entirely of
+        // NUL bytes, four connections failing at once and a failure in the
+        // middle of a batch all threw within milliseconds and left the
+        // connection usable. The hang predates the move off `duckdb-async`, and
+        // most likely lived in those legacy bindings. Dropping rows silently was
+        // the worse behaviour anyway: a wrong format imported nothing and
+        // reported success.
+        //
+        // The UTC offset is applied in the same expression rather than by an
+        // UPDATE afterwards. That removes a full pass over the table, and more
+        // importantly leaves this step with no outstanding UPDATE: the next step,
+        // Interval, runs SET NOT NULL, which an outstanding UPDATE makes fail
+        // under concurrency (see the rule below). Local time ahead of UTC
+        // (a positive offset) is moved back; behind it, forward.
+        let toUtc: string = '';
         if (sourceDef.utcOffset > 0) {
-            // Subtract the offset to get UTC time. Local time is ahead of UTC, so to move "back" to UTC
-            sql.push(`UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${sourceDef.utcOffset} HOUR`);
+            toUtc = ` - INTERVAL ${sourceDef.utcOffset} HOUR`;
         } else if (sourceDef.utcOffset < 0) {
-            // Add the offset to get UTC time. Local time is behind UTC, so to move "forward" to UTC
-            sql.push(`UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR`);
+            toUtc = ` + INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR`;
         }
+        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${expectedDatetimeFormat}')${toUtc}`);
+
+        // A row with no date is never an observation, so it fails the file
+        // loudly, the same as a missing station or element. `strptime` alone
+        // does not catch it: `strptime(NULL)` is NULL, not an error, and an empty
+        // cell loads as NULL — DuckDB's CSV reader turns both `,,` and `,"",`
+        // into NULL by default. Left in, such a row would pass every DuckDB step
+        // and fail only in Postgres, where the previews never reach.
+        //
+        // The POSITION of this statement matters, and is the rule for any
+        // index-creating DDL in this class (SET NOT NULL, PRIMARY KEY, UNIQUE,
+        // CREATE INDEX). DuckDB refuses to build the index — "Cannot create
+        // index with outstanding updates" — when BOTH:
+        //   1. the table has an UPDATE that has not since been cleared, and
+        //   2. another connection holds an open transaction — in a connector
+        //      run, any other worker with a statement in flight.
+        // A DELETE does not trigger it. A table rebuild (CREATE OR REPLACE ...
+        // AS SELECT) clears it, and so does an ALTER COLUMN ... TYPE, which
+        // rewrites the whole table. Measured on 1.4.4 and 1.5.5 alike, with an
+        // idle open transaction: SET NOT NULL straight after the ALTER TYPE
+        // above succeeded 160/160 even with an UPDATE before it (the separated
+        // layout's date+time combine); placed after an UPDATE instead — as the
+        // UTC-offset conversion used to be — it failed 160/160.
+        //
+        // Every UPDATE in this class must therefore be followed by an ALTER
+        // TYPE or a rebuild before the next SET NOT NULL, including one in a
+        // LATER step: the Station step's mapping and the Element step's single
+        // column mapping both rebuild for exactly this reason.
+        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL`);
 
         return sql;
     }

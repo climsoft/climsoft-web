@@ -28,13 +28,13 @@ export class UpdateGeneralSettingParametersDto {
       return ClimsoftBoundaryDto;
     } else if ((parameters as ClimsoftDisplayTimeZoneDto).utcOffset !== undefined) {
       return ClimsoftDisplayTimeZoneDto;
-    } else if ((parameters as SchedulerSettingDto).jobQueueCleanup !== undefined) {
+    } else if ((parameters as SchedulerSettingDto).connectorRunCleanup !== undefined) {
       return SchedulerSettingDto;
     } else {
       throw new BadRequestException('parameters are not recognised');
     }
 
   })
-  parameters: GeneralSettingParameters;
+  parameters!: GeneralSettingParameters;
 
 }

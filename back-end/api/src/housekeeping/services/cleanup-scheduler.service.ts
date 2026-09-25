@@ -6,12 +6,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
-import { CleanupScheduleDto, SchedulerSettingDto } from 'src/settings/dtos/settings/scheduler-setting.dto';
-import { JobQueueService } from './job-queue.service';
-import { ConnectorExecutionLogService } from './connector-execution-log.service';
+import { FileCleanupScheduleDto, ConnectorRunCleanupDto, SchedulerSettingDto } from 'src/settings/dtos/settings/scheduler-setting.dto';
 import { AdaptersService } from 'src/metadata/adapters/services/adapters.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { ConnectorRunFileService } from 'src/connectors/services/connector-run-file.service';
+import { ConnectorRunService } from 'src/connectors/services/connector-run.service';
 
 @Injectable()
 export class CleanupSchedulerService implements OnApplicationBootstrap {
@@ -20,11 +20,11 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     constructor(
         private schedulerRegistry: SchedulerRegistry,
         private generalSettingsService: GeneralSettingsService,
-        private jobQueueService: JobQueueService,
-        private connectorExecutionLogService: ConnectorExecutionLogService,
         private adaptersService: AdaptersService,
         private sourcesService: SourceSpecificationsService,
         private fileIOService: FileIOService,
+        private runFileService: ConnectorRunFileService,
+        private connectorRunService: ConnectorRunService,
     ) { }
 
     /**
@@ -69,12 +69,12 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
             return;
         }
 
-        if (schedulerSetting.jobQueueCleanup) {
-            this.registerCronJob('cleanup-job-queue', schedulerSetting.jobQueueCleanup, () => this.cleanupJobQueue());
-        }
-
-        if (schedulerSetting.connectorLogCleanup) {
-            this.registerCronJob('cleanup-connector-logs', schedulerSetting.connectorLogCleanup, () => this.cleanupConnectorLogs());
+        // Safe to sweep on a timer because de-duplication depends only on a
+        // connector's newest run that reached the server, and the sweep counts
+        // only those — pruning cannot change what the next run ingests. See
+        // ConnectorRunService.pruneToLatest.
+        if (schedulerSetting.connectorRunCleanup) {
+            this.registerRetentionCronJob('cleanup-connector-runs', schedulerSetting.connectorRunCleanup, () => this.cleanupConnectorRuns());
         }
 
         if (schedulerSetting.fileCleanup) {
@@ -84,7 +84,7 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
         this.logger.log('Cleanup schedules initialized');
     }
 
-    private registerCronJob(jobName: string, schedule: CleanupScheduleDto, callback: () => Promise<void>) {
+    private registerCronJob(jobName: string, schedule: FileCleanupScheduleDto, callback: () => Promise<void>) {
         if (this.schedulerRegistry.doesExist('cron', jobName)) {
             this.schedulerRegistry.deleteCronJob(jobName);
         }
@@ -112,35 +112,58 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     }
 
     /**
-     * Delete finished job queue entries older than the configured daysOld
+     * Same registration as registerCronJob, for a schedule whose retention is a
+     * run count rather than an age. Kept separate rather than widening
+     * CleanupScheduleDto so the log line reports the right unit and neither
+     * schedule can be handed the other's field by mistake.
      */
-    private async cleanupJobQueue() {
-        const schedule = this.getSchedule('jobQueueCleanup');
-        if (!schedule) return;
+    private registerRetentionCronJob(jobName: string, schedule: ConnectorRunCleanupDto, callback: () => Promise<void>) {
+        if (this.schedulerRegistry.doesExist('cron', jobName)) {
+            this.schedulerRegistry.deleteCronJob(jobName);
+        }
 
-        this.logger.log('Running job queue cleanup');
-        const deletedCount = await this.jobQueueService.cleanupOldJobs(schedule.daysOld);
-        this.logger.log(`Job queue cleanup completed. Deleted ${deletedCount} old job(s)`);
+        try {
+            const job = new CronJob(
+                schedule.cronSchedule,
+                async () => {
+                    try {
+                        await callback();
+                    } catch (error) {
+                        this.logger.error(`Error executing ${jobName}`, error);
+                    }
+                },
+                null,
+                true,
+                'UTC',
+            );
+
+            this.schedulerRegistry.addCronJob(jobName, job);
+            this.logger.log(`Scheduled ${jobName} with cron: ${schedule.cronSchedule}, keepLast: ${schedule.keepLast}, attemptDays: ${schedule.attemptDays}`);
+        } catch (error) {
+            this.logger.error(`Failed to schedule ${jobName}`, error);
+        }
     }
 
     /**
-     * Delete connector execution logs older than the configured daysOld
+     * Keep the newest `keepLast` snapshots of each connector, and drop failed
+     * attempts older than `attemptDays`.
+     *
+     * The service clamps the count to at least one, so a connector's newest
+     * snapshot — the one holding its de-duplication baseline — is never
+     * reachable by this.
      */
-    private async cleanupConnectorLogs() {
-        const schedule = this.getSchedule('connectorLogCleanup');
+    private async cleanupConnectorRuns() {
+        const setting = this.getSchedulerSetting();
+        const schedule = setting?.connectorRunCleanup;
         if (!schedule) return;
 
-        this.logger.log('Running connector log cleanup');
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - schedule.daysOld);
-
-        const deletedCount = await this.connectorExecutionLogService.deleteOlderThan(cutoffDate);
-        this.logger.log(`Connector log cleanup completed. Deleted ${deletedCount} old log(s)`);
+        this.logger.log('Running connector run retention sweep');
+        await this.connectorRunService.pruneToLatest(schedule.keepLast, schedule.attemptDays);
     }
 
     /**
      * Delete orphaned operation directories and unreferenced adapter script directories and sample files directories.
-     * Operation directories that are still referenced by connector execution logs are preserved.
+     * Operation directories that are still referenced by connector runs are preserved.
      */
     private async cleanupFiles() {
         const schedule = this.getSchedule('fileCleanup');
@@ -181,15 +204,17 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     /**
      * Delete orphaned operation directories older than cutoffDate.
      * Skips the 'duckdb' directory and any operations still referenced
-     * by connector execution logs.
+     * by connector runs.
      */
     private async cleanupOperations(cutoffDate: Date): Promise<number> {
         let deletedCount: number = 0;
         const operationsDir = this.fileIOService.apiOperationsDir;
 
         try {
-            // Gather all referenced operation IDs from connector logs
-            const referencedOperationIds: Set<string> = await this.connectorExecutionLogService.findAllReferencedOperationIds();
+            // The only still-referenced operation dirs are retained failed
+            // imports, tracked on the de-dup ledger. (Exports always tear their
+            // operation dirs down at end of run.)
+            const referencedOperationIds: Set<string> = await this.runFileService.findReferencedOperationIds();
 
             const allEntries = await fs.promises.readdir(operationsDir, { withFileTypes: true });
             const dirs = allEntries.filter(entry => entry.isDirectory());
@@ -300,12 +325,24 @@ export class CleanupSchedulerService implements OnApplicationBootstrap {
     /**
      * Read a specific cleanup schedule from the current Scheduler setting
      */
-    private getSchedule(key: keyof Pick<SchedulerSettingDto, 'jobQueueCleanup' | 'connectorLogCleanup' | 'fileCleanup'>): CleanupScheduleDto | null {
-        try {
-            const setting = this.generalSettingsService.findOne(SettingIdEnum.SCHEDULER).parameters as SchedulerSettingDto;
-            return setting[key] ?? null;
-        } catch (error) {
+    private getSchedule(key: keyof Pick<SchedulerSettingDto, 'fileCleanup'>): FileCleanupScheduleDto | null {
+        const setting = this.getSchedulerSetting();
+        if (!setting) {
             this.logger.warn(`Could not read scheduler setting for ${key}`);
+            return null;
+        }
+        return setting[key] ?? null;
+    }
+
+    /**
+     * The whole scheduler setting. The age-based schedules go through
+     * getSchedule; the retention one reads this directly because its shape
+     * differs (a run count rather than a day count).
+     */
+    private getSchedulerSetting(): SchedulerSettingDto | null {
+        try {
+            return this.generalSettingsService.findOne(SettingIdEnum.SCHEDULER).parameters as SchedulerSettingDto;
+        } catch {
             return null;
         }
     }

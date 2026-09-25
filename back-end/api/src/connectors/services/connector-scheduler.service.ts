@@ -2,11 +2,10 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import { JobQueueService } from './job-queue.service';
+import { ConnectorRunService } from './connector-run.service';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ConnectorJobPayloadDto, JobQueueEntity, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity';
+import { ConnectorRunEntity, ConnectorRunTriggerEnum } from '../entities/connector-run.entity';
 import { ViewConnectorSpecificationModel } from 'src/metadata/connector-specifications/dtos/view-connector-specification.model';
-import { ConnectorTypeEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ConnectorSchedulerService implements OnApplicationBootstrap {
@@ -15,7 +14,7 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
     constructor(
         private schedulerRegistry: SchedulerRegistry,
         private connectorSpecificationService: ConnectorSpecificationsService,
-        private jobQueueService: JobQueueService,
+        private connectorRunService: ConnectorRunService,
     ) { }
 
     /**
@@ -29,7 +28,7 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
         await this.initializeAllSchedules();
     }
 
-    /**
+    /** 
      * Initialize all active connector schedules
      */
     private async initializeAllSchedules() {
@@ -89,7 +88,10 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
     }
 
     /**
-     * Schedule a connector job (creates queue entry)
+     * A cron firing only *queues* a run; the dispatcher starts it. Keeping the
+     * two apart is what lets a connector whose turn came while another was
+     * running be picked up on the next tick, rather than being lost along with
+     * the cron firing that created it.
      */
     private async scheduleConnectorJob(connectorId: number) {
         try {
@@ -100,70 +102,41 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
                 return;
             }
 
-            const payload: ConnectorJobPayloadDto = {
-                connectorId: connector.id,
-            };
-
-            const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
-
-            // Create queue job to be processed.
-            // Job queue uses total-attempt semantics (maxAttempts), while a
-            // connector's `retryAttempts` counts retries *after* the first try,
-            // so add 1 for the initial attempt.
-            await this.jobQueueService.createJob(
-                connector.name,
-                jobType,
-                JobTriggerEnum.SCHEDULE,
+            // `maxAttempts` counts total attempts, while a connector's
+            // `retryAttempts` counts retries *after* the first try, so add one.
+            // `enqueue` coalesces: a connector that already has a queued or
+            // running run gets that one back, so a drain outlasting the cron
+            // interval never stacks duplicates of itself.
+            await this.connectorRunService.enqueue(
+                connector.id,
+                ConnectorRunTriggerEnum.SCHEDULE,
                 connector.retryAttempts + 1,
-                payload,
-                new Date(), // Schedule immediately
-                connector.entryUserId, // User who created it
+                connector.entryUserId,
             );
 
-            this.logger.log(`Created "${connector.connectorType}" job for connector "${connector.name}"`);
-
         } catch (error) {
-            this.logger.error(`Failed to schedule connector job ${connectorId}`, error);
-        }
-    }
-
-    private getEquivalentJobType(connectorType: ConnectorTypeEnum): JobTypeEnum {
-        switch (connectorType) {
-            case ConnectorTypeEnum.IMPORT:
-                return JobTypeEnum.CONNECTOR_IMPORT;
-            case ConnectorTypeEnum.EXPORT:
-                return JobTypeEnum.CONNECTOR_EXPORT;
-            default:
-                throw new Error('Developer Error. Connector type not supported');
+            this.logger.error(`Failed to queue run for connector ${connectorId}`, error);
         }
     }
 
     /**
-     * Manually trigger a connector job
+     * Queue a run now, at a sysadmin's request. Coalesces exactly as the
+     * schedule does — asking for a run while one is already going returns that
+     * run rather than starting a second.
      */
-    public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
+    public async triggerConnectorManually(connectorId: number, userId: number): Promise<ConnectorRunEntity> {
         const connector: ViewConnectorSpecificationModel = this.connectorSpecificationService.find(connectorId);
 
-        const payload: ConnectorJobPayloadDto = {
-            connectorId: connector.id,
-        };
-
-        const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
-
-        // See scheduleConnectorJob: convert retries-after-first to total attempts for the queue.
-        const job = await this.jobQueueService.createJob(
-            connector.name,
-            jobType,
-            JobTriggerEnum.MANUAL,
+        const run = await this.connectorRunService.enqueue(
+            connector.id,
+            ConnectorRunTriggerEnum.MANUAL,
             connector.retryAttempts + 1,
-            payload,
-            new Date(),
-            userId
+            userId,
         );
 
-        this.logger.log(`Manually triggered ${connector.connectorType} job for connector ${connector.name}`);
+        this.logger.log(`Manually queued ${connector.connectorType} run ${run.id} for connector ${connector.name}`);
 
-        return job;
+        return run;
     }
 
     /**
@@ -209,8 +182,12 @@ export class ConnectorSchedulerService implements OnApplicationBootstrap {
      * Handle connector deleted event
      */
     @OnEvent('connector.deleted')
-    handleConnectorDeleted(event: any) {
+    async handleConnectorDeleted(event: any) {
         if (event.id) {
+            // Only the schedule. The run rows are already gone:
+            // connector_runs.connector_id is ON DELETE CASCADE, which Postgres
+            // enforces for any DELETE of the connector however it was issued, and
+            // the run tiers cascade from there.
             this.removeConnectorSchedule(event.id);
         } else {
             // All connectors deleted, clear all schedules

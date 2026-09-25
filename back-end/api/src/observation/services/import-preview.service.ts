@@ -230,7 +230,7 @@ export class ImportPreviewService implements OnModuleDestroy {
             previewData = {
                 columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
                 rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-                totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
+                totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
             };
 
             await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
@@ -279,7 +279,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
+            totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
         };
 
         await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);

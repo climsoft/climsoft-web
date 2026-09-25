@@ -18,17 +18,12 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
 import { EditUserPermissionsDurationComponent } from './users/permissions/edit-user-permissions-duration/edit-user-permissions-duration.component';
 
 // Job Queue components
-import { ViewJobQueueComponent } from './job-queue/components/view-job-queue/view-job-queue.component';
-import { JobDetailDialogComponent } from './job-queue/components/job-detail-dialog/job-detail-dialog.component';
 
 // Connector Logs components
-import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
-import { ExecutionDetailDialogComponent } from './connector-logs/components/execution-detail-dialog/execution-detail-dialog.component';
-import { ImportFilesTableComponent } from './connector-logs/components/import-files-table/import-files-table.component';
-import { ExportFilesTableComponent } from './connector-logs/components/export-files-table/export-files-table.component';
-import { JobTypeSelectorSingleComponent } from './job-queue/job-type-selector-single/job-type-selector-single.component';
-import { JobStatusSelectorSingleComponent } from './job-queue/job-status-selector-single/job-status-selector-single.component';
-import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-trigger-selector-single/job-trigger-selector-single.component';
+import { ViewConnectorRunsComponent } from './connector-runs/components/view-connector-runs/view-connector-runs.component';
+import { RunDetailDialogComponent } from './connector-runs/components/run-detail-dialog/run-detail-dialog.component';
+import { RunFilesTableComponent } from './connector-runs/components/run-files-table/run-files-table.component';
+import { RunSpecsTableComponent } from './connector-runs/components/run-specs-table/run-specs-table.component';
 
 @NgModule({
   declarations: [
@@ -50,17 +45,12 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
     PasswordChangeComponent,
 
     // Job Queue
-    ViewJobQueueComponent,
-    JobDetailDialogComponent,
-    JobTypeSelectorSingleComponent,
-    JobStatusSelectorSingleComponent,
-    JobTriggerSelectorSingleComponent,
 
     // Connector Logs
-    ViewConnectorLogsComponent,
-    ExecutionDetailDialogComponent,
-    ImportFilesTableComponent,
-    ExportFilesTableComponent,
+    ViewConnectorRunsComponent,
+    RunDetailDialogComponent,
+    RunFilesTableComponent,
+    RunSpecsTableComponent,
 
   ],
   imports: [
