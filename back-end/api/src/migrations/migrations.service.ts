@@ -20,12 +20,11 @@ import { DataSource } from 'typeorm';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
-import { ProductsService } from 'src/products/services/products.service';
-import { SYSTEM_PRODUCTS } from './system-products-defaults';
+import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.8'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.9'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -41,7 +40,7 @@ export class MigrationsService {
     private flagsService: FlagsService,
     private qcSpecsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
     private sourcesService: SourceSpecificationsService,
-    private productsService: ProductsService,
+    private connectorSpecificationsService: ConnectorSpecificationsService,
 
   ) { }
 
@@ -75,12 +74,20 @@ export class MigrationsService {
     // Migrate observation flag column to flag_id
     await this.migrateObservationFlagsToFlagId();
 
-    // TODO. Temporary solution for preview 1 to 2.0.3 installations. Once all met services have preview 2.0.5 remove this
+    // TODO. Temporary solution for preview 1 to 2.0.3 installations. 
+    // Once all met services have preview 2.0.5 and above remove this
     await this.changeUpperAndLowerLimitQCStructure();
 
     // TODO. Temporary solution for preview 1 to 3.0.1 installations. Once all met services have preview 3.0.1 remove this
     // Migrate FORM source parameters from flat elementIds[] to per-element elementsMetadata[]
     await this.migrateFormElementIdsToElementsMetadata();
+
+    // TODO. Temporary solution for preview 1 to 3.0.4 installations. 
+    // Once all met services have preview 2.0.5 and above remove this
+    // Move a connector's specification-to-station bindings out of its
+    // `parameters` JSONB and into their own table, then re-key the run tiers on
+    // the binding ids this gives them.
+    await this.migrateConnectorBindingsToTable();
 
     // After successful migrations, then add the new database version
     const newDBVersion = this.dbVersionRepo.create({
@@ -112,12 +119,6 @@ export class MigrationsService {
     await this.seedFirstUser();
     await this.seedMetadata();
     await this.seedGeneralSettings();
-
-    // TODO. seed system products. This is temporary until we have a proper product management system
-    //await this.seedSystemProducts();
-
-    //TODO. seed climsoft system adapters authored by climsoft developers
-    // await this.seedSystemAdapters();
 
   }
 
@@ -191,14 +192,75 @@ export class MigrationsService {
     const existingSettings = this.generalSettingsService.findAll();
 
     for (const defaultSetting of DEFAULT_GENERAL_SETTINGS) {
-      //If any of the default settings do not exist in the server then add it. This is to make sure that new default settings added in the code will be added to existing installations after migration.
+      // A brand new setting is inserted as-is. An existing one is reconciled
+      // against the code default rather than kept verbatim: the default is the
+      // authoritative shape, and the stored value only supplies the numbers the
+      // user may have tuned. This is what lets a newly added nested key (e.g.
+      // connectorLogCleanup) reach existing installs, and a removed one (e.g. a
+      // legacy connectorLogCleanup.daysOld from before it became keepLast) drop
+      // out — the frontend echoes the whole parameters object back on save, and
+      // the global `forbidNonWhitelisted` pipe rejects any key the DTO no longer
+      // declares.
+      //
+      // Shape only, never values: a tuned fileCleanup.daysOld stays as the user
+      // set it even when the default changes. Rolling a default value forward is
+      // a deliberate migration step, not a side effect of reseeding.
       const existingSetting = existingSettings.find(s => s.id === defaultSetting.id);
-      const params: GeneralSettingParameters = existingSetting ? existingSetting.parameters : defaultSetting.parameters;
+      const params: GeneralSettingParameters = existingSetting
+        ? this.reconcileSettingShape(defaultSetting.parameters, existingSetting.parameters)
+        : defaultSetting.parameters;
       await this.generalSettingsService.put(defaultSetting.id, defaultSetting.name, defaultSetting.description, params, 1);
     }
 
 
     this.logger.log(`All general settings updated`);
+  }
+
+  /**
+   * Overlay a stored setting onto the code default, keeping only keys the
+   * default still declares. Recurses one level into nested objects, which is as
+   * deep as any general setting goes (the scheduler setting is
+   * `section -> { cronSchedule, daysOld | keepLast }`; the others are flat).
+   *
+   * - key in default and stored, both plain objects  -> merge one level deeper
+   * - key in default (object) but stored is not       -> take the default (the
+   *                                                     stored value is malformed)
+   * - key in default and stored, both scalars         -> take the stored value
+   * - key in default only                             -> take the default (a
+   *                                                     newly introduced key)
+   * - key in stored only                             -> dropped (removed key)
+   */
+  private reconcileSettingShape(defaults: GeneralSettingParameters, stored: GeneralSettingParameters): GeneralSettingParameters {
+    return this.reconcileShape(defaults, stored) as GeneralSettingParameters;
+  }
+
+  private reconcileShape(defaults: unknown, stored: unknown): unknown {
+    const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+      typeof v === 'object' && v !== null && !Array.isArray(v);
+
+    if (!isPlainObject(defaults) || !isPlainObject(stored)) {
+      return defaults;
+    }
+
+    const result: Record<string, unknown> = {};
+    for (const [key, defaultValue] of Object.entries(defaults)) {
+      if (!(key in stored)) {
+        result[key] = defaultValue;
+        continue;
+      }
+      const storedValue = stored[key];
+      if (isPlainObject(defaultValue)) {
+        // A structured section: recurse when the stored value is also an object,
+        // otherwise discard the malformed stored value for the default shape.
+        result[key] = isPlainObject(storedValue)
+          ? this.reconcileShape(defaultValue, storedValue)
+          : defaultValue;
+      } else {
+        // A scalar the user may have tuned — keep whatever is stored.
+        result[key] = storedValue;
+      }
+    }
+    return result;
   }
 
   /**
@@ -275,31 +337,77 @@ export class MigrationsService {
     }
   }
 
-  private async seedSystemProducts(): Promise<void> {
-    for (const product of SYSTEM_PRODUCTS) {
-      await this.productsService.upsertSystemProduct(
-        product.systemKey,
-        product.supersetUuid,
-        product.name,
-        product.description,
-        product.category,
-        1,
-      );
-    }
-    this.logger.log('System products seeded');
-  }
 
-  private async seedSystemAdapters(): Promise<void> {
-    // TODO. Seed system adapters authored by climsoft developers. This is temporary until we have a proper adapter management system
+  /**
+   * Move each connector's specification-to-station bindings out of
+   * `connector_specifications.parameters -> 'specifications'` and into
+   * `connector_specification_bindings`
+   */
+  private async migrateConnectorBindingsToTable(): Promise<void> {
+    try {
+
+      // -- 1. Flatten the JSONB array into rows ---------------------------
+      // `WITH ORDINALITY` preserves the order the sysadmin arranged in the form.
+      // The NOT EXISTS guard makes a re-run a no-op rather than a second copy;
+      // it is per connector, so a connector added after a partial run is still
+      // picked up.
+      const inserted = await this.dataSource.query(
+        `INSERT INTO connector_specification_bindings
+             (connector_specification_id, specification_id, station_id, file_pattern, sort_order)
+         SELECT c.id,
+                (spec.value ->> 'specificationId')::int,
+                -- '' and null both mean "no station bound" in the old blob.
+                NULLIF(spec.value ->> 'stationId', ''),
+                spec.value ->> 'filePattern',
+                spec.ord - 1
+         FROM connector_specifications c
+         CROSS JOIN LATERAL jsonb_array_elements(c.parameters -> 'specifications')
+                    WITH ORDINALITY AS spec(value, ord)
+         WHERE jsonb_typeof(c.parameters -> 'specifications') = 'array'
+           AND (spec.value ->> 'specificationId') IS NOT NULL
+           AND NOT EXISTS (
+               SELECT 1 FROM connector_specification_bindings b
+               WHERE b.connector_specification_id = c.id
+           )
+         RETURNING id`,
+      );
+      const bindingsMoved: number = Array.isArray(inserted) ? inserted.length : 0;
+
+      // -- 2. Drop the now-duplicated list from the blob -------------------
+      // Only after the rows are safely in. Leaving it would be two sources of
+      // truth for the same thing, and the stale copy would be the one the run
+      // tiers cannot see.
+      await this.dataSource.query(
+        `UPDATE connector_specifications
+         SET parameters = parameters - 'specifications'
+         WHERE parameters ? 'specifications'`,
+      );
+
+      // The connector cache was primed before any of the above existed —
+      // migrations run from the root module's `onModuleInit`, which Nest invokes
+      // after every feature module's — so it is holding connectors with no
+      // bindings. Re-read it now that they are real. Without this the scheduler
+      // would run the connectors unbound for the rest of the process's life.
+      await this.connectorSpecificationsService.refreshCache();
+
+      if (bindingsMoved > 0) {
+        this.logger.log(`Moved ${bindingsMoved} connector binding(s) from parameters JSONB into connector_specification_bindings`);
+      } else {
+        this.logger.log('No connector bindings to move into connector_specification_bindings');
+      }
+    } catch (error) {
+      this.logger.error('Error migrating connector bindings to their own table', error);
+      throw error;
+    }
   }
 
   /**
-   * Migrate FORM source parameters from `elementIds: number[]` to
-   * `elementsMetadata: { elementId, hours }[]`. Each existing element id is
-   * carried over with `hours: null` so behavior is preserved (every element
-   * enabled at every form hour). Idempotent — rows that already have
-   * `elementsMetadata` are skipped.
-   */
+  * Migrate FORM source parameters from `elementIds: number[]` to
+  * `elementsMetadata: { elementId, hours }[]`. Each existing element id is
+  * carried over with `hours: null` so behavior is preserved (every element
+  * enabled at every form hour). Idempotent — rows that already have
+  * `elementsMetadata` are skipped.
+  */
   private async migrateFormElementIdsToElementsMetadata(): Promise<void> {
     try {
       const sources = this.sourcesService.findAll();
