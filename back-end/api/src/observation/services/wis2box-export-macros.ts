@@ -2,9 +2,11 @@
  * DuckDB SQL macros used by Wis2BoxExportService.
  *
  * Each macro is exported as a `CREATE OR REPLACE MACRO ...` statement string.
- * `Wis2BoxExportService.onModuleInit` runs each one against the shared DuckDB
- * connection so the macros are available to subsequent SYNOP/DAYCLI/CLIMAT
- * generation queries.
+ * `Wis2BoxExportService.onModuleInit` runs each one once at startup. A plain
+ * (non-TEMP) macro is a catalog entry belonging to the DuckDB instance, not to
+ * the connection that created it, so every connection opened afterwards can
+ * call these — including the short-lived ones the SYNOP/DAYCLI/CLIMAT
+ * generation queries each take.
  *
  * Macros are inlined at query planning time — no per-row function-call
  * overhead, and the optimizer can analyse the body. Use them for spec-shaped

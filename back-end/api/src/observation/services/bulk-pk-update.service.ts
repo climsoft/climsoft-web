@@ -28,7 +28,6 @@ interface BulkPkUpdateSession {
     operationId: crypto.UUID;
     filter: BulkObservationFilterDto;
     change: PkChangeSpecDto;
-    duckDbTableName?: string;
     totalMatchingRows: number;
     conflictCount: number;
     createdAt: number;
@@ -119,17 +118,34 @@ export class BulkPkUpdateService implements OnModuleDestroy {
                 await queryRunner.release();
             }
 
-            // Load into DuckDB for preview 
-            await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, apiCsvPath, tableName, true, 0, 0);
-
-            const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
-            const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS);
+            // Load into DuckDB for preview, on a connection of this request's
+            // own, and drop the table again as soon as the two reads are done.
+            //
+            // Nothing after this request looks at it: `downloadConflictCsv`
+            // streams the CSV straight from the output directory and the execute
+            // step works entirely in Postgres. Keeping it would therefore pin a
+            // preview of a potentially enormous conflict set in the in-memory
+            // instance for the whole session TTL, for no reader. Dropped in a
+            // `finally` so a failed read does not leak it either.
+            const { columns, rows } = await this.fileIOService.withDuckDbConnection(async conn => {
+                try {
+                    await DuckDBUtils.createTableFromFile(conn, apiCsvPath, tableName, true, 0, 0);
+                    return {
+                        columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                        rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    };
+                } catch (error) {
+                    this.logger.error(`Failed to build the DuckDB preview for bulk pk update session ${sessionId}: ${error}`);
+                    throw error;
+                } finally {
+                    await DuckDBUtils.dropTable(conn, tableName);
+                }
+            });
 
             previewData = { columns, rows, totalRowCount: conflictCount };
 
             const session: BulkPkUpdateSession = {
                 sessionId, operationId: op.operationId, filter: dto.filter, change: dto.change,
-                duckDbTableName: tableName,
                 totalMatchingRows, conflictCount,
                 createdAt: Date.now(), lastAccessedAt: Date.now(),
             };
@@ -371,15 +387,6 @@ export class BulkPkUpdateService implements OnModuleDestroy {
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
         if (!session) return;
-
-        // Drop DuckDB table
-        if (session.duckDbTableName) {
-            try {
-                await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${session.duckDbTableName}`);
-            } catch (err) {
-                this.logger.warn(`Failed to drop DuckDB table ${session.duckDbTableName}: ${err}`);
-            }
-        }
 
         // Delete operation directory
         await this.fileIOService.deleteOperation(session.operationId);

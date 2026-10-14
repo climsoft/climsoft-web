@@ -1,7 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { DuckDBConnection } from '@duckdb/node-api';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { FileIOService } from '../services/file-io.service';
 
 export function getTableNameFromUUID(uuid: crypto.UUID): string {
     return uuid
@@ -40,6 +40,8 @@ function getTableNameFromFileName(filePathName: string): string {
 }
 
 export class DuckDBUtils {
+    private static readonly logger = new Logger(DuckDBUtils.name);
+
 
     public static buildCsvImportParams(header: boolean, rowsToSkip: number, delimiter?: string | null): string[] {
 
@@ -170,6 +172,27 @@ export class DuckDBUtils {
     // ─── Preview Helpers ─────────────────────────────────────
     // Used by ImportPreviewService and MetadataImportPreviewService to build table previews.
 
+    /**
+     * Drop a working table, for use in a `finally`.
+     *
+     * Never throws. It runs while another error is usually already in flight,
+     * and a throw from here would replace that error with a less useful one —
+     * "could not drop the table" instead of whatever actually went wrong. So a
+     * failure is logged and swallowed, which is all anyone can do with it: the
+     * table is scratch space with a UUID name, and nothing will look for it.
+     *
+     * The drop has to be explicit. Closing a connection does not remove the
+     * tables it created, because the catalog belongs to the DuckDB instance, so
+     * a table that is not dropped here stays in memory until the API restarts.
+     */
+    static async dropTable(conn: DuckDBConnection, tableName: string): Promise<void> {
+        try {
+            await conn.run(`DROP TABLE IF EXISTS ${tableName};`);
+        } catch (err) {
+            DuckDBUtils.logger.warn(`Failed to drop DuckDB table ${tableName}: ${err}`);
+        }
+    }
+
     static async getRowCount(conn: DuckDBConnection, tableName: string): Promise<number> {
         const reader = await conn.runAndReadAll(`SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName}`);
         const rows = reader.getRowObjects();
@@ -191,7 +214,7 @@ export class DuckDBUtils {
     }
 
     static async getSkippedData(
-        fileIOService: FileIOService,
+        conn: DuckDBConnection,
         importFilePathName: string,
         rowsToSkip: number,
         maxPreviewRows: number,
@@ -205,7 +228,7 @@ export class DuckDBUtils {
         // Important. Use uuid here to avoid unintentionally deleting any existing table that use the file name as its table name
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
         await DuckDBUtils.createTableFromFile(
-            fileIOService.duckDbConn,
+            conn,
             importFilePathName,
             tableName,
             false,
@@ -213,11 +236,13 @@ export class DuckDBUtils {
             maxPreviewRows,
             delimiter);
 
-        skippedData.totalRowCount = await DuckDBUtils.getRowCount(fileIOService.duckDbConn, tableName);
-        skippedData.columns = await DuckDBUtils.getColumnNames(fileIOService.duckDbConn, tableName);
-        skippedData.rows = await DuckDBUtils.getPreviewRows(fileIOService.duckDbConn, tableName, rowsToSkip);
-
-        await fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+        try {
+            skippedData.totalRowCount = await DuckDBUtils.getRowCount(conn, tableName);
+            skippedData.columns = await DuckDBUtils.getColumnNames(conn, tableName);
+            skippedData.rows = await DuckDBUtils.getPreviewRows(conn, tableName, rowsToSkip);
+        } finally {
+            await DuckDBUtils.dropTable(conn, tableName);
+        }
 
         return skippedData;
     }

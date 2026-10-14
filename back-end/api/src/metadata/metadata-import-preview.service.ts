@@ -98,17 +98,26 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const importFilePathName: string = path.posix.join(op.inputDir, session.fileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
+        const { previewData, skippedData } = await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        // Get preview data
-        const previewData: PreviewTableData = {
-            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
-        };
-        const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+                // Get preview data
+                const preview: PreviewTableData = {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    totalRowCount: await DuckDBUtils.getRowCount(conn, tableName),
+                };
+                const skipped: PreviewTableData = await DuckDBUtils.getSkippedData(conn, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+                return { previewData: preview, skippedData: skipped };
+            } catch (error) {
+                this.logger.error(`Failed to build the raw preview for metadata import session ${session.sessionId}: ${error}`);
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
         const originalLines: string[] = await FileLinesUtils.readHeadLines(importFilePathName, session.rowsToSkip + this.MAX_PREVIEW_ROWS);
 
@@ -123,20 +132,27 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(op.inputDir, session.fileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
+        return this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        const error: FileProcessingError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping);
+                const error: FileProcessingError | void = await StationImportTransformer.executeTransformation(conn, tableName, stnMapping);
 
-        // Return the current table state (includes all successful transformations) 
-        const previewData: PreviewTableData = {
-            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
-        };
+                // Return the current table state (includes all successful transformations) 
+                const previewData: PreviewTableData = {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    totalRowCount: await DuckDBUtils.getRowCount(conn, tableName),
+                };
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
-
-        return { previewData, error: error || undefined };
+                return { previewData, error: error || undefined };
+            } catch (error) {
+                this.logger.error(`Failed to preview the station transformation for session ${session.sessionId}: ${error}`);
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
     }
 
@@ -146,19 +162,30 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(op.inputDir, session.fileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
-
-        const error: FileProcessingError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping, userId);
-        if (error) {
-            throw new BadRequestException(`Station import transformation failed at step "${error.message}"`);
-        }
-
         const processedFileName: string = `${crypto.randomUUID()}.csv`;
 
-        // Export to CSV
-        await StationImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, path.posix.join(op.intermediateDir, processedFileName));
+        await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
+                const error: FileProcessingError | void = await StationImportTransformer.executeTransformation(conn, tableName, stnMapping, userId);
+                if (error) {
+                    this.logger.error(`Station import transformation failed for session ${session.sessionId} at step "${error.message}"${error.detail ? `: ${error.detail}` : ''}`);
+                    throw new BadRequestException(`Station import transformation failed at step "${error.message}"`);
+                }
+
+                // Export to CSV
+                await StationImportTransformer.exportTransformedDataToFile(conn, tableName, path.posix.join(op.intermediateDir, processedFileName));
+            } catch (error) {
+                // The rejection above is already logged, with the engine's own text.
+                if (!(error instanceof BadRequestException)) {
+                    this.logger.error(`Failed to import stations for session ${session.sessionId}: ${error}`);
+                }
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
         // Import to PostgreSQL
         try {
@@ -177,20 +204,27 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(op.inputDir, session.fileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
+        return this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        const error: FileProcessingError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping);
+                const error: FileProcessingError | void = await ElementImportTransformer.executeTransformation(conn, tableName, elementMapping);
 
-        // Return the current table state (includes all successful transformations) 
-        const previewData: PreviewTableData = {
-            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
-        };
+                // Return the current table state (includes all successful transformations) 
+                const previewData: PreviewTableData = {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    totalRowCount: await DuckDBUtils.getRowCount(conn, tableName),
+                };
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
-
-        return { previewData, error: error || undefined };
+                return { previewData, error: error || undefined };
+            } catch (error) {
+                this.logger.error(`Failed to preview the element transformation for session ${session.sessionId}: ${error}`);
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
     }
 
     public async importElementsData(sessionId: string, elementMapping: ElementColumnMappingDto, userId: number): Promise<void> {
@@ -199,19 +233,30 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(op.inputDir, session.fileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
-
-        const error: FileProcessingError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
-        if (error) {
-            throw new BadRequestException(`Element import transformation failed at step "${error.message}"`);
-        }
-
         const processedFileName: string = `${crypto.randomUUID()}.csv`;
 
-        // Export to CSV
-        await ElementImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, path.posix.join(op.intermediateDir, processedFileName));
+        await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
+                const error: FileProcessingError | void = await ElementImportTransformer.executeTransformation(conn, tableName, elementMapping, userId);
+                if (error) {
+                    this.logger.error(`Element import transformation failed for session ${session.sessionId} at step "${error.message}"${error.detail ? `: ${error.detail}` : ''}`);
+                    throw new BadRequestException(`Element import transformation failed at step "${error.message}"`);
+                }
+
+                // Export to CSV
+                await ElementImportTransformer.exportTransformedDataToFile(conn, tableName, path.posix.join(op.intermediateDir, processedFileName));
+            } catch (error) {
+                // The rejection above is already logged, with the engine's own text.
+                if (!(error instanceof BadRequestException)) {
+                    this.logger.error(`Failed to import elements for session ${session.sessionId}: ${error}`);
+                }
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
         // Import to PostgreSQL
         try {

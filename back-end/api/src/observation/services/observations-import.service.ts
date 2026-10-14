@@ -44,8 +44,12 @@ export class ObservationImportService {
             // Save uploaded file to the operation's input directory
             await fs.promises.writeFile(inputFilePathName, file.buffer);
 
-            // Process the import using duckdb
-            const result = await this.processFileForImport(sourceId, inputFilePathName, op.intermediateDir, op.outputDir, userId, stationId);
+            // Process the import using duckdb, on a connection belonging to
+            // this one upload. `processFileForImport` requires one rather than
+            // falling back to anything shared, so connection lifetime is always
+            // decided here, at the edge of the operation.
+            const result = await this.fileIOService.withDuckDbConnection(conn =>
+                this.processFileForImport(sourceId, inputFilePathName, op.intermediateDir, op.outputDir, userId, stationId, conn));
 
             if (result) {
                 throw new BadRequestException(result.message);
@@ -85,7 +89,7 @@ export class ObservationImportService {
         outputDir: string,
         userId: number,
         stationId: string | null,
-        conn?: DuckDBConnection): Promise<FileProcessingError | void> {
+        conn: DuckDBConnection): Promise<FileProcessingError | void> {
         const sourceDef = this.sourcesService.find(sourceId);
 
         let duckDbInputFilePathName: string = inputFilePathName;
@@ -120,7 +124,7 @@ export class ObservationImportService {
         outputDir: string,
         userId: number,
         stationId: string | null,
-        conn?: DuckDBConnection): Promise<FileProcessingError | void> {
+        conn: DuckDBConnection): Promise<FileProcessingError | void> {
         const sourceDef = this.sourcesService.find(sourceId);
 
         if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
@@ -184,14 +188,9 @@ export class ObservationImportService {
         outputDir: string,
         userId: number,
         stationId: string | null,
-        conn?: DuckDBConnection,
+        duckDbConn: DuckDBConnection,
     ): Promise<FileProcessingError | void> {
         const startTime = Date.now();
-
-        // Callers processing one file at a time get the shared connection.
-        // Callers processing several at once pass their own, because
-        // statements on a single connection are serialised.
-        const duckDbConn: DuckDBConnection = conn ?? this.fileIOService.duckDbConn;
 
         //this.logger.log(`processing file ${inputFilePathName} for database import`);
 
@@ -222,9 +221,11 @@ export class ObservationImportService {
             // Write the transformed table to a file
             await TabularImportTransformer.exportTransformedDataToFile(duckDbConn, tableName, outputFilePathName);
         } finally {
-            // Always drop the table to prevent a connector processing thousands of files 
-            // from piling up thousands of tables in the shared duckdb instance.
-            await duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
+            // Always drop the table. Closing a connection does NOT drop what it
+            // created — the catalog belongs to the instance — so without this a
+            // connector processing thousands of files would pile up thousands of
+            // tables in memory.
+            await DuckDBUtils.dropTable(duckDbConn, tableName);
         }
     }
 
