@@ -1,4 +1,4 @@
-<div class="position-relative w-100" appCloseDropDown (closeDropdown)="closeDropdown()">
+<div class="position-relative w-100" [appCloseDropDown]="displayDropDown" (closeDropdown)="closeDropdown()">
     <ng-content select="[main-content]"></ng-content>
     <div *ngIf="displayDropDown" class="border border-dark rounded drop-down-container"
         [class.right-offset-drop-down-container]="offSetRight" [style.max-height.px]="maxHeight" [style.min-width.px]="minWidth > 0 ? minWidth : null">

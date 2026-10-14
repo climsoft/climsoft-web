@@ -14,8 +14,8 @@ export class DropDownContainerComponent {
   @Output() public displayDropDownChange = new EventEmitter<boolean>();
 
   protected closeDropdown(): void {
-    // The directive listens on the document, so this runs on every click for
-    // every instance on the page. Report only a real open -> closed transition.
+    // The directive only listens on the document while the drop down is open,
+    // but still report only a real open -> closed transition.
     if (!this.displayDropDown) {
       return;
     }
