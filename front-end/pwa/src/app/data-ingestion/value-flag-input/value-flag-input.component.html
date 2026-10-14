@@ -12,7 +12,9 @@
         [firstButtonOptions]="{label: 'Ok', color: 'primary', closeDialogOnClick: true}"
         (firstButtonClick)="onExtraInfoOkClicked()"
         [secondButtonOptions]="{label: 'Cancel', color: 'secondary', closeDialogOnClick: true}" [open]="false">
-        <div class="card border-0">
+        <!-- Projected content is created even while the dialog is closed, so only create it while open.
+             Entry form grids render hundreds of these components. -->
+        <div *ngIf="dlgExtraInfo.open" class="card border-0">
             <!-- tab header -->
             <div class="card-header d-flex">
                 <ul class="nav nav-tabs card-header-tabs">

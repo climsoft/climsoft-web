@@ -61,7 +61,7 @@
             <i class="bi bi-arrow-repeat nav-bar-icon"></i>
             <span><sup>{{unsyncedObservations}}</sup></span>
           </div>
-          <div class="me-3" appCloseDropDown (closeDropdown)="closeUserDropDown()">
+          <div class="me-3" [appCloseDropDown]="displayUserDropDown" (closeDropdown)="closeUserDropDown()">
             <!-- TODO. In future this can be made to display the initials of the logged in user -->
             <i (click)="displayUserDropDown = !displayUserDropDown" class="bi bi-person py-1 nav-bar-icon"></i>
 
