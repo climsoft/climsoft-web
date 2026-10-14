@@ -1,0 +1,37 @@
+.advice-font-size {
+    font-size: 0.875rem;
+}
+
+// Same expandable-row treatment as the run files table, so the two tables in
+// the run dialog behave alike.
+.expandable-row {
+    cursor: pointer;
+}
+
+.expandable-row:focus-visible {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: -2px;
+}
+
+// Rotates in place to point down when the row is open.
+.expand-caret {
+    display: inline-block;
+    transition: transform 0.12s ease-in-out;
+}
+
+.expand-caret.expanded {
+    transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .expand-caret {
+        transition: none;
+    }
+}
+
+.advice-detail-row > td {
+    // Reads as a continuation of the row above rather than a row of its own.
+    border-top: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

@@ -6,7 +6,15 @@ export interface BaseParamsDto {
 }
 
 export interface PreviewError {
-    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
+    /**
+     * Mirrors the transformer half of the API's `FileProcessingErrorType`.
+     * DATETIME_FORMAT_MISMATCH: a date did not match the specification's
+     * format. MISSING_REQUIRED_VALUE: a row lacks its station, element, level,
+     * date/time or interval. NO_DATA: nothing to import — no data rows, or
+     * every value missing.
+     */
+    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR'
+        | 'DATETIME_FORMAT_MISMATCH' | 'MISSING_REQUIRED_VALUE' | 'NO_DATA';
     message: string;
     detail?: string;
 }

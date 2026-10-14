@@ -134,6 +134,16 @@ const MAX_BARREN_BATCHES = 2;
 const MAX_RETAINED_OPERATION_DIRS = 500;
 
 /**
+ * How much of an engine's own error text is appended to a run-file's error.
+ *
+ * DuckDB quotes the offending value back into its message, and a value is
+ * whatever a logger wrote, so the text has no natural bound. Generous enough
+ * that nothing worth reading is cut, bounded so that one pathological file
+ * cannot write a megabyte into `last_error`.
+ */
+const MAX_ERROR_DETAIL_CHARS = 2_000;
+
+/**
  * One open connection to a file server, protocol-agnostic, held for the length
  * of a single ingestion batch. Opening per batch rather than per run bounds what
  * a dropped connection can damage to the batch holding it, and needs no
@@ -864,6 +874,42 @@ export class ConnectorImportProcessorService {
         }
     }
 
+    /**
+     * The text recorded on a run-file row for one structured processing error:
+     * the sentence written for a sysadmin, then the engine's own words below it.
+     *
+     * Both tiers are kept because the sentence alone can say nothing.
+     * `classifyDuckDbError` builds `message` by REPLACING DuckDB's text, which
+     * is right for the failures it recognises — a date that did not match the
+     * format is better explained in our words than in DuckDB's — but its
+     * catch-all says only "An error occurred while processing the file", and
+     * that is precisely the case where the original text is the only thing that
+     * explains anything. A transform that fails during an automatic import but
+     * not in the sample-file preview is then traceable from the row itself,
+     * without reproducing it.
+     *
+     * Appended to `last_error` rather than given a column of its own: a column
+     * would have to travel through the upsert, the view DTO and the frontend
+     * model, and these failures are rare and fixed as soon as they are seen.
+     * The separator is a newline, which the drill-down already renders as a
+     * line break — its error cell is `white-space: pre-wrap`.
+     *
+     * NUL bytes need no handling here. `classifyDuckDbError` strips them while
+     * building `detail`, because Postgres `text` refuses them outright and a
+     * failure to record the error would replace the error.
+     */
+    private static withDetail(error: FileProcessingError): string {
+        if (!error.detail) {
+            return error.message;
+        }
+
+        const detail: string = error.detail.length > MAX_ERROR_DETAIL_CHARS
+            ? `${error.detail.slice(0, MAX_ERROR_DETAIL_CHARS)}…`
+            : error.detail;
+
+        return `${error.message}\n${detail}`;
+    }
+
     /** Transform one already-downloaded file and load it, then settle. */
     private async processOne(
         conn: DuckDBConnection,
@@ -891,10 +937,10 @@ export class ConnectorImportProcessorService {
                 // included, is a real failure and stays retryable.
                 if (result.type === FileProcessingErrorType.NO_DATA) {
                     await this.fileIOService.deleteOperation(op.operationId);
-                    await this.settleEmpty(runId, item, result.message, Date.now() - processStart, transferMs, progress, stats);
+                    await this.settleEmpty(runId, item, ConnectorImportProcessorService.withDetail(result), Date.now() - processStart, transferMs, progress, stats);
                     return;
                 }
-                await this.failFile(runId, item, progress, stats, result.message, op.operationId, Date.now() - processStart, transferMs, retentionBudget);
+                await this.failFile(runId, item, progress, stats, ConnectorImportProcessorService.withDetail(result), op.operationId, Date.now() - processStart, transferMs, retentionBudget);
                 return;
             }
 
@@ -1262,14 +1308,17 @@ export class ConnectorImportProcessorService {
 
         const records: RunSpecInsert[] = [];
 
-        for (const spec of connectorParams.specifications) {
+        // Indexed, because the position is stored on the spec row: the bindings
+        // arrive in the sysadmin's order (every read orders by `sort_order`), so
+        // the index IS that order, and discovery therefore walks them in it.
+        for (const [sortOrder, spec] of connectorParams.specifications.entries()) {
             // Switched off: nothing was listed for it (collectRemoteFiles
             // dropped its directory), so there is nothing to match. The row is
             // still written, zero-filled and flagged, so the run history says
             // "this binding was off" rather than silently losing it — and so
             // the baseline lookup knows not to compare against this run.
             if (spec.disabled) {
-                records.push(this.emptySpecRecord(runId, spec, true));
+                records.push(this.emptySpecRecord(runId, spec, sortOrder, true));
                 continue;
             }
 
@@ -1410,6 +1459,7 @@ export class ConnectorImportProcessorService {
                 stationId: spec.stationId,
                 filePattern: spec.filePattern,
                 excludePatterns: spec.excludePatterns ?? [],
+                sortOrder,
                 scannedCount,
                 excludedCount,
                 matchedCount,
@@ -1446,6 +1496,7 @@ export class ConnectorImportProcessorService {
     private emptySpecRecord(
         runId: number,
         spec: ImportFileServerSpecificationDto,
+        sortOrder: number,
         disabled: boolean,
     ): RunSpecInsert {
         return {
@@ -1456,6 +1507,7 @@ export class ConnectorImportProcessorService {
             stationId: spec.stationId,
             filePattern: spec.filePattern,
             excludePatterns: spec.excludePatterns ?? [],
+            sortOrder,
             scannedCount: 0,
             excludedCount: 0,
             matchedCount: 0,

@@ -112,6 +112,22 @@ export class ConnectorRunSpecEntity {
     @Column({ name: "disabled", type: "bool", default: false })
     disabled!: boolean;
 
+    /**
+     * The binding's position in the connector at the time of this run, copied
+     * from `connector_specification_bindings.sort_order`.
+     *
+     * Denormalised for the same reason as `file_pattern` and `station_id`: the
+     * sysadmin can re-drag the bindings afterwards, and a finished run has to go
+     * on showing what it actually did, in the order it actually did it. Reading
+     * the live binding instead would re-order history retroactively, and would
+     * lose the order entirely once the binding is deleted.
+     *
+     * It is also what `findByRun` orders the drill-down by, so the Performance
+     * tab opens in the order the run processed its bindings.
+     */
+    @Column({ name: "sort_order", type: "int", default: 0 })
+    sortOrder!: number;
+
     // Import: the spec's filePattern as it stood for this run — denormalised
     // because the pattern can be edited later and the run must keep showing
     // what actually ran. Export: null (export specs have no pattern).

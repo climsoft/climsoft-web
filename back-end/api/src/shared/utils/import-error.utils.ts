@@ -13,7 +13,53 @@ export class ImportErrorUtils {
      * Used by TabularImportTransformer, StationImportTransformer, and ElementImportTransformer.
      */
     public static classifyDuckDbError(error: unknown, stepName: string): FileProcessingError {
-        const msg = error instanceof Error ? error.message : String(error);
+        // DuckDB quotes the offending value back in its message, and a value can
+        // be anything a logger wrote — including NUL bytes, which Postgres
+        // `text` refuses outright, so a failure to record the error would
+        // replace the error. Real case: logger files that are nothing but
+        // 491-1,248 NUL bytes.
+        const msg = ImportErrorUtils.stripNul(error instanceof Error ? error.message : String(error));
+
+        // A date that does not match the specification's format. The Date/Time
+        // step parses with a bare `strptime`, so this is how a wrong format
+        // surfaces — the connector records the file as failed and retries it,
+        // so correcting the specification brings it in.
+        const parse = /Could not parse string "([\s\S]*?)" according to format specifier "([^"]*)"/.exec(msg);
+        if (parse) {
+            const raw: string = parse[1];
+            // DuckDB renders a NUL byte in the value as the two characters `\0`.
+            // A value that is nothing but those is a corrupt file — the logger
+            // wrote zeros where a record belonged — not a date in the wrong
+            // format, and quoting a wall of `\0` back would say neither.
+            const value: string = raw.replace(/\\0/g, '').trim();
+            let message: string;
+            if (value) {
+                message = `${stepName}: The value "${ImportErrorUtils.truncate(value, 50)}" does not match the specification's date/time format "${parse[2]}".`;
+            } else if (raw.includes('\\0')) {
+                message = `${stepName}: The file holds unreadable NUL bytes where a date/time was expected; it is most likely corrupt.`;
+            } else {
+                message = `${stepName}: A row has a blank date/time, which cannot match the specification's format "${parse[2]}".`;
+            }
+            return { type: FileProcessingErrorType.DATETIME_FORMAT_MISMATCH, message, detail: msg };
+        }
+
+        // A required column left empty on some row — SET NOT NULL is how the
+        // steps make a missing station, element, level, date/time or interval
+        // fail the file rather than reach Postgres.
+        //
+        // Named from the STEP, not from the column in DuckDB's message: DuckDB
+        // reports the column's name from before the step renamed it (seen as
+        // `column6` for the interval and `combined_date_time_col` for a separated
+        // date/time), which would mean nothing to a sysadmin. Each step that
+        // runs SET NOT NULL owns exactly one required column, so the step name
+        // is the column.
+        if (msg.includes('NOT NULL constraint failed')) {
+            return {
+                type: FileProcessingErrorType.MISSING_REQUIRED_VALUE,
+                message: `${stepName}: At least one row has no ${stepName.toLowerCase()} value, and every observation needs one.`,
+                detail: msg,
+            };
+        }
 
         if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {
             return {
@@ -84,4 +130,14 @@ export class ImportErrorUtils {
             detail: msg,
         };
     }
+
+    /** Removes NUL bytes, which Postgres `text` columns cannot store. */
+    public static stripNul(text: string): string {
+        return text.replace(/\u0000/g, '');
+    }
+
+    private static truncate(text: string, max: number): string {
+        return text.length > max ? `${text.slice(0, max)}…` : text;
+    }
+
 }

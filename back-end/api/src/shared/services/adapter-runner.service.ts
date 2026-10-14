@@ -203,7 +203,7 @@ export class AdapterRunnerService {
             const httpTimeoutMs = (timeoutSeconds + 30) * 1000;
             const url = `http://${cfg.host}:${cfg.port}/run`;
 
-            this.logger.log(`Running adapter #${adapter.id} '${adapter.name}' (${adapter.language}) outputDir=${outputDir}`);
+            // this.logger.log(`Running adapter #${adapter.id} '${adapter.name}' (${adapter.language}) outputDir=${outputDir}`);
 
             let runnerResp: RunnerResponse;
             try {
@@ -218,7 +218,7 @@ export class AdapterRunnerService {
 
             const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
 
-            this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.map(f => f.name).join(', ')}`);
+            // this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.map(f => f.name).join(', ')}`);
 
             if (opts?.deleteLogsOnCompletion) {
                 await this.deleteLogFiles(outputDir, logFiles);
@@ -258,7 +258,7 @@ export class AdapterRunnerService {
             };
 
         } catch (err) {
-            this.logger.error(`Unexpected error running adapter '${adapter.name}': ${(err as Error).message}`);
+            //this.logger.error(`Unexpected error running adapter '${adapter.name}': ${(err as Error).message}`);
             return this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected error: ${(err as Error).message}`);
         }
     }
@@ -408,7 +408,7 @@ export class AdapterRunnerService {
             };
         }
 
-        this.logger.error(`Unexpected HTTP error from runner: ${axiosErr?.message}`);
+        //this.logger.error(`Unexpected HTTP error from runner: ${axiosErr?.message}`);
         return { ...this.failResult(FileProcessingErrorType.RUNTIME_ERROR, `Unexpected runner HTTP error: ${axiosErr?.message ?? 'unknown'}`), ...carryFiles };
     }
 

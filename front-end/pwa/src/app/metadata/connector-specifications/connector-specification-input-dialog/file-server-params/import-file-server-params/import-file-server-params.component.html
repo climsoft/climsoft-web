@@ -1,14 +1,5 @@
 <div *ngIf="importFileServerParameters">
 
-    <div>
-        <app-check-box-input [label]="'Recursive'" [(value)]="importFileServerParameters.recursive" />
-        <small class="form-text text-muted d-block">
-            Turn on when Climsoft is required to also process files in subdirectories.
-        </small>
-    </div>
-
-    <hr />
-
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
@@ -27,25 +18,61 @@
             <div
                 *ngIf="importFileServerParameters.specifications && importFileServerParameters.specifications.length > 0">
                 <small class="form-text text-muted d-block mb-2">
-                    File Source Pattern examples: <code>*.csv</code> (root files),
-                    <code>stationA/</code> (all files in directory),
-                    <code>stationA/*.csv</code> (glob inside directory).
-                    Subdirectory patterns require Recursive to be on.
+                    File Source Pattern &mdash; the last segment is always a filename glob
+                    (<code>*</code> = any characters). Examples:
+                    <code>*.csv</code> (.csv files in the root folder),
+                    <code>*</code> (every file in the root folder),
+                    <code>stationA/*.csv</code> (.csv files directly in stationA),
+                    <code>stationA/**/*.csv</code> (.csv files in stationA and every subfolder),
+                    <code>**/*.csv</code> (.csv files anywhere under the root folder).
+                    <br>
+                    Exclude &mdash; optional, comma-separated file names that are never data, dropped
+                    from what the pattern matches: e.g. <code>*_info.csv, README*</code>. A file name
+                    containing a comma is excluded by writing <code>*</code> in the comma's place.
                 </small>
                 <table class="table table-sm">
                     <thead>
                         <tr>
+                            <th style="width: 1%"></th>
+                            <th>#</th>
                             <th>File Source Pattern</th>
+                            <th>Exclude</th>
                             <th>Source Specification</th>
                             <th>Station</th>
+                            <th>Status</th>
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody class="table-group-divider">
-                        <tr *ngFor="let item of importFileServerParameters.specifications; let i = index;">
+                    <!-- Order is meaningful, not cosmetic: it is stored as each
+                         binding's sort_order and discovery walks the bindings in
+                         it. Dragging a row therefore changes the order files are
+                         listed and imported in, and takes effect on save like
+                         every other field on this form. -->
+                    <tbody class="table-group-divider" cdkDropList
+                        [cdkDropListData]="importFileServerParameters.specifications"
+                        (cdkDropListDropped)="onDragDrop($event)" cdkDropListOrientation="vertical">
+                        <!-- A disabled binding is greyed rather than hidden: it is
+                             still part of the connector, and the point of
+                             disabling instead of deleting is that it can be put
+                             back without re-importing everything. -->
+                        <tr *ngFor="let item of importFileServerParameters.specifications; let i = index;"
+                            cdkDrag style="user-select: none;" [class.opacity-50]="isDisabled(i)">
+                            <!-- A handle rather than a draggable row: every other
+                                 cell holds a text box or a selector, and dragging
+                                 from those would fight text selection and the
+                                 dropdowns. -->
+                            <td cdkDragHandle class="app-cursor-drag text-muted" title="Drag to reorder">
+                                <i class="bi-grip-vertical"></i>
+                            </td>
+                            <td>{{ i + 1 }}</td>
                             <td>
                                 <app-text-input [id]="i + '_file_source_pattern_specification'"
                                     [(value)]="item.filePattern" />
+                            </td>
+                            <td>
+                                <app-text-input [id]="i + '_exclude_patterns_specification'"
+                                    placeholder="None" [value]="getExcludeText(i)"
+                                    (valueChange)="onExcludeTextChange(i, $event)" />
                             </td>
                             <td>
                                 <app-source-selector-single [id]="i + '_import_db_source_specification'"
@@ -56,11 +83,26 @@
                                 <app-station-selector-single [id]="i + '_station_id_specification'"
                                     [selectedId]="getStationId(i)" (selectedIdChange)="onStationIdChange(i, $event)" />
                             </td>
+                            <td class="align-middle">
+                                <span class="badge" [ngClass]="isDisabled(i) ? 'bg-warning text-dark' : 'bg-success'">
+                                    {{ isDisabled(i) ? 'Disabled' : 'Enabled' }}
+                                </span>
+                            </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-danger" title="Remove Specification"
-                                    (click)="onRemoveSpecification(i)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm"
+                                        [ngClass]="isDisabled(i) ? 'btn-outline-success' : 'btn-outline-warning'"
+                                        [title]="isDisabled(i) ? 'Enable this specification' : 'Disable this specification. The connector keeps running its other specifications, and re-enabling does not re-import files already read.'"
+                                        (click)="onToggleDisabled(i)">
+                                        <i class="bi"
+                                            [ngClass]="isDisabled(i) ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                        title="Remove Specification. Unlike disabling, this discards the de-duplication record, so re-adding it imports every matching file again."
+                                        (click)="onRemoveSpecification(i)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

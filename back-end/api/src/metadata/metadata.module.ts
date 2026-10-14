@@ -39,6 +39,7 @@ import { ExportSpecificationEntity } from './export-specifications/entities/expo
 import { ExportSpecificationsController } from './export-specifications/controllers/export-specifications.controller';
 import { ExportSpecificationsService } from './export-specifications/services/export-specifications.service';
 import { ConnectorSpecificationEntity } from './connector-specifications/entities/connector-specifications.entity';
+import { ConnectorSpecificationBindingEntity } from './connector-specifications/entities/connector-specification-binding.entity';
 import { ConnectorSpecificationsController } from './connector-specifications/controllers/connector-specifications.controller';
 import { ConnectorSpecificationsService } from './connector-specifications/services/connector-specifications.service';
 import { OrganisationsController } from './organisations/controllers/organisations.controller';
@@ -85,6 +86,7 @@ import { AdaptersController } from './adapters/controllers/adapters.controller';
             ExportSpecificationEntity,
 
             ConnectorSpecificationEntity,
+            ConnectorSpecificationBindingEntity,
 
             FlagEntity,
 

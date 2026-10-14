@@ -88,8 +88,8 @@ export class ConnectorRunSpecService {
                  WHERE connector_run_id = $1
                    AND binding_id       = $2`,
                 [connectorRunId, progress.bindingId,
-                 progress.succeeded, progress.failed, progress.empty, progress.processMs, progress.transferMs,
-                 progress.observationRows],
+                    progress.succeeded, progress.failed, progress.empty, progress.processMs, progress.transferMs,
+                    progress.observationRows],
             );
         }
     }
@@ -214,11 +214,20 @@ export class ConnectorRunSpecService {
         );
     }
 
-    /** Per-spec breakdown for one run — backs the run detail drill-down. */
+    /**
+     * Per-spec breakdown for one run — backs the run detail drill-down.
+     *
+     * Ordered by the sysadmin's own binding order, not by cost. That order is
+     * meaningful: it is the order discovery walked the bindings in, so the
+     * drill-down opens showing the run as it happened. `scan_ms` used to lead
+     * here, which quietly reshuffled the list and read as if the ordering had
+     * been ignored; the UI can sort by any column, so the expensive spec is
+     * still one click away.
+     */
     public async findByRun(runId: number): Promise<ConnectorRunSpecEntity[]> {
         return this.repo.find({
             where: { connectorRunId: runId },
-            order: { scanMs: 'DESC' },
+            order: { sortOrder: 'ASC' },
         });
     }
 }

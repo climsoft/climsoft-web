@@ -37,19 +37,32 @@
                 No specifications configured. Click "Add Specification" to create one.
             </div>
 
-            <!-- TODO. Add a column for station selector here. It will cover `stationId` property in similar way to the  specificationId -->
             <div
                 *ngIf="exportFileServerParameters.specifications && exportFileServerParameters.specifications.length > 0">
                 <table class="table table-sm">
                     <thead>
                         <tr>
+                            <th style="width: 1%"></th>
+                            <th>#</th>
                             <th>Export Specification</th>
                             <th>Station</th>
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody class="table-group-divider">
-                        <tr *ngFor="let item of exportFileServerParameters.specifications; let i = index;">
+                    <!-- Order is stored as each binding's sort_order and reads
+                         back in it, so dragging a row is persisted on save. -->
+                    <tbody class="table-group-divider" cdkDropList
+                        [cdkDropListData]="exportFileServerParameters.specifications"
+                        (cdkDropListDropped)="onDragDrop($event)" cdkDropListOrientation="vertical">
+                        <tr *ngFor="let item of exportFileServerParameters.specifications; let i = index;"
+                            cdkDrag style="user-select: none;">
+                            <!-- A handle rather than a draggable row: the other
+                                 cells hold selectors, and dragging from those
+                                 would fight their dropdowns. -->
+                            <td cdkDragHandle class="app-cursor-drag text-muted" title="Drag to reorder">
+                                <i class="bi-grip-vertical"></i>
+                            </td>
+                            <td>{{ i + 1 }}</td>
                             <td>
                                 <app-export-specification-selector-single [id]="i + '_db_export_specification'"
                                     [selectedId]="item.specificationId"

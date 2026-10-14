@@ -24,7 +24,7 @@ import { ConnectorSpecificationsService } from 'src/metadata/connector-specifica
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = '0.0.9'; // TODO. Should come from a versioning file.
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.10'; // TODO. Should come from a versioning file.
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(

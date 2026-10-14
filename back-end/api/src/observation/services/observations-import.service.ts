@@ -239,10 +239,6 @@ export class ObservationImportService {
      * number that actually landed, and it costs nothing extra.
      */
     public async importProcessedFileToDatabase(inputFilePathName: string,): Promise<number> {
-        const startTime = Date.now();
-
-        // this.logger.log(`Importing file ${inputFilePathName} into database`);
-
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -289,13 +285,13 @@ export class ObservationImportService {
                 `;
 
             const upsertResult = await queryRunner.query(upsertQuery, undefined, true);
-            const importedRows: number = upsertResult.affected ?? 0;
+            const observationRows: number = upsertResult.affected ?? 0;
 
             await queryRunner.commitTransaction();
 
             this.eventEmitter.emit('observations.saved');
 
-            return importedRows;
+            return observationRows;
         } catch (error) {
             await queryRunner.rollbackTransaction();
 

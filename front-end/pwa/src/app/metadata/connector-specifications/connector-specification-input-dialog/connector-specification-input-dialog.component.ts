@@ -14,7 +14,6 @@ import {
   ImportFileServerParametersModel,
   ObservationWindowDateFieldEnum,
 } from '../models/create-connector-specification.model';
-import { FileServerParametersInputComponent } from './file-server-params/file-server-parameters-input.component';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -23,7 +22,6 @@ import { FileServerParametersInputComponent } from './file-server-params/file-se
 })
 export class ConnectorSpecificationInputDialogComponent {
   @ViewChild('dlgDeleteConfirm') private dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
-  @ViewChild('fileServerParams ') private fileServerParams?: FileServerParametersInputComponent;
 
   @Output()
   public ok = new EventEmitter<void>();
@@ -48,7 +46,7 @@ export class ConnectorSpecificationInputDialogComponent {
       this.connectorSpecificationsService.findOne(connectorId).pipe(
         take(1),
       ).subscribe(data => {
-        this.connector = { ...data };
+        this.connector = data;
       });
     } else {
       this.title = 'New Connector Specification';
@@ -80,15 +78,6 @@ export class ConnectorSpecificationInputDialogComponent {
       return;
     }
 
-    // Late-binding validation from the parameters sub-tree — currently
-    // covers the "directory-shaped filePattern without recursive" case
-    // in the import file-server params.
-    const paramsError = this.fileServerParams?.validate() ?? null;
-    if (paramsError) {
-      this.showValidationError(paramsError);
-      return;
-    }
-
     if (this.parametersErrorMessage) {
       this.showValidationError(this.parametersErrorMessage);
       return;
@@ -105,7 +94,7 @@ export class ConnectorSpecificationInputDialogComponent {
       timeout: this.connector.timeout,
       retryAttempts: this.connector.retryAttempts,
       cronSchedule: this.connector.cronSchedule,
-      parameters: this.connector.parameters,
+      parameters: this.stripLegacyParameters(this.connector.parameters),
       disabled: this.connector.disabled,
       comment: this.connector.comment || null,
     };
@@ -127,7 +116,7 @@ export class ConnectorSpecificationInputDialogComponent {
         });
         this.ok.emit();
       },
-      error: err => {
+      error: (err) => {
         console.error(err);
         this.pagesDataService.showToast({
           title: 'Connector Specification',
@@ -231,7 +220,6 @@ export class ConnectorSpecificationInputDialogComponent {
     }
     const importParams: ImportFileServerParametersModel = {
       ...base,
-      recursive: false,
       specifications: [],
     };
     return importParams;
@@ -243,6 +231,19 @@ export class ConnectorSpecificationInputDialogComponent {
       message,
       type: ToastEventTypeEnum.ERROR,
     });
+  }
+
+  /**
+   * Import connectors saved before the connector-wide `recursive` flag was
+   * removed (recursion is now expressed per-spec, via a `**` segment in each
+   * `filePattern`) still carry `recursive` in their stored `parameters`. The
+   * API validates the payload with `forbidNonWhitelisted`, so that one leftover
+   * key makes an otherwise-unchanged connector fail to save. Drop it on submit.
+   */
+  private stripLegacyParameters(parameters: ConnectorParameters): ConnectorParameters {
+    const cleaned = { ...parameters } as ConnectorParameters & { recursive?: unknown };
+    delete cleaned.recursive;
+    return cleaned;
   }
 
 }

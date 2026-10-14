@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -9,15 +9,18 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class QCTestAssessmentsService {
 
+    private readonly logger: Logger = new Logger(QCTestAssessmentsService.name);
+
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private eventEmitter: EventEmitter2,) { }
 
     public async performQC(queryDto: ViewObservationQueryDTO, userId: number) {
-        // TODO. Define a filter dto for qc. It should always require a date range.
+
+        this.logger.log(`Performing QC for user ${userId} with query: ${JSON.stringify(queryDto)}`);
 
         // Important. limit the date selection to 10 years for perfomance reasons
-        //TODO. Later find a way of doing this at the DTO level
+        // TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {
             if (DateUtils.isMoreThanMaxCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate), 11)) {
                 throw new BadRequestException('Date range exceeds 10 years');
@@ -55,6 +58,8 @@ export class QCTestAssessmentsService {
         const results: any = await this.observationRepo.query(query);
         const qcFails: number = results?.[0] ? Number(results[0].qc_fails) : 0;
         const totalChecked: number = results?.[0] ? Number(results[0].total_checked) : 0;
+
+        this.logger.log(`QC performed for user ${userId} with query: ${JSON.stringify(queryDto)}. Total checked: ${totalChecked}, QC fails: ${qcFails}`);
 
         this.eventEmitter.emit('observations.quality-controlled');
 

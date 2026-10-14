@@ -1,0 +1,47 @@
+.run-detail-content {
+    min-width: 700px;
+    // max-width: 900px;
+}
+
+.details-table th {
+    background-color: #f8f9fa;
+}
+
+
+.activities-tab-content, .files-tab-content {
+    max-height: 400px;
+    overflow: auto;
+}
+
+// .card-header {
+//     transition: background-color 0.2s;
+// }
+
+// .card-header:hover {
+//     background-color: #e9ecef;
+// }
+
+.bg-danger-subtle {
+    background-color: #f8d7da !important;
+}
+
+.error-font-size {
+    font-size: 0.875rem;
+}
+
+// Wide enough for a path fragment without pushing the date range onto its own
+// line on a normal admin screen.
+.files-search-box {
+    min-width: 16rem;
+}
+
+// The run's own facts, kept above the tabs so they stay readable while a tab
+// is being worked through.
+.run-header {
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    padding-bottom: 0.5rem;
+}
+
+.run-header-times {
+    font-size: 0.875rem;
+}
