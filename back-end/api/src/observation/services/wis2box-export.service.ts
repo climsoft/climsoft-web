@@ -61,11 +61,19 @@ export class Wis2BoxExportService implements OnModuleInit {
     }
 
     /**
-     * Registers DuckDB SQL macros required by the WIS2BOX generators. Macros
-     * are connection-scoped, so they need to be created once per DuckDB
-     * connection (which `FileIOService` initialises in its own onModuleInit).
-     * NestJS resolves provider init in dependency order, so by the time this
-     * runs the DuckDB connection is ready.
+     * Registers the DuckDB SQL macros the WIS2BOX generators call. Once, at
+     * startup, on a connection that is closed again immediately.
+     *
+     * A plain (non-TEMP) `CREATE MACRO` is a catalog entry, so it belongs to
+     * the DuckDB instance and not to the connection that ran it: every
+     * connection opened afterwards can call these, including ones opened long
+     * after this one is gone. Verified. (A `CREATE TEMP MACRO` would be
+     * connection-scoped — this comment previously claimed that was true of
+     * macros in general, which was wrong, and only went unnoticed because
+     * everything used to share one connection.)
+     *
+     * NestJS resolves provider init in dependency order, so `FileIOService`
+     * has already created the instance by the time this runs.
      *
      * Add new macros to this method as additional encodings are introduced
      * (e.g. cloud encoding, present-weather code translation). Once the count
@@ -73,12 +81,14 @@ export class Wis2BoxExportService implements OnModuleInit {
      * a `duckdb-scripts/` folder with a dedicated loader service.
      */
     public async onModuleInit(): Promise<void> {
-        await this.fileIOService.duckDbConn.run(PRESSURE_TENDENCY_FM12_MACRO_SQL);
-        await this.fileIOService.duckDbConn.run(WMO_STATION_TYPE_MACRO_SQL);
-        await this.fileIOService.duckDbConn.run(CALCULATE_DEWPOINT_MACRO_SQL);
-        await this.fileIOService.duckDbConn.run(CALCULATE_RH_MACRO_SQL);
-        await this.fileIOService.duckDbConn.run(CALCULATE_GEOPOTENTIAL_MACRO_SQL);
-        await this.fileIOService.duckDbConn.run(CALCULATE_MSLP_MACRO_SQL);
+        await this.fileIOService.withDuckDbConnection(async conn => {
+            await conn.run(PRESSURE_TENDENCY_FM12_MACRO_SQL);
+            await conn.run(WMO_STATION_TYPE_MACRO_SQL);
+            await conn.run(CALCULATE_DEWPOINT_MACRO_SQL);
+            await conn.run(CALCULATE_RH_MACRO_SQL);
+            await conn.run(CALCULATE_GEOPOTENTIAL_MACRO_SQL);
+            await conn.run(CALCULATE_MSLP_MACRO_SQL);
+        });
         this.logger.log('DuckDB macros registered: pressure_tendency_fm12, wmo_station_type, calculate_dewpoint, calculate_rh, calculate_geopotential, calculate_mslp');
     }
 
@@ -528,7 +538,12 @@ export class Wis2BoxExportService implements OnModuleInit {
 
         this.logger.log(`Executing SYNOP WIS2BOX CSV generation SQL`);
 
-        await this.fileIOService.duckDbConn.run(sql);
+        try {
+            await this.fileIOService.withDuckDbConnection(conn => conn.run(sql));
+        } catch (error) {
+            this.logger.error(`SYNOP WIS2BOX CSV generation failed for ${outputFilePathName}: ${error}`);
+            throw error;
+        }
 
         this.logger.log(`SYNOP WIS2BOX CSV generated: ${outputFilePathName}`);
     }
@@ -689,7 +704,12 @@ export class Wis2BoxExportService implements OnModuleInit {
 
         this.logger.debug(`Executing DayCli WIS2BOX CSV generation SQL`);
 
-        await this.fileIOService.duckDbConn.run(sql);
+        try {
+            await this.fileIOService.withDuckDbConnection(conn => conn.run(sql));
+        } catch (error) {
+            this.logger.error(`DayCli WIS2BOX CSV generation failed for ${outputFilePathName}: ${error}`);
+            throw error;
+        }
 
         this.logger.log(`DayCli WIS2BOX CSV generated: ${outputFilePathName}`);
     }

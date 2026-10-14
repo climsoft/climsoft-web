@@ -216,43 +216,51 @@ export class ImportPreviewService implements OnModuleDestroy {
         // Getting of preview data fails when DuckDB's CSV sniffer cannot parse the file based on selected or guessed delimiter.
         // So catch the error and return an empty preview table in that case.
         // TODO. Send a warning message to the client so they know the preview is not available.
-        let previewData: PreviewTableData = { columns: [], rows: [], totalRowCount: 0 };
-        try {
-            await DuckDBUtils.createTableFromFile(
-                this.fileIOService.duckDbConn,
-                importFilePathName,
-                tableName,
-                false,
-                session.rowsToSkip,
-                this.MAX_PREVIEW_ROWS,
-                session.delimiter);
+        const previewData: PreviewTableData = await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(
+                    conn,
+                    importFilePathName,
+                    tableName,
+                    false,
+                    session.rowsToSkip,
+                    this.MAX_PREVIEW_ROWS,
+                    session.delimiter);
 
-            previewData = {
-                columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-                rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-                totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
-            };
-
-            await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
-        } catch (error) {
-            // If the preview table creation fails, we still want to return the session info and original file lines.
-            this.logger.error(`Failed to create preview table for session ${session.sessionId}: ${error}`);
-        }
+                return {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    totalRowCount: await DuckDBUtils.getRowCount(conn, tableName),
+                };
+            } catch (error) {
+                // If the preview table creation fails, we still want to return the session info and original file lines.
+                this.logger.error(`Failed to create preview table for session ${session.sessionId}: ${error}`);
+                return { columns: [], rows: [], totalRowCount: 0 };
+            } finally {
+                // Also runs when `createTableFromFile` is what failed, where there
+                // is no table yet. `dropTable` is IF EXISTS and never throws, so
+                // that costs one no-op statement and keeps a single exit path.
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
         // Getting of skipped data fails when DuckDB's CSV sniffer cannot parse the file based on selected or guessed delimiter.
         // So catch the error and return an empty skippedData table in that case. 
         // TODO. Send a warning message to the client so they know the skipped data is not available.
-        let skippedData: PreviewTableData = { columns: [], rows: [], totalRowCount: 0 };
-        try {
-            skippedData = await DuckDBUtils.getSkippedData(
-                this.fileIOService,
-                importFilePathName,
-                session.rowsToSkip,
-                this.MAX_PREVIEW_ROWS,
-                session.delimiter);
-        } catch (error) {
-            this.logger.error(`Failed to get skipped data for preview session ${session.sessionId}: ${error}`);
-        }
+        const skippedData: PreviewTableData = await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                // Drops its own working table.
+                return await DuckDBUtils.getSkippedData(
+                    conn,
+                    importFilePathName,
+                    session.rowsToSkip,
+                    this.MAX_PREVIEW_ROWS,
+                    session.delimiter);
+            } catch (error) {
+                this.logger.error(`Failed to get skipped data for preview session ${session.sessionId}: ${error}`);
+                return { columns: [], rows: [], totalRowCount: 0 };
+            }
+        });
 
         // Read the head of the **original** uploaded file (pre-adapter) so
         // users can compare the raw bytes against DuckDB's parsed view.
@@ -270,21 +278,31 @@ export class ImportPreviewService implements OnModuleDestroy {
         const importFilePathName = path.posix.join(workingDir, session.workingFileName);
         const tableName: string = getTableNameFromUUID(crypto.randomUUID());
 
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
-
         const elements: CreateViewElementDto[] = this.elementsService.find();
         const flags: ViewFlagDto[] = this.flagsService.find();
-        const error: FileProcessingError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, flags, stationId, null);
 
-        const previewData: PreviewTableData = {
-            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await DuckDBUtils.getRowCount(this.fileIOService.duckDbConn, tableName),
-        };
+        return this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
+                const error: FileProcessingError | void = await TabularImportTransformer.executeTransformation(conn, tableName, 0, sourceDef, elements, flags, stationId, null);
 
-        return { previewData, error: error || undefined };
+                // Read back even when a step failed: the preview's whole point is to
+                // show how far the transformation got.
+                const previewData: PreviewTableData = {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                    totalRowCount: await DuckDBUtils.getRowCount(conn, tableName),
+                };
+
+                return { previewData, error: error || undefined };
+            } catch (error) {
+                this.logger.error(`Failed to preview the transformation for session ${sessionId}: ${error}`);
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
     }
 
     public async importData(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
@@ -298,8 +316,18 @@ export class ImportPreviewService implements OnModuleDestroy {
         // Skip the adapter step: it already ran during the preview upload.
         // Running it again here would either fail (adapter can't parse its
         // own output) or silently produce wrong data.
-        const error: FileProcessingError | void = await this.observationImportService.transformForImport(dto.sourceId, inputFilePathName, op.outputDir, userId, dto.stationId ?? null);
+        const error: FileProcessingError | void = await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                return await this.observationImportService.transformForImport(dto.sourceId, inputFilePathName, op.outputDir, userId, dto.stationId ?? null, conn);
+            } catch (err) {
+                this.logger.error(`Failed to transform the file for import in session ${sessionId}: ${err}`);
+                throw err;
+            }
+        });
         if (error) {
+            // The client gets `message` only; the engine's own text is what a
+            // sysadmin needs to trace why a transform that previewed fine fails.
+            this.logger.error(`Import transformation rejected for session ${sessionId}: ${error.message}${error.detail ? `: ${error.detail}` : ''}`);
             throw new BadRequestException(error.message);
         }
 

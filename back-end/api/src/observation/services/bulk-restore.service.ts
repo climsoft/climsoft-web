@@ -24,7 +24,6 @@ interface BulkRestoreSession {
     sessionId: string;
     operationId: crypto.UUID;
     filter: BulkObservationFilterDto;
-    duckDbTableName?: string;
     totalMatchingRows: number;
     createdAt: number;
     lastAccessedAt: number;
@@ -102,17 +101,34 @@ export class BulkRestoreService implements OnModuleDestroy {
             await queryRunner.release();
         }
 
-        // Load into DuckDB for preview
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, apiCsvPath, tableName, true, 0, 0);
-
-        const columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
-        const rows = await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS);
+        // Load into DuckDB for preview, on a connection of this request's own,
+        // and drop the table again as soon as the two reads are done.
+        //
+        // Nothing after this request looks at it: `downloadPreviewCsv` streams
+        // the CSV straight from the output directory and the execute step works
+        // entirely in Postgres. Keeping it would therefore pin a preview of a
+        // potentially enormous match set in the in-memory instance for the whole
+        // session TTL, for no reader. Dropped in a `finally` so a failed read
+        // does not leak it either.
+        const { columns, rows } = await this.fileIOService.withDuckDbConnection(async conn => {
+            try {
+                await DuckDBUtils.createTableFromFile(conn, apiCsvPath, tableName, true, 0, 0);
+                return {
+                    columns: await DuckDBUtils.getColumnNames(conn, tableName),
+                    rows: await DuckDBUtils.getPreviewRows(conn, tableName, this.MAX_PREVIEW_ROWS),
+                };
+            } catch (error) {
+                this.logger.error(`Failed to build the DuckDB preview for bulk restore session ${sessionId}: ${error}`);
+                throw error;
+            } finally {
+                await DuckDBUtils.dropTable(conn, tableName);
+            }
+        });
 
         const previewData: BulkRestoreCheckResponse['previewData'] = { columns, rows, totalRowCount: totalMatchingRows };
 
         const session: BulkRestoreSession = {
             sessionId, operationId: op.operationId, filter: dto.filter,
-            duckDbTableName: tableName,
             totalMatchingRows,
             createdAt: Date.now(), lastAccessedAt: Date.now(),
         };
@@ -164,15 +180,6 @@ export class BulkRestoreService implements OnModuleDestroy {
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
         if (!session) return;
-
-        // Drop DuckDB table
-        if (session.duckDbTableName) {
-            try {
-                await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${session.duckDbTableName}`);
-            } catch (err) {
-                this.logger.warn(`Failed to drop DuckDB table ${session.duckDbTableName}: ${err}`);
-            }
-        }
 
         // Delete operation directory
         await this.fileIOService.deleteOperation(session.operationId);
