@@ -28,30 +28,34 @@ export class ClimsoftWebToV4SyncService {
     ) {
     }
 
-    @OnEvent('observations.saved')
-    handleObservationsSaved() {
-        this.logger.log(`initiating web to v4 save after observations have been saved`);
-        this.saveWebObservationstoV4DB();
-    }
+    //--------------------------------------------------
+    // The following event handlers are commented out because they are no longer needed.
+    // The saving to v4 database will now have to be initiated manually by the user from the climsoft v4 admin dashboard.
+    // This deprecation of automatic saving is due to AWS data ingestion of high frequency data which could cuase an overload on the event loop and could make the application unresponsive.
+    // @OnEvent('observations.saved')
+    // handleObservationsSaved() {
+    //     // this.logger.log(`initiating web to v4 save after observations have been saved`);
+    //     this.saveWebObservationstoV4DB();
+    // }
 
-    @OnEvent('observations.quality-controlled')
-    handleObservationsQC() {
-        this.logger.log(`initiating web to v4 save after observations have been quality controlled`);
-        this.saveWebObservationstoV4DB();
-    }
+    // @OnEvent('observations.quality-controlled')
+    // handleObservationsQC() {
+    //     // this.logger.log(`initiating web to v4 save after observations have been quality controlled`);
+    //     this.saveWebObservationstoV4DB();
+    // }
 
-    @OnEvent('observations.deleted')
-    handleObservationsDeleted() {
-        this.logger.log(`initiating web to v4 save after observation deleted`);
-        this.saveWebObservationstoV4DB();
-    }
+    // @OnEvent('observations.deleted')
+    // handleObservationsDeleted() {
+    //     //this.logger.log(`initiating web to v4 save after observation deleted`);
+    //     this.saveWebObservationstoV4DB();
+    // }
 
-    @OnEvent('observations.restored')
-    handleObservationsRestored() {
-        this.logger.log(`initiating web to v4 save after observation have been restored`);
-        this.saveWebObservationstoV4DB();
-    }
-
+    // @OnEvent('observations.restored')
+    // handleObservationsRestored() {
+    //    // this.logger.log(`initiating web to v4 save after observation have been restored`);
+    //     this.saveWebObservationstoV4DB();
+    // }
+    //--------------------------------------------------
     public async saveWebObservationstoV4DB(): Promise<void> {
         // If saving to v4 is not allowed thhen just return
         if (!AppConfig.v4DbCredentials.v4Save) {
@@ -418,8 +422,5 @@ export class ClimsoftWebToV4SyncService {
             .whereInIds(webDatabasecompositeKeys)
             .execute();
     }
-
-
-
 
 }

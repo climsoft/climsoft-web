@@ -50,13 +50,13 @@ export class AuthorisedStationsPipe implements PipeTransform {
         // TODO. Use guards to authenticate? In similar way to Admin() decorator used by the app guard
         const routePath = this.request.route.path;
         if (
-          routePath === '/stations/:id' ||
-          routePath === '/station-network-affiliations/forms-assigned-to-station/:id' ||
-          routePath === '/station-forms/forms-assigned-to-station/:id' ||
-          routePath === '/observations/upload/:sourceid/:stationid'
+          routePath === '/api/stations/:id' ||
+          routePath === '/api/station-network-affiliations/forms-assigned-to-station/:id' ||
+          routePath === '/api/station-forms/forms-assigned-to-station/:id' ||
+          routePath === '/api/observations/upload/:sourceid/:stationid'
         ) {
           return this.handleStationMetadataEdits(value, user.permissions);
-        } else if (routePath === '/stations-observation-status/:stationid') {
+        } else if (routePath === '/api/stations-observation-status/:stationid') {
           return this.handleMonitoringString(value, user.permissions);
         }
 
@@ -71,18 +71,18 @@ export class AuthorisedStationsPipe implements PipeTransform {
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
         //this.logger.log('path: ' + this.request.route.path);
-        if (this.request.route.path === '/observations'
-          || this.request.route.path === '/observations/count') {
+        if (this.request.route.path === '/api/observations'
+          || this.request.route.path === '/api/observations/count') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
             || this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
         } else if (
-          this.request.route.path === '/observations/correction-data'
-          || this.request.route.path === '/observations/count-correction-data'
-          || this.request.route.path === '/observations/source-check/exists'
-          || this.request.route.path === '/observations/source-check/count'
-          || this.request.route.path === '/observations/source-check/find') {
+          this.request.route.path === '/api/observations/correction-data'
+          || this.request.route.path === '/api/observations/count-correction-data'
+          || this.request.route.path === '/api/observations/source-check/exists'
+          || this.request.route.path === '/api/observations/source-check/count'
+          || this.request.route.path === '/api/observations/source-check/find') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/observations/quality-control/perform-qc') {
+        } else if (this.request.route.path === '/api/observations/quality-control/perform-qc') {
           return this.handleQualityControlQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else {
           this.logger.error('No validation option found.');

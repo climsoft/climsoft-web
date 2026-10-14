@@ -1,11 +1,14 @@
-<app-drop-down-container [(displayDropDown)]="displayDropDown" [maxHeight]="maxHeight" [offSetRight]="offSetRight">
+<app-drop-down-container [displayDropDown]="displayDropDown" (displayDropDownChange)="onDisplayDropDownChange($event)"
+    [maxHeight]="maxHeight" [offSetRight]="offSetRight">
     <button main-content type="button" class="btn btn-outline-secondary btn-sm" (click)="onButtonClick()">
         {{buttonText}}
     </button>
 
-    <div drop-down-content class="list-group rounded-0" *ngFor="let item of dropDownItems">
-        <button type="button" class="list-group-item list-group-item-action" (click)="onDropDownItemClick(item)">
-            {{item}}
-        </button>
+    <div drop-down-content *ngIf="displayDropDown" >
+        <div class="list-group rounded-0" *ngFor="let item of dropDownItems">
+            <button type="button" class="list-group-item list-group-item-action" (click)="onDropDownItemClick(item)">
+                {{item}}
+            </button>
+        </div>
     </div>
 </app-drop-down-container>

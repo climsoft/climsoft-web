@@ -7,7 +7,8 @@ import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
 import { MigrationsModule } from './migrations/migrations.module';
-import { QueueModule } from './queue/queue.module';
+import { ConnectorsModule } from './connectors/connectors.module';
+import { HousekeepingModule } from './housekeeping/housekeeping.module';
 import { ProductsModule } from './products/products.module';
 import { AppConfig } from './app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -22,7 +23,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     ObservationModule,
     SettingsModule,
     MigrationsModule,
-    QueueModule,
+    ConnectorsModule,
+    HousekeepingModule,
     ProductsModule,
     TypeOrmModule.forRoot({
       type: "postgres",

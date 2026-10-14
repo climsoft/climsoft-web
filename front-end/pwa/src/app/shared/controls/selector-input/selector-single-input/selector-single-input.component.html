@@ -2,8 +2,11 @@
 <app-text-input #appSingleSelector [id]="id" [label]="label" [labelSuperScript]="labelSuperScript" [readonly]="true" [placeholder]="placeholder"
     [errorMessage]="errorMessage" [displayDropDownOption]="true" [displayCancelOption]="displayCancelOption"
     [value]="selectedOptionDisplay" (displayCancelOptionClick)="onCancelOptionClick()"
-    (dropDownDisplayed)="onDropDownDisplayed()">
-    <div *ngIf="filteredOptions" class="card">
+    (dropDownDisplayed)="onDropDownDisplayed()" (dropDownClosed)="onDropDownClosed()">
+    <!-- Gated on `dropDownOpen`, not on `filteredOptions`: projected content is
+         built by THIS view, so the drop down container's own *ngIf cannot defer
+         it. See the `app-text-input` component. -->
+    <div *ngIf="dropDownOpen" class="card">
         <div class="card-body p-0">
             <div class="p-1">
                 <app-text-input #appSingleSelectorSearchInput [id]="id +'_' + label + '_' + '_multiple_search_control'"

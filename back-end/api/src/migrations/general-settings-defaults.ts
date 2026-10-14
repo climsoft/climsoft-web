@@ -27,9 +27,15 @@ export const DEFAULT_GENERAL_SETTINGS: ViewGeneralSettingModel[] = [
         name: 'Scheduler',
         description: 'Settings related to the scheduler that runs the connectors, QC, cleaning up of stale files and alerts.',
         parameters: {
-            jobQueueCleanup: { cronSchedule: '0 3 * * *', daysOld: 30 },
-            connectorLogCleanup: { cronSchedule: '0 3 * * *', daysOld: 30 },
-            fileCleanup: { cronSchedule: '0 4 * * *', daysOld: 30 },
+            // Snapshots, not days. A connector run records the whole file
+            // server it points at, so five snapshots is the storage bound
+            // regardless of whether the connector runs hourly or weekly.
+            // `attemptDays` covers the other kind of row: runs that never
+            // reached the server, which hold nothing but are worth seeing.
+            connectorRunCleanup: { cronSchedule: '0 3 * * *', keepLast: 5, attemptDays: 7 },
+            // Orphaned operation directories only — anything a run file still
+            // references is skipped whatever its age — so this can be short.
+            fileCleanup: { cronSchedule: '0 4 * * *', daysOld: 1 },
         } as SchedulerSettingDto
     },
 

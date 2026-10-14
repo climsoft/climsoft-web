@@ -29,7 +29,26 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   @Output() public selectedOptionChange = new EventEmitter<T | null>();
 
-  protected filteredOptions: T[] = [...this.options];
+  /**
+   * Whether the option list is currently built. It gates the whole list in the
+   * template, and it exists for a performance reason rather than a cosmetic
+   * one.
+   *
+   * The list is projected into `app-text-input` through `<ng-content>`, and
+   * `app-drop-down-container` wraps that slot in an `*ngIf`. That `*ngIf` does
+   * NOT keep the options from being built: Angular creates projected content in
+   * the view that DECLARES it — this template — and projection only moves the
+   * already-created nodes into the slot. So an unopened drop down was still
+   * building one element per option, and a screen holding many selectors paid
+   * for all of them at once. With 3,350 stations cached, a connector form with
+   * fifty station bindings built ~168,000 buttons before the user touched
+   * anything, which is what froze `ConnectorSpecificationInputDialogComponent`.
+   *
+   * Gating on a flag owned by THIS component is what actually defers the work,
+   * because the `*ngIf` is then in the declaring view where the nodes are made.
+   */
+  protected dropDownOpen: boolean = false;
+  protected filteredOptions: T[] = [];
   protected selectedOptionDisplay: string = '';
 
   constructor() {
@@ -40,7 +59,13 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
       if (!this.options) this.options = []; // should never be undefined
-      this.filteredOptions = [...this.options];
+      // Copied only while the user is looking at the list. `options` is often a
+      // cache-wide array shared by every selector on the page, so copying it
+      // per instance on every change is itself proportional to selectors x
+      // options.
+      if (this.dropDownOpen) {
+        this.filteredOptions = [...this.options];
+      }
     }
 
     if (changes['selectedOption']) {
@@ -81,9 +106,12 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   }
 
   /**
-   * Move selected option to the top
+   * Build the list, then move the selected option to the top.
    */
   protected onDropDownDisplayed(): void {
+    this.dropDownOpen = true;
+    this.filteredOptions = [...this.options];
+
     if (this.selectedOption) {
       this.filteredOptions.sort((a, b) => {
         if (a === this.selectedOption) return -1; // a comes first
@@ -95,8 +123,16 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     // Set the focus to the search input
     // Set timeout used to give Angular change detection time to render the above the reorder elements
     setTimeout(() => {
-      this.searchInput.focus();
+      // Optional chained because the search input only exists while the list is
+      // built, and a close can race in ahead of this timeout.
+      this.searchInput?.focus();
     }, 0);
+  }
+
+  /** Release the built list when the drop down closes. */
+  protected onDropDownClosed(): void {
+    this.dropDownOpen = false;
+    this.filteredOptions = [];
   }
 
 }

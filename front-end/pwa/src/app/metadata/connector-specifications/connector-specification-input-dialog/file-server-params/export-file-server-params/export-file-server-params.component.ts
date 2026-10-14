@@ -1,6 +1,8 @@
 import { Component, Input } from '@angular/core';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   ExportFileServerParametersModel,
+  ExportFileServerSpecificationModel,
   ObservationWindowDateFieldEnum,
 } from '../../../models/create-connector-specification.model';
 
@@ -49,6 +51,20 @@ export class ExportFileServerParamsComponent {
 
   protected onRemoveSpecification(index: number): void {
     this.exportFileServerParameters.specifications.splice(index, 1);
+  }
+
+  /**
+   * Reorder the bindings by dragging.
+   *
+   * `syncBindings` stores each binding's position as its `sort_order` and every
+   * read comes back ordered by it, so this persists on save and decides the
+   * order the connector generates and uploads its files in.
+   *
+   * Moving a row keeps the binding OBJECT, so its `id` travels with it and its
+   * run history stays attached.
+   */
+  protected onDragDrop(event: CdkDragDrop<ExportFileServerSpecificationModel[]>): void {
+    moveItemInArray(this.exportFileServerParameters.specifications, event.previousIndex, event.currentIndex);
   }
 
   protected onSpecificationIdChange(index: number, specificationId: number | null): void {

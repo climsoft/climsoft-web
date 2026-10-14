@@ -1,27 +1,34 @@
 <div *ngIf="scheduler">
 
-    <div class="card mb-3 border-primary">
-        <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold">Job Queue Cleanup</div>
-        <div class="card-body">
-            <div class="mb-2">
-                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
-                    [(value)]="scheduler.jobQueueCleanup.cronSchedule" />
-            </div>
-            <div>
-                <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.jobQueueCleanup.daysOld" [min]="1" />
-            </div>
-        </div>
-    </div>
+    <!-- Mirrors SchedulerSettingDto: connectorRunCleanup + fileCleanup. The old
+         "Job Queue Cleanup" card is gone with the job_queues table — a connector
+         run is now its own queue entry, so its retention IS the queue's. -->
 
     <div class="card mb-3 border-info">
-        <div class="card-header bg-info bg-opacity-10 text-info fw-bold">Connector Log Cleanup</div>
+        <div class="card-header bg-info bg-opacity-10 text-info fw-bold">Connector Run Retention</div>
         <div class="card-body">
             <div class="mb-2">
                 <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
-                    [(value)]="scheduler.connectorLogCleanup.cronSchedule" />
+                    [(value)]="scheduler.connectorRunCleanup.cronSchedule" />
+            </div>
+            <div class="mb-2">
+                <app-number-input [label]="'Runs To Keep'" [labelSuperScript]="'per connector, newest first'"
+                    [(numValue)]="scheduler.connectorRunCleanup.keepLast" [min]="1" />
+            </div>
+            <div class="form-text mb-3">
+                Each connector run records the full state of the file server it points at, so this
+                is counted in runs rather than days. The newest run of every connector is always
+                kept, because it is what the next run compares against to decide which files have
+                changed. Only runs that actually reached the server count towards this.
             </div>
             <div>
-                <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.connectorLogCleanup.daysOld" [min]="1" />
+                <app-number-input [label]="'Failed Attempt Days'"
+                    [labelSuperScript]="'runs that never reached the server'"
+                    [(numValue)]="scheduler.connectorRunCleanup.attemptDays" [min]="1" />
+            </div>
+            <div class="form-text mt-2">
+                A run that never connected holds no files, so it is kept by age instead — long
+                enough for a sysadmin to see that a connector has been failing.
             </div>
         </div>
     </div>

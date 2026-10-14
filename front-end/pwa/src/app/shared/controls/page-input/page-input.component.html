@@ -30,7 +30,7 @@
             <i class="bi bi-list-ol"></i>
         </button>
         <div drop-down-content class="card">
-            <div class="card-body">
+            <div *ngIf="displayVisibleRowsDropDown" class="card-body">
                 <div class="small mb-2">Rows per page:</div>
                 <app-radio-buttons-input [groupName]="'max_visible_rows'" [asButtons]="false"
                     [groupItems]="[{ label: '31'},{ label: '100'}, { label: '365'}]"

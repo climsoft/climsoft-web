@@ -55,8 +55,7 @@ export enum SubMenuNameEnum {
     USERS = 'Users',
     CLIMSOFT_V4 = 'Climsoft V4',
     SETTINGS = 'Settings',
-    JOB_QUEUE = 'Job Queue',
-    CONNECTOR_LOGS = 'Connector Logs',
+    CONNECTOR_RUNS = 'Connector Runs',
 }
 
 export class MenuItemsUtil {
@@ -236,12 +235,8 @@ export class MenuItemsUtil {
                     url: '/view-general-settings',
                 },
                 {
-                    name: SubMenuNameEnum.JOB_QUEUE,
-                    url: '/view-job-queue',
-                },
-                {
-                    name: SubMenuNameEnum.CONNECTOR_LOGS,
-                    url: '/view-connector-logs',
+                    name: SubMenuNameEnum.CONNECTOR_RUNS,
+                    url: '/view-connector-runs',
                 },
 
             ]

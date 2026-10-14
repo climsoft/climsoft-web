@@ -33,6 +33,7 @@ export interface OperationContext {
 export class FileIOService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(FileIOService.name);
 
+    private _duckDbInstance!: DuckDBInstance;
     private _duckDbConn!: DuckDBConnection;
     private _apiOperationsDir!: string;
     private _apiAdaptersDir!: string;
@@ -154,17 +155,71 @@ export class FileIOService implements OnModuleInit, OnModuleDestroy {
 
     // ── DuckDB ──────────────────────────────────────────────────────────
 
+    /**
+     * The shared, long-lived connection. Everything interactive uses this:
+     * import and metadata previews, and the bulk delete/restore/pk-update
+     * flows, which create a table in one request and read it in a later one.
+     */
     public get duckDbConn(): DuckDBConnection {
         return this._duckDbConn;
     }
 
-    private async setupDuckDB() {
-        const duckDbPath = path.posix.join(this._apiOperationsDir, 'duckdb');
-        await fs.promises.rm(duckDbPath, { recursive: true, force: true });
-        await fs.promises.mkdir(duckDbPath, { recursive: true });
+    /**
+     * An additional connection on the same in-memory database, for callers
+     * that process several files at once.
+     *
+     * Statements on one connection are serialised, so a batch that wants real
+     * concurrency needs a connection per worker.
+     *
+     * Working tables are ordinary (non-TEMP) tables in the shared catalog and
+     * that is safe, because their names are UUID-derived and DuckDB's catalog
+     * conflicts are per entry rather than per schema. The one thing to avoid
+     * is index-creating DDL after a row modification — see the note on
+     * `createTableFromFile` in duckdb.utils.ts.
+     *
+     * The caller owns the connection and must `disconnectSync()` it.
+     */
+    public async createDuckDbConnection(): Promise<DuckDBConnection> {
+        return this._duckDbInstance.connect();
+    }
 
-        const duckDbInstance: DuckDBInstance = await DuckDBInstance.create(path.posix.join(duckDbPath, 'duckdb_io.db'));
-        this._duckDbConn = await duckDbInstance.connect();
+    private async setupDuckDB() {
+        // DuckDB is used purely as an ETL engine here: every table is scratch
+        // space for one operation (file in, transform, file out) and is dropped
+        // when that operation ends. Nothing is ever read back across a restart
+        // — this directory is wiped on every boot, below — so a persistent
+        // database bought no durability and charged for it anyway: each catalog
+        // statement went through the WAL, which measured ~6x slower than the
+        // same work in memory on the connector's real logger files.
+        //
+        // An in-memory instance makes that structural rather than a convention
+        // someone has to remember. There is no file to leak a forgotten table
+        // into, so `CREATE TABLE` cannot accidentally outlive its operation.
+        // The connection itself still lives for the life of the process, so
+        // flows that create a table in one request and read it in the next
+        // (the bulk delete/restore/pk-update previews) are unaffected.
+        const duckDbSpillPath = path.posix.join(this._apiOperationsDir, 'duckdb', 'spill');
+        await fs.promises.rm(path.posix.join(this._apiOperationsDir, 'duckdb'), { recursive: true, force: true });
+        await fs.promises.mkdir(duckDbSpillPath, { recursive: true });
+
+        // The instance is retained, not discarded after the first connect:
+        // `createDuckDbConnection()` opens further connections on this same
+        // database so concurrent callers can run statements in parallel.
+        this._duckDbInstance = await DuckDBInstance.create(':memory:');
+        this._duckDbConn = await this._duckDbInstance.connect();
+
+        // Required, not optional. An in-memory database can still process more
+        // data than it can hold — it evicts to `temp_directory` — but that
+        // setting defaults to '.tmp' relative to the process working directory,
+        // which is the bind-mounted source tree in development. Point it at the
+        // operations volume instead, which is where there is room and which the
+        // cleanup sweep already knows to leave alone.
+        await this._duckDbConn.run(`SET temp_directory = '${duckDbSpillPath.replace(/'/g, "''")}'`);
+
+        // `memory_limit` and `threads` are deliberately left at DuckDB's own
+        // defaults. DuckDB derives the limit from the cgroup when the container
+        // has one, so the ceiling belongs in the deployment's memory limit
+        // rather than in a constant here.
     }
 
     // ── Legacy file I/O helpers ─────────────────────────────────────────

@@ -19,12 +19,12 @@ export class DropDownButtonComponent<T extends string> {
   }
 
   protected onDropDownItemClick(dropDownItem: T) {
-    this.closeDropdown();
+    this.onDisplayDropDownChange(false);
     this.dropDownOptionClick.emit(dropDownItem);
   }
 
-  protected closeDropdown(): void {
-    this.displayDropDown = false;
+  protected onDisplayDropDownChange(displayDropDown: boolean): void {
+    this.displayDropDown = displayDropDown;
   }
 
 }

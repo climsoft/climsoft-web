@@ -1,0 +1,201 @@
+<div class="container-fluid">
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <app-connector-specification-selector-single [label]="'Connector'" [selectedId]="selectedConnectorId"
+                (selectedIdChange)="onConnectorFilterChange($event)" />
+        </div>
+        <div class="col-md-3">
+            <app-error-selector-single [label]="'Error'" (selectedIdChange)="onErrorFilterChange($event)" />
+        </div>
+        <div class="col-md-4">
+            <app-date-range-input [id]="'connector_log_date'" [label]="'Date'" [(value)]="dateRange"
+                (valueChange)="onDateFilterChange()" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadRuns()">
+                Refresh
+            </button>
+            <!-- Deletes what the filter above matches, not the page on screen,
+                 which is why it reports the count it is about to remove. -->
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                [disabled]="loading || paging.totalRowCount === 0"
+                [title]="'Delete every run matching the current filter (' + paging.totalRowCount + ')'"
+                (click)="onDeleteAllRuns()">
+                Delete All
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Card (when connector is selected) -->
+    <div *ngIf="stats" class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col">
+                            <h5 class="mb-0">{{ stats.totalRuns }}</h5>
+                            <small>Total Runs</small>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-0 text-success">{{ stats.successfulRuns }}</h5>
+                            <small>Successful</small>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-0 text-danger">{{ stats.failedRuns }}</h5>
+                            <small>Failed</small>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-0">{{ getSuccessRate() }}</h5>
+                            <small>Success Rate</small>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-0">{{ stats.filesFailed }}</h5>
+                            <small>Files Failed</small>
+                        </div>
+                        <div class="col">
+                            <h6 class="mb-0">{{ formatDate(stats.lastRun) }}</h6>
+                            <small>Last Run</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="loading" class="text-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div *ngIf="!loading">
+        <!-- Pagination -->
+        <div *ngIf="!loading && runs.length > 0" class="d-flex justify-content-end">
+            <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
+        </div>
+
+        <!-- Logs table -->
+        <div class="app-table-container" style="max-height: 80vh;">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Connector</th>
+                        <th>Status</th>
+                        <th>Started At</th>
+                        <th>Ended At</th>
+                        <th>Duration</th>
+                        <th title="Of that duration, the time spent walking the server's folders before anything was compared or downloaded. An export lists nothing, and a resumed run keeps the figure from the attempt that listed.">
+                            Listing</th>
+                        <!-- The full outcome breakdown, so a sysadmin can decide
+                             from the list whether a run is worth opening. Every
+                             figure is already on the row the list fetches, so
+                             these columns cost no extra query. -->
+                        <!-- Same order as the run dialog's Performance tab, so
+                             opening a run reads as a drill-down of its row. -->
+                        <th title="Entries seen in the scanned directories, before any file pattern was applied">
+                            Scanned</th>
+                        <th title="Matched a file pattern but dropped by its exclusions — never downloaded or attempted">
+                            Excluded</th>
+                        <th>Matched</th>
+                        <th>Imported</th>
+                        <th>Skipped</th>
+                        <th>Empty</th>
+                        <th title="Observations written to the database by an import, or read out of it by an export">
+                            Observations</th>
+                        <th>Queued</th>
+                        <th>Failed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let run of runs; let i = index" class="app-cursor-pointer"
+                        [ngClass]="getRowClass(run)" (click)="onRunClick(run)">
+                        <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
+                        <td>{{ run.id }}</td>
+                        <td>{{ getConnectorName(run.connectorId) }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="getStatusClass(run)"
+                                [title]="run.errorMessage || ''">{{ getStatusLabel(run) }}</span>
+                            <!-- A run that never reached the server holds no file
+                                 records at all, so say so rather than showing it
+                                 as an ordinary run with zero files. -->
+                            <i *ngIf="!run.discoveredAt" class="bi bi-cloud-slash ms-1 text-muted"
+                                title="This run never listed the server, so it recorded no files"></i>
+                        </td>
+                        <td>{{ formatDate(run.startedAt) }}</td>
+                        <!-- Null until a run reaches a terminal state, which is
+                             what tells a still-draining run apart from a
+                             finished one at a glance. -->
+                        <td>{{ run.endedAt ? formatDate(run.endedAt) : '—' }}</td>
+                        <td>
+                            {{ getDuration(run) }}
+                            <i *ngIf="getSeverity(run) !== 'ok'" class="bi bi-hourglass-split ms-1"
+                                [ngClass]="getSeverity(run) === 'red' ? 'text-danger' : 'text-warning'"
+                                [title]="getSlowRunTitle(run)"></i>
+                        </td>
+                        <td [class.text-muted]="run.listingMs === null">{{ getListingTime(run) }}</td>
+                        <!-- Zeros greyed out so the eye lands on the counts that
+                             mean something. -->
+                        <td [class.text-muted]="run.scannedCount === 0">{{ run.scannedCount.toLocaleString() }}</td>
+                        <td [class.text-muted]="run.excludedCount === 0">{{ run.excludedCount.toLocaleString() }}</td>
+                        <td>{{ getFileCount(run) }}</td>
+                        <td>{{ getSuccessCount(run) }}</td>
+                        <td [class.text-muted]="run.skippedCount === 0">{{ run.skippedCount }}</td>
+                        <td [class.text-muted]="run.emptyCount === 0">
+                            <span *ngIf="run.emptyCount > 0" class="badge bg-warning text-dark"
+                                title="Files that downloaded successfully but held no data">
+                                {{ run.emptyCount }}
+                            </span>
+                            <span *ngIf="run.emptyCount === 0">0</span>
+                        </td>
+                        <td [class.text-muted]="run.observationRows === 0">{{ run.observationRows.toLocaleString() }}</td>
+                        <td [class.text-muted]="getQueuedCount(run) === 0"
+                            title="Matched but not yet settled — this run's outstanding work">
+                            {{ getQueuedCount(run) }}
+                        </td>
+                        <td>
+                            <span *ngIf="run.failedCount > 0" class="badge bg-danger">
+                                {{ run.failedCount }}
+                            </span>
+                            <span *ngIf="run.failedCount === 0" class="badge bg-success">
+                                0
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
+                            <button *ngIf="canCancel(run)" type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                title="Stop this run. Anything not yet ingested stays queued for the next one."
+                                (click)="onCancelRun(run, $event)">
+                                <i class="bi bi-stop-circle"></i>
+                            </button>
+                            <button *ngIf="canRetry(run)" type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                title="Queue this run again. It resumes where it stopped rather than re-listing."
+                                (click)="onRetryRun(run, $event)">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Run"
+                                (click)="onDeleteRun(run, $event)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="runs.length === 0">
+                        <td colspan="18" class="text-center text-muted py-4">
+                            No connector runs found
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<!-- Run Detail Dialog -->
+<app-run-detail-dialog #runDetailDialog></app-run-detail-dialog>

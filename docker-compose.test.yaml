@@ -20,6 +20,7 @@ services:
       context: ./
       dockerfile: Dockerfile
     container_name: climsoft-test-nginx-proxy
+    restart: unless-stopped
     environment:
       # Substituted into nginx.conf's Superset server block by the base
       # image's envsubst-on-templates entrypoint (wired up in ./Dockerfile).
@@ -37,6 +38,7 @@ services:
       context: ./front-end/pwa
       dockerfile: Dockerfile
     container_name: climsoft-test-pwa
+    restart: unless-stopped
     expose: 
       - 80 # Expose to internal network only.
     depends_on:
@@ -49,6 +51,7 @@ services:
       context: ./back-end/api
       dockerfile: Dockerfile
     container_name: climsoft-test-api
+    restart: unless-stopped
     environment:
       <<: *climsoft-db-env
       ENCRYPTION_SECRET: "${ENCRYPTION_SECRET}"
@@ -86,6 +89,7 @@ services:
     volumes:
       - climsoft_test_operations:/app/operations
       - climsoft_test_adapters:/app/adapters
+      - climsoft_test_samples:/app/samples
     networks:
       - climsoft_network
 
@@ -94,6 +98,7 @@ services:
       context: ./back-end/runners/python
       dockerfile: Dockerfile
     container_name: climsoft-test-python-runner
+    restart: unless-stopped
     profiles: ["adapters-python"]
     expose:
       - 5101
@@ -108,6 +113,7 @@ services:
       context: ./back-end/runners/r
       dockerfile: Dockerfile
     container_name: climsoft-test-r-runner
+    restart: unless-stopped
     profiles: ["adapters-r"]
     expose:
       - 5102
@@ -122,6 +128,7 @@ services:
       context: ./back-end/runners/javascript
       dockerfile: Dockerfile
     container_name: climsoft-test-javascript-runner
+    restart: unless-stopped
     profiles: ["adapters-javascript"]
     expose:
       - 5103
@@ -136,6 +143,7 @@ services:
       context: ./back-end/runners/duckdb
       dockerfile: Dockerfile
     container_name: climsoft-test-duckdb-runner
+    restart: unless-stopped
     profiles: ["adapters-duckdb"]
     expose:
       - 5104
@@ -148,6 +156,7 @@ services:
   climsoft_superset_redis:
     image: redis:7-alpine
     container_name: climsoft-test-superset-redis
+    restart: unless-stopped
     profiles: ["superset"]
     expose:
       - 6379
@@ -177,6 +186,7 @@ services:
   climsoft_superset:
     <<: *superset-build
     container_name: climsoft-test-superset
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/docker/entrypoints/run-server.sh"]
     environment:
@@ -201,14 +211,13 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    volumes:
-      - climsoft_test_superset:/app/superset_home
     networks:
       - climsoft_network
 
   climsoft_superset_worker:
     <<: *superset-build
     container_name: climsoft-test-superset-worker
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/worker.sh"]
     environment:
@@ -223,6 +232,7 @@ services:
   climsoft_superset_beat:
     <<: *superset-build
     container_name: climsoft-test-superset-beat
+    restart: unless-stopped
     profiles: ["superset"]
     command: ["/app/beat.sh"]
     environment:
@@ -236,6 +246,7 @@ services:
   climsoft_db:
     image: postgis/postgis:17-3.5
     container_name: climsoft-test-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: "${DB_NAME}" # Default database postgres will create, required when setting up postgres the first time.
       POSTGRES_USER: postgres # Uses the default postgres username for simplicity, required when setting up postgres the first time.
@@ -257,7 +268,7 @@ volumes:
   climsoft_test_database:
   climsoft_test_operations:
   climsoft_test_adapters:
-  climsoft_test_superset:
+  climsoft_test_samples:
 
 networks:
   climsoft_network:

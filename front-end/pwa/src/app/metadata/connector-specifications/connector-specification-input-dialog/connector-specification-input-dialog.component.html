@@ -19,11 +19,22 @@
 
             <hr />
 
-            <div>
+            <!-- Connector type is immutable after creation: the parameter shape,
+                 cron semantics and the run-file ledger all assume it never
+                 changes. New connectors get the selector; existing ones show it
+                 read-only. -->
+            <div *ngIf="connector.id <= 0; else connectorTypeReadOnly">
                 <app-connector-type-selector-single [label]="'Connector Type'"
                     [selectedId]="connector.connectorType"
                     (selectedIdChange)="onConnectorTypeChange($event)" />
             </div>
+            <ng-template #connectorTypeReadOnly>
+                <div>
+                    <app-text-input [label]="'Connector Type'"
+                        [labelSuperScript]="'cannot be changed after creation'"
+                        [value]="connector.connectorType | uppercase" [disabled]="true" />
+                </div>
+            </ng-template>
 
             <hr />
 
@@ -67,7 +78,7 @@
                 <div class="card-header">Server Parameters</div>
                 <div class="card-body">
                     <div *ngIf="connector.serverType === ServerTypeEnum.FILE_SERVER">
-                        <app-file-server-parameters-input #fileServerParams  [connector]="connector"
+                        <app-file-server-parameters-input [connector]="connector"
                             (validationError)="onValidationError($event)" />
                     </div>
                     <div *ngIf="connector.serverType === ServerTypeEnum.WEB_SERVER" class="text-info">

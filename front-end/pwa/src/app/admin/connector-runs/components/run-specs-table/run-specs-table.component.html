@@ -1,0 +1,129 @@
+<div class="app-table-container" style="max-height: 80vh;">
+    <table class="table table-sm table-bordered mb-0">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 1%"></th>
+                <!-- The table opens sorted by this column, which is the order the
+                     connector processed its bindings in. Clicking it comes back to
+                     that order after sorting by anything else. -->
+                <th class="text-end" style="width: 1%" appSortableHeader="sortOrder" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)"
+                    title="The binding's position in the connector — the order this run processed them in">#</th>
+                <th appSortableHeader="target" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                    (sort)="onSort($event)">{{ isImport ? 'File Pattern' : 'Specification' }}</th>
+                <th appSortableHeader="stationId" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+                    (sort)="onSort($event)">Station</th>
+                <th class="text-end" *ngIf="isImport" appSortableHeader="scannedCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">Scanned</th>
+                <th class="text-end" *ngIf="isImport" appSortableHeader="excludedCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">Excluded</th>
+                <th class="text-end" appSortableHeader="matchedCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">{{ isImport ? 'Matched' : 'Generated' }}</th>
+                <th class="text-end" appSortableHeader="succeededCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">{{ isImport ? 'Imported' : 'Uploaded' }}</th>
+                <th class="text-end" *ngIf="isImport" appSortableHeader="skippedCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">Skipped</th>
+                <th class="text-end" *ngIf="isImport" appSortableHeader="emptyCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">Empty</th>
+                <th class="text-end" appSortableHeader="observationRows" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)"
+                    [title]="isImport ? 'Observations written to the database' : 'Observations read out of the database to build these files'">
+                    Observations</th>
+                <th class="text-end" *ngIf="isImport" appSortableHeader="queued" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)"
+                    title="Matched but not settled yet — this specification's outstanding work">
+                    Queued</th>
+                <th class="text-end" appSortableHeader="failedCount" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">Failed</th>
+                <th class="text-end" appSortableHeader="scanMs" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">{{ isImport ? 'Scan' : 'Generate' }}</th>
+                <th class="text-end" appSortableHeader="processMs" [sortColumn]="sortColumn"
+                    [sortDirection]="sortDirection" (sort)="onSort($event)">{{ isImport ? 'Process' : 'Upload' }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let spec of specs">
+                <!-- A disabled specification is shown, greyed, rather than
+                     omitted. Its row is all zeros, and without the badge that is
+                     indistinguishable from one that scanned a directory and
+                     legitimately found nothing.
+
+                     A flagged row is clickable and reveals why it was flagged
+                     underneath, the same way a failed file does in the files
+                     table — so the explanation sits beside the row it explains
+                     rather than in a list below the whole table. -->
+                <tr [ngClass]="getRowClass(spec)" [class.opacity-50]="spec.disabled"
+                    [class.expandable-row]="hasAdvice(spec)"
+                    [attr.tabindex]="hasAdvice(spec) ? 0 : null"
+                    [attr.role]="hasAdvice(spec) ? 'button' : null"
+                    [attr.aria-expanded]="hasAdvice(spec) ? isExpanded(spec) : null"
+                    [title]="hasAdvice(spec) ? 'Click to see why this specification was flagged' : ''"
+                    (click)="onRowClick(spec)"
+                    (keydown.enter)="onRowClick(spec)"
+                    (keydown.space)="onRowClick(spec); $event.preventDefault()">
+                    <td class="text-center text-muted">
+                        <span *ngIf="hasAdvice(spec)" class="expand-caret" [class.expanded]="isExpanded(spec)">&#9656;</span>
+                    </td>
+                    <!-- The stored position, not the row's index: sorting by any
+                         other column must not renumber the bindings. -->
+                    <td class="text-end text-muted">{{ spec.sortOrder + 1 }}</td>
+                    <td>
+                        <code>{{ getTarget(spec) }}</code>
+                        <span *ngIf="spec.disabled" class="badge bg-warning text-dark ms-2"
+                            title="This specification was switched off for this run, so nothing was listed or imported for it.">
+                            Disabled
+                        </span>
+                        <div *ngIf="spec.excludePatterns?.length" class="small text-muted">
+                            excluding <code>{{ spec.excludePatterns.join(', ') }}</code>
+                        </div>
+                    </td>
+                    <td>
+                        <ng-container *ngIf="spec.stationId; else fromSpecification">
+                            {{ spec.stationId }}
+                            <span *ngIf="getStationName(spec.stationId) as stationName" class="text-muted">
+                                &ndash; {{ stationName }}</span>
+                        </ng-container>
+                        <!-- No station bound: the specification reads it from
+                             the file itself. -->
+                        <ng-template #fromSpecification>
+                            <span class="text-muted" title="The station is read from the file, as the source specification defines">
+                                From file
+                            </span>
+                        </ng-template>
+                    </td>
+                    <td class="text-end" *ngIf="isImport">{{ formatCount(spec.scannedCount) }}</td>
+                    <td class="text-end" *ngIf="isImport" [class.text-muted]="spec.excludedCount === 0">
+                        {{ formatCount(spec.excludedCount) }}</td>
+                    <td class="text-end">{{ formatCount(spec.matchedCount) }}</td>
+                    <td class="text-end">{{ formatCount(spec.succeededCount) }}</td>
+                    <td class="text-end" *ngIf="isImport">{{ formatCount(spec.skippedCount) }}</td>
+                    <td class="text-end" *ngIf="isImport">{{ formatCount(spec.emptyCount) }}</td>
+                    <td class="text-end">{{ formatCount(spec.observationRows) }}</td>
+                    <td class="text-end" *ngIf="isImport">{{ formatCount(getQueuedCount(spec)) }}</td>
+                    <td class="text-end">{{ formatCount(spec.failedCount) }}</td>
+                    <td class="text-end">{{ formatDuration(spec.scanMs) }}</td>
+                    <td class="text-end">{{ formatDuration(spec.processMs) }}</td>
+                </tr>
+                <tr *ngIf="hasAdvice(spec) && isExpanded(spec)" class="advice-detail-row">
+                    <!-- One empty cell per leading column — the caret and the row
+                         number — so the advice starts under the pattern it is
+                         about. Both the count of cells here and the colspan have
+                         to track those columns. -->
+                    <td></td>
+                    <td></td>
+                    <td [attr.colspan]="columnCount - 2">
+                        <div class="advice-font-size mb-0"
+                            [ngClass]="getSeverity(spec) === 'red' ? 'text-danger' : 'text-warning-emphasis'">
+                            {{ getAdvice(spec) }}
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
+            <tr *ngIf="specs.length === 0">
+                <td [attr.colspan]="columnCount" class="text-center text-muted py-3">
+                    No specifications ran
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

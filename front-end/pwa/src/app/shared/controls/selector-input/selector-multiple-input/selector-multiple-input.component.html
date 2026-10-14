@@ -2,8 +2,9 @@
 <app-text-input [id]="id" [label]="label" [labelSuperScript]="labelSuperScript" [placeholder]="placeholder"
     [readonly]="true" [displayDropDownOption]="true" [displayCancelOption]="true" [errorMessage]="errorMessage"
     [value]="displaySelectedOptions" (displayCancelOptionClick)="onCancelOptionClick()"
-    (dropDownDisplayed)="onDropDownDisplayed()">
-    <div *ngIf="filteredOptions" class="card">
+    (dropDownDisplayed)="onDropDownDisplayed()" (dropDownClosed)="onDropDownClosed()">
+    <!-- Gated on `dropDownOpen`, not on `filteredOptions` — see the `app-text-input` component. -->
+    <div *ngIf="dropDownOpen" class="card">
         <div class="card-body p-0">
             <div class="p-1">
                 <app-text-input #appMultipleSelectorSearchInput

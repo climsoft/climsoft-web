@@ -212,7 +212,33 @@ export class ObservationsExportService {
     }
 
     /**
-     * Generates export files into the operation's output directory.
+     * Run a `COPY ... TO file` and report how many rows it wrote.
+     *
+     * Postgres answers that itself — the COPY's own row count — so the number
+     * costs nothing beyond the statement already being run. It has to go
+     * through a query runner to be read: `manager.query` discards the command
+     * tag even when asked for a structured result.
+     */
+    private async copyToFile(sql: string): Promise<number> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        try {
+            await queryRunner.connect();
+            const result = await queryRunner.query(sql, undefined, true);
+            return result.affected ?? 0;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    /**
+     * Generates export files into the operation's output directory, and reports
+     * how many observations were read out of the database to make them.
+     *
+     * That count is of rows LEAVING POSTGRES, not of records in whatever was
+     * finally written: an adapter or a dissemination service turns one CSV into
+     * files of an entirely different shape (WIS2BOX emits one bulletin per
+     * report). It is recorded per specification for the same reason — the COPY
+     * happens once per specification, not once per generated file.
      *
      * Flow depends on export type and whether a post-export adapter is configured:
      * - Raw (no adapter): Postgres COPY TO -> op.outputDir
@@ -222,7 +248,7 @@ export class ObservationsExportService {
     public async generateExport(
         exportSpecificationId: number,
         op: OperationContext,
-        exportQuery: ExportQueryModel): Promise<void> {
+        exportQuery: ExportQueryModel): Promise<number> {
         const viewExportDto: ViewSpecificationExportModel = this.exportTemplatesService.find(exportSpecificationId);
 
         if (viewExportDto.disabled) {
@@ -235,19 +261,17 @@ export class ObservationsExportService {
             case ExportTypeEnum.RAW:
                 if (hasAdapter) {
                     // Postgres -> inputDir, then adapter -> outputDir
-                    const fileName = await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
-                    const inputFilePathName = path.posix.join(op.inputDir, fileName);
+                    const raw = await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
+                    const inputFilePathName = path.posix.join(op.inputDir, raw.fileName);
                     await this.runExportAdapter(viewExportDto, inputFilePathName, op.outputDir);
-                } else {
-                    // Postgres -> outputDir directly
-                    await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir);
+                    return raw.rowCount;
                 }
-                break;
+                // Postgres -> outputDir directly
+                return (await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbOutputDir)).rowCount;
             case ExportTypeEnum.AGGREGATE:
                 throw new BadRequestException('Aggregate export not yet supported');
             case ExportTypeEnum.DISSEMINATION:
-                await this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
-                break;
+                return this.generateDisseminationExport(viewExportDto.parameters as DisseminationExportParametersDto, exportQuery, op);
             default:
                 throw new BadRequestException('Export type not supported');
         }
@@ -261,11 +285,10 @@ export class ObservationsExportService {
     private async generateDisseminationExport(
         params: DisseminationExportParametersDto,
         exportQuery: ExportQueryModel,
-        op: OperationContext): Promise<void> {
+        op: OperationContext): Promise<number> {
         switch (params.service) {
             case DisseminationServiceEnum.WIS2BOX:
-                await this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportQuery, op);
-                break;
+                return this.generateWis2BoxExport(params.parameters as Wis2BoxExportParametersDto, exportQuery, op);
             default:
                 throw new BadRequestException('Dissemination service not supported');
         }
@@ -348,7 +371,7 @@ export class ObservationsExportService {
         exportParams: RawExportParametersDto,
         exportQuery: ExportQueryModel,
         dbDestDir: string,
-    ): Promise<string> {
+    ): Promise<{ fileName: string; rowCount: number }> {
 
         const conditions: string[] = this.buildBaseObservationConditions(exportQuery);
 
@@ -502,15 +525,15 @@ export class ObservationsExportService {
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        await this.dataSource.manager.query(sql);
+        const rowCount: number = await this.copyToFile(sql);
 
-        return fileName;
+        return { fileName, rowCount };
     }
 
     private async generateWis2BoxExport(
         wis2BoxExportParams: Wis2BoxExportParametersDto,
         exportQuery: ExportQueryModel,
-        op: OperationContext): Promise<void> {
+        op: OperationContext): Promise<number> {
 
         // Pick the per-report-type interval filter and the downstream
         // generator up front, so unimplemented types fail before we run a
@@ -597,9 +620,13 @@ export class ObservationsExportService {
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        await this.dataSource.manager.query(sql);
+        const rowCount: number = await this.copyToFile(sql);
 
         await runGenerator(apiFilePathName);
+
+        // Observations read out of Postgres, not bulletins written by the
+        // generator above — see generateExport.
+        return rowCount;
     }
 
 

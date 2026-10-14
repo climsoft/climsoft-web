@@ -42,6 +42,21 @@ export enum ObservationWindowDateFieldEnum {
 export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
 /**
+ * What `connector_specifications.parameters` actually holds in the database:
+ * the connection settings, WITHOUT the bindings list.
+ *
+ * The bindings moved to `connector_specification_bindings` so that each one has
+ * an id the run tiers can key on — see ConnectorSpecificationBindingEntity.
+ * They are still carried in and out through `parameters.specifications` on the
+ * API, because one connector is authored as one form; the service splits them
+ * on the way in and rejoins them on the way out. Only the column's type
+ * narrows.
+ */
+export type StoredConnectorParameters =
+    | Omit<ImportFileServerParametersDto, 'specifications'>
+    | Omit<ExportFileServerParametersDto, 'specifications'>;
+
+/**
  * Payload for the dedicated enable/disable endpoint
  * (`PATCH /connector-specifications/:id/disabled`). Keeps the toggle action
  * separate from a full update so the controller doesn't have to re-validate
@@ -142,9 +157,8 @@ export class FileServerParametersDto {
 }
 
 export class ImportFileServerParametersDto extends FileServerParametersDto {
-    @IsBoolean()
-    recursive!: boolean; // When true, files in subdirectories will be included
-
+    // Recursion is expressed per-spec in `filePattern` (a `**` segment), not by
+    // a connector-wide flag — see connector-file-pattern.util.ts.
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ImportFileServerSpecificationDto)
@@ -177,8 +191,41 @@ export class ExportFileServerParametersDto extends FileServerParametersDto {
 }
 
 export class ImportFileServerSpecificationDto {
+    /**
+     * The binding's id, echoed back by the client so an edit keeps its identity.
+     *
+     * Absent (or 0) means "a new binding" and gets a fresh row. Present means
+     * "this existing binding, changed", and the row is updated in place — which
+     * is what keeps its run history and its de-duplication ledger attached to
+     * it across a pattern or station edit. A client that dropped this field
+     * would silently turn every save into delete-and-recreate, and the next run
+     * would re-import the whole file server.
+     */
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    id?: number;
+
+    /**
+     * Skip this binding entirely on every run, leaving the connector's other
+     * bindings working. Absent means enabled.
+     */
+    @IsOptional()
+    @IsBoolean()
+    disabled?: boolean;
+
     @IsString()
     filePattern!: string; // Will be used to check both single files and multiple files
+
+    /**
+     * File-name globs to drop from what `filePattern` matches. Absent or empty
+     * (the usual case) excludes nothing; blank entries are ignored. See
+     * `parseExcludePatterns` in connector-file-pattern.util.ts.
+     */
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    excludePatterns?: string[];
 
     @IsInt()
     @Min(1)
@@ -191,6 +238,16 @@ export class ImportFileServerSpecificationDto {
 }
 
 export class ExportFileServerSpecificationDto {
+    /** See ImportFileServerSpecificationDto.id. */
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    id?: number;
+
+    /** See ImportFileServerSpecificationDto.disabled. */
+    @IsOptional()
+    @IsBoolean()
+    disabled?: boolean;
 
     //@IsString() // TODO. This could be needed in future
     //filePattern!: 'yyyymmddhhmmss'; // used to name the created csv file

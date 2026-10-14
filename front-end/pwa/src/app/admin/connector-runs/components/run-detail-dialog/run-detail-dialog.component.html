@@ -1,0 +1,235 @@
+<app-dialog *ngIf="run" [(open)]="open" [title]="'Connector Run #' + run.id" [firstButtonOptions]="{label: 'Close', closeDialogOnClick: true}">
+
+    <div *ngIf="run" class="run-detail-content">
+        <!-- Always-visible header, in place of the old Summary tab.
+             Everything that tab held is now either a column in the runs list
+             (the counts) or here — and here it stays on screen while the Files
+             and Performance tabs are read, which is exactly when a run's error
+             message and whether it ever listed the server actually matter. -->
+        <div class="run-header mb-3">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="badge" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
+                <span class="fw-semibold">{{ connectorName }}</span>
+                <span class="text-muted">{{ run.triggeredBy === 'manual' ? 'triggered manually' : 'scheduled' }}</span>
+                <!-- Always shown. An attempt IS a connection to the file
+                     server, so "gave up after 2 of 2" is often the whole story
+                     of a failed run, and a run still going says which attempt
+                     is in flight. -->
+                <span class="badge" [ngClass]="isOutOfAttempts() ? 'bg-danger' : 'bg-light text-dark border'"
+                    [title]="getAttemptTitle()">
+                    {{ getAttemptLabel() }}
+                </span>
+            </div>
+            <div class="run-header-times text-muted mt-1">
+                <span>Created {{ formatDate(run.entryDateTime) }}</span>
+                <span class="mx-2">&middot;</span>
+                <span>Started {{ formatDate(run.startedAt) }}</span>
+                <span class="mx-2">&middot;</span>
+                <!-- Only a run that has reached a terminal state has an end
+                     time. A running one says so rather than showing a stamp
+                     that would read as "already finished". -->
+                <span>{{ run.endedAt ? 'Ended ' + formatDate(run.endedAt) : 'Still running' }}</span>
+                <span class="mx-2">&middot;</span>
+                <span>Took {{ getDuration() }}</span>
+            </div>
+            <!-- Why the run as a whole stopped, most often that the server could
+                 not be reached. Such a run has no files to show, so this is the
+                 only thing that explains it. -->
+            <div *ngIf="run.errorMessage" class="alert alert-danger error-font-size mt-2 mb-0">
+                {{ run.errorMessage }}
+            </div>
+            <div *ngIf="!run.discoveredAt" class="alert alert-secondary error-font-size mt-2 mb-0">
+                This run never listed the server, so it recorded no files and is not used as the
+                comparison point for the next run.
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'performance'"
+                    (click)="activeTab = 'performance'">
+                    Performance
+                    <span *ngIf="getRunSeverity() !== 'ok'" class="badge ms-1"
+                        [ngClass]="getRunSeverity() === 'red' ? 'bg-danger' : 'bg-warning text-dark'">!</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'files'" (click)="activeTab = 'files'">
+                    Files
+                </button>
+            </li>
+        </ul>
+
+        <!-- Performance Tab -->
+        <div *ngIf="activeTab === 'performance'" class="tab-content">
+            <!-- The run's own elapsed time is in the header. Said here too,
+                 because these figures are per-file work summed across
+                 concurrent workers: they routinely total several times the
+                 elapsed time, and without this they read as a sequential
+                 breakdown of it. -->
+            <p class="text-muted error-font-size mb-2">
+                This run took {{ getDuration() }} start to finish. Each time below is the work
+                for every file added together, and several files are handled at once &mdash; so
+                these can total far more than {{ getDuration() }} (a two-hour run can record eight
+                hours of processing). Compare them with each other to see where the time went, not
+                with the run's own length.
+            </p>
+            <table class="table table-sm details-table mb-3">
+                <tbody>
+                    <!-- First, because it happens first and because on a large
+                         file server it is the biggest single line. It was
+                         previously not stored at all, which left a fifth to a
+                         third of a run's elapsed time unexplained. -->
+                    <tr *ngIf="isImportConnector()">
+                        <th class="w-50">
+                            Listing the server
+                            <small class="text-muted d-block">
+                                Walking the folders each file pattern targets, over FTP or SFTP, before
+                                anything is compared or downloaded. Grows with how many files and folders
+                                the server holds, whether or not any of them changed.
+                                <span *ngIf="run.listingMs === null">
+                                    Not recorded for this run &mdash; it never listed the server, or it
+                                    resumed a snapshot an earlier attempt had already taken.
+                                </span>
+                            </small>
+                        </th>
+                        <td>{{ run.listingMs === null ? '—' : formatDuration(run.listingMs) }}</td>
+                    </tr>
+                    <tr>
+                        <th>
+                            {{ isImportConnector() ? 'Matching and change detection' : 'Generating files' }}
+                            <small class="text-muted d-block" *ngIf="isImportConnector()">
+                                Listing each pattern's folders and working out which files are new or
+                                changed since the last run. Grows with how many files sit on the server,
+                                even when none of them changed.
+                            </small>
+                        </th>
+                        <td>{{ formatDuration(run.totalScanMs) }}</td>
+                    </tr>
+                    <!-- Shown for both directions now: an export's uploads are
+                         transfers, and separating them from generation is what
+                         tells a slow server apart from a slow export. -->
+                    <tr>
+                        <th>
+                            {{ isImportConnector() ? 'Transferring files' : 'Uploading files' }}
+                            <small class="text-muted d-block">
+                                {{ isImportConnector()
+                                    ? 'Downloading the files that needed importing, added up across them. Grows with how many files changed and how large they are.'
+                                    : 'Sending the generated files to the server, added up across them. Grows with how many files were generated and how large they are.' }}
+                            </small>
+                        </th>
+                        <td>{{ formatDuration(run.totalTransferMs) }}</td>
+                    </tr>
+                    <!-- An export does no per-file local work: generating is
+                         counted above as its own line, so this would always
+                         read zero. -->
+                    <tr *ngIf="isImportConnector()">
+                        <th>
+                            Processing and loading
+                            <small class="text-muted d-block">
+                                Reading each downloaded file, applying its specification, and writing the
+                                observations into the database. Grows with how many rows the files hold,
+                                not with how many files there are.
+                            </small>
+                        </th>
+                        <td>{{ formatDuration(run.totalProcessMs) }}</td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <div *ngIf="loadingSpecs" class="text-center text-muted py-3">Loading&hellip;</div>
+            <div *ngIf="!loadingSpecs">
+                <h6 class="mb-2">By specification</h6>
+                <app-run-specs-table [specs]="runSpecs" [isImport]="isImportConnector()"></app-run-specs-table>
+            </div>
+        </div>
+
+        <!-- Files Tab -->
+        <div *ngIf="activeTab === 'files'" class="tab-content files-tab-content">
+
+            <!-- Status filter. Server-side, so it re-queries rather than
+                 filtering the page already loaded — an import run lists every
+                 file it matched, which can be hundreds of thousands. -->
+            <div class="btn-group btn-group-sm mb-2 flex-wrap" role="group" aria-label="Filter files by status">
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === null ? 'btn-primary' : 'btn-outline-primary'"
+                    (click)="onFilesStatusChange(null)">
+                    All <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(null) }}</span>
+                </button>
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.FAILED ? 'btn-danger' : 'btn-outline-danger'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.FAILED)">
+                    Failed <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.FAILED) }}</span>
+                </button>
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.SUCCESS ? 'btn-success' : 'btn-outline-success'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.SUCCESS)">
+                    Imported <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.SUCCESS) }}</span>
+                </button>
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.PENDING ? 'btn-secondary' : 'btn-outline-secondary'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.PENDING)">
+                    Queued <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.PENDING) }}</span>
+                </button>
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.SKIPPED ? 'btn-dark' : 'btn-outline-dark'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.SKIPPED)">
+                    Unchanged <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.SKIPPED) }}</span>
+                </button>
+                <!-- Kept out of "Failed": these did not fail, and burying them
+                     there hides the handful of real failures worth opening. -->
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.EMPTY ? 'btn-warning' : 'btn-outline-warning'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.EMPTY)"
+                    title="Files that downloaded successfully but held no data. Usually a logger recording with its instruments disconnected.">
+                    Empty <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.EMPTY) }}</span>
+                </button>
+                <!-- Excluded files were never downloaded or attempted. They are
+                     listed so a sysadmin can check that an exclusion is catching
+                     what it was meant to and nothing else. -->
+                <button type="button" class="btn"
+                    [ngClass]="filesStatus === RunFileStatusEnum.EXCLUDED ? 'btn-info' : 'btn-outline-info'"
+                    (click)="onFilesStatusChange(RunFileStatusEnum.EXCLUDED)"
+                    title="Files that matched a file pattern but were dropped by its exclusions. Nothing was downloaded or attempted for them.">
+                    Excluded <span *ngIf="showStatusCounts()" class="badge bg-light text-dark ms-1">{{ getStatusCount(RunFileStatusEnum.EXCLUDED) }}</span>
+                </button>
+            </div>
+
+            <!-- Search, below the status buttons and ANDed with them: it
+                 narrows whichever status is selected rather than replacing it.
+                 Applied on Search rather than as you type, because the query
+                 runs over the whole snapshot and has no index behind it yet. -->
+            <div class="d-flex flex-wrap align-items-end gap-2 mb-2">
+                <div class="files-search-box">
+                    <app-text-input [id]="'run_files_search'" [label]="'File'"
+                        [placeholder]="'e.g. KAZO or *2021*.txt'"
+                        [inputTitle]="'Matches anywhere in the file path. Use * as a wildcard.'"
+                        [(value)]="filesSearch" (inputEnterKeyPress)="onFilesSearch()" />
+                </div>
+                <app-date-range-input [id]="'run_files_date'" [label]="'File date'"
+                    [(value)]="filesDateRange" />
+                <button type="button" class="btn btn-sm btn-primary" (click)="onFilesSearch()">
+                    Search
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="!hasFilesSearch()"
+                    (click)="onFilesSearchClear()">
+                    Clear
+                </button>
+                <div *ngIf="hasFilesSearch()" class="text-muted small ms-auto align-self-center">
+                    {{ filesPaging.totalRowCount.toLocaleString() }} matching file(s)
+                </div>
+            </div>
+
+            <div *ngIf="loadingFiles" class="text-center text-muted py-3">Loading…</div>
+            <div *ngIf="!loadingFiles">
+                <div *ngIf="filesPaging.totalRowCount > filesPaging.pageSize" class="d-flex justify-content-end mb-2">
+                    <app-page-input [pageInputDefinition]="filesPaging" (pageInputDefinitionChange)="loadRunFiles()" />
+                </div>
+                <app-run-files-table [files]="runFiles" [utcOffset]="cachedMetadata.utcOffSet"
+                    [isExport]="!isImportConnector()"></app-run-files-table>
+            </div>
+        </div>
+    </div>
+</app-dialog>

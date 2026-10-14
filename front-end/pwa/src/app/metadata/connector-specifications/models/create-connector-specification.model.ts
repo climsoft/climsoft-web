@@ -82,9 +82,8 @@ export interface FileServerParametersModel {
 }
 
 export interface ImportFileServerParametersModel extends FileServerParametersModel {
-
-    recursive: boolean; // When true, files in subdirectories will be included
-
+    // Recursion is expressed per-spec in `filePattern` (a `**` segment), not a
+    // connector-wide flag.
     specifications: ImportFileServerSpecificationModel[];
 }
 
@@ -95,8 +94,30 @@ export interface ExportFileServerParametersModel extends FileServerParametersMod
 }
 
 export interface ImportFileServerSpecificationModel {
+    /**
+     * The binding's id, assigned by the API. MUST be round-tripped unchanged on
+     * save: it is how the server tells "this binding, edited" from "a new
+     * binding". Dropping it would turn every save into delete-and-recreate, and
+     * the next connector run would re-import the whole file server because the
+     * de-duplication ledger is keyed on it.
+     *
+     * Undefined only for a row the user has just added and not yet saved.
+     */
+    id?: number;
+
+    /**
+     * Skip this binding on every run, leaving the connector's other bindings
+     * working. Undefined means enabled.
+     */
+    disabled?: boolean;
 
     filePattern: string; // Will be used to check both single files and multiple files
+
+    /**
+     * File-name globs dropped from what `filePattern` matches, e.g. `*_info.csv`
+     * for a description file beside the data files. Usually empty or absent.
+     */
+    excludePatterns?: string[];
 
     specificationId: number; // import source specification id
 
@@ -104,6 +125,12 @@ export interface ImportFileServerSpecificationModel {
 }
 
 export interface ExportFileServerSpecificationModel {
+    /** See ImportFileServerSpecificationModel.id. */
+    id?: number;
+
+    /** See ImportFileServerSpecificationModel.disabled. */
+    disabled?: boolean;
+
     specificationId: number; // export specification id
 
     stationId: string | null;
