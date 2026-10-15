@@ -399,14 +399,7 @@ export class ConnectorImportProcessorService {
             listingMs,
         });
 
-        // Both totals for the log come off the rows just written, so discovery
-        // does not have to carry them back. "Queued" is not a stored column: it
-        // is what is left of `matched` once the outcomes discovery settled itself
-        // are taken off it — the same identity the run list uses for its Queued
-        // column.
-        const queued: number = specRecords.reduce((total, r) => total + (r.matchedCount - r.skippedCount - r.emptyCount), 0);
-        const unchanged: number = specRecords.reduce((total, r) => total + r.skippedCount, 0);
-        this.logger.log(`Discovery for connector ${connector.name} took ${listingMs} ms to list, queued ${queued} file(s) for ingestion, skipped ${unchanged} unchanged`);
+        this.logger.log(`Discovery for connector ${connector.name} took ${listingMs} ms to list`);
     }
 
     /**
