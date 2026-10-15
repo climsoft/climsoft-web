@@ -39,6 +39,8 @@ OPERATIONS_ROOT <- "/app/operations"
 INSTALL_MARKER_NAME <- ".climsoft-install-ok"
 ## How long a timed-out script gets to exit on SIGTERM before SIGKILL.
 KILL_GRACE_SECONDS <- 5
+## How much of the end of stderr.log a failed run's errorMessage carries.
+STDERR_TAIL_BYTES <- 2048
 
 health_handler <- function() {
   list(status = "ok", runtime = "r", version = paste(R.version$major, R.version$minor, sep = "."))
@@ -262,12 +264,49 @@ run_handler <- function(req) {
     ))
   }
 
-  error_type <- if (exit_code == 2L) "OUTPUT_INVALID" else "RUNTIME_ERROR"
+  # Every script failure is a RUNTIME_ERROR; what actually went wrong is in the
+  # script's own stderr, so its end is carried in the message (see
+  # failure_message).
   list(
     status = "failure", durationMs = duration_ms, exitCode = exit_code,
-    errorType = error_type,
-    errorMessage = paste("Script exited with code", exit_code, "- see stderr.log")
+    errorType = "RUNTIME_ERROR",
+    errorMessage = failure_message(exit_code, stderr_file)
   )
+}
+
+## The errorMessage for a script that exited non-zero: the exit code plus the
+## last STDERR_TAIL_BYTES of what the script wrote to stderr.
+##
+## The script's own explanation (an error, or a message it printed before
+## stopping) is what tells a sysadmin why the run failed, and stderr.log alone
+## is not enough to carry it: the API removes the operation directory, logs
+## included, at the end of most imports, exports and previews. The message is
+## what survives into the connector run or the import error.
+##
+## Only the end is read, by seeking, so the cost is one small read on the
+## failure path whatever the size of the log; the end is where an error's
+## actual message, or a script's final output, sits.
+failure_message <- function(exit_code, stderr_file) {
+  size <- suppressWarnings(file.size(stderr_file))
+  if (is.na(size)) size <- 0
+  tail <- tryCatch({
+    if (size == 0) "" else {
+      con <- file(stderr_file, "rb")
+      on.exit(close(con), add = TRUE)
+      n <- min(size, STDERR_TAIL_BYTES)
+      seek(con, size - n)
+      bytes <- readBin(con, "raw", n)
+      text <- rawToChar(bytes[bytes != as.raw(0)])
+      # A cut start may fall mid-character; replace invalid UTF-8 rather than fail.
+      trimws(iconv(text, "UTF-8", "UTF-8", sub = "?"))
+    }
+  }, error = function(e) "")
+  if (is.na(tail) || !nzchar(tail)) {
+    return(paste0("Script exited with code ", exit_code, " and wrote nothing to stderr."))
+  }
+  # A cut start may also fall mid-line.
+  prefix <- if (size > STDERR_TAIL_BYTES) "..." else ""
+  paste0("Script exited with code ", exit_code, ": ", prefix, tail)
 }
 
 # Build the router programmatically so handlers see the global environment

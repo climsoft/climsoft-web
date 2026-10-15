@@ -47,6 +47,8 @@ const OPERATIONS_ROOT = '/app/operations';
 const INSTALL_MARKER_NAME = '.climsoft-install-ok';
 // How long a timed-out process group gets to exit on SIGTERM before SIGKILL.
 const KILL_GRACE_MS = 5000;
+// How much of the end of stderr.log a failed run's errorMessage carries.
+const STDERR_TAIL_BYTES = 2048;
 
 // ── Install serialisation ─────────────────────────────────────────────────
 
@@ -155,13 +157,15 @@ app.post('/run', async (req, res) => {
       });
     }
 
-    const errorType = result.exitCode === 2 ? 'OUTPUT_INVALID' : 'RUNTIME_ERROR';
+    // Every script failure is a RUNTIME_ERROR; what actually went wrong is in
+    // the script's own stderr, so its end is carried in the message (see
+    // failureMessage).
     return res.json({
       status: 'failure', durationMs, exitCode: result.exitCode,
-      errorType,
+      errorType: 'RUNTIME_ERROR',
       errorMessage: result.spawnError
         ? `Could not start the script: ${result.spawnError}`
-        : `Script exited with code ${result.exitCode}; see stderr.log`,
+        : failureMessage(result.exitCode, stderrFile),
     });
   } catch (err) {
     console.error('Unexpected error:', err);
@@ -379,6 +383,42 @@ function safeWrite(file, contents) {
   } catch (err) {
     console.error(`Could not write ${file}:`, err.message);
   }
+}
+
+/**
+ * The errorMessage for a script that exited non-zero: the exit code plus the
+ * last STDERR_TAIL_BYTES of what the script wrote to stderr.
+ *
+ * The script's own explanation (an exception, or a message it printed before
+ * exiting) is what tells a sysadmin why the run failed, and stderr.log alone is
+ * not enough to carry it: the API removes the operation directory, logs
+ * included, at the end of most imports, exports and previews. The message is
+ * what survives into the connector run or the import error.
+ *
+ * Only the end is read, at an offset, so the cost is one small read on the
+ * failure path whatever the size of the log; the end is where a stack trace's
+ * actual error line, or a script's final message, sits.
+ */
+function failureMessage(exitCode, stderrFile) {
+  let tail = '';
+  let size = 0;
+  let fd;
+  try {
+    fd = fs.openSync(stderrFile, 'r');
+    size = fs.fstatSync(fd).size;
+    const length = Math.min(size, STDERR_TAIL_BYTES);
+    const buf = Buffer.alloc(length);
+    fs.readSync(fd, buf, 0, length, size - length);
+    tail = buf.toString('utf8').trim();
+  } catch {
+    tail = '';
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
+  }
+  if (!tail) return `Script exited with code ${exitCode} and wrote nothing to stderr.`;
+  // A cut start may fall mid-line, or mid-character (decoded as U+FFFD).
+  const prefix = size > STDERR_TAIL_BYTES ? '...' : '';
+  return `Script exited with code ${exitCode}: ${prefix}${tail}`;
 }
 
 function errorSummary(errorType, message) {

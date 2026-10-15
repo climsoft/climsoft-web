@@ -401,9 +401,10 @@ export class ImportPreviewService implements OnModuleDestroy {
             testRun: false,
         };
 
-        // Preview session tears down its whole op dir when the session ends,
-        // so log files add no value here either.
-        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata, { deleteLogsOnCompletion: true });
+        // The runner's log files land beside the output in op.intermediateDir.
+        // Nothing lists it — the output is picked from result.outputFiles — and
+        // they go when the preview session deletes its operation directory.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata);
 
         if (result.status !== 'success') {
             throw new Error(`Adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);

@@ -62,6 +62,7 @@ a script that needs to read a file shipped beside it has CLIMSOFT_SCRIPT_DIR.
 
 import fcntl
 import hashlib
+import logging
 import os
 import signal
 import subprocess
@@ -91,6 +92,8 @@ INSTALL_MARKER_NAME = '.climsoft-install-ok'
 INSTALL_LOCK_NAME = '.installed.lock'
 # How long a timed-out process group gets to exit on SIGTERM before SIGKILL.
 KILL_GRACE_SECONDS = 5
+# How much of the end of stderr.log a failed run's errorMessage carries.
+STDERR_TAIL_BYTES = 2048
 
 
 @app.route('/health', methods=['GET'])
@@ -103,7 +106,7 @@ def run_adapter():
     try:
         body = request.get_json()
 
-        print(f"Received request body: {body}")
+       # print(f"Received request body: {body}")
 
         if not body:
             return jsonify(_error_summary('RUNTIME_ERROR', 'Request body must be JSON')), 200
@@ -122,8 +125,8 @@ def run_adapter():
         output_dir = os.path.join(op_dir, body['outputRelPath'])
         timeout_seconds = int(body['timeoutSeconds'])
 
-        print(f"Received run request for script at {script_dir} with entry point {ENTRY_POINT}")
-
+        #print(f"Received run request for script at {script_dir} with entry point {ENTRY_POINT}")
+    
         # Derive paths by convention
         env_dir = os.path.join(script_dir, INSTALLED_DIR_NAME)
         metadata_file = os.path.join(output_dir, 'metadata.json')
@@ -204,14 +207,15 @@ def run_adapter():
                 'exitCode': 0,
             }), 200
 
-        # Non-zero exit code.
-        error_type = 'OUTPUT_INVALID' if proc.returncode == 2 else 'RUNTIME_ERROR'
+        # Non-zero exit code. Every script failure is a RUNTIME_ERROR; what
+        # actually went wrong is in the script's own stderr, so its end is
+        # carried in the message (see _failure_message).
         return jsonify({
             'status': 'failure',
             'durationMs': duration_ms,
             'exitCode': proc.returncode,
-            'errorType': error_type,
-            'errorMessage': f'Script exited with code {proc.returncode}; see stderr.log',
+            'errorType': 'RUNTIME_ERROR',
+            'errorMessage': _failure_message(proc.returncode, stderr_file),
         }), 200
 
     except Exception as e:
@@ -374,6 +378,36 @@ def _venv_pip(env_dir):
     return os.path.join(env_dir, 'bin', 'pip')
 
 
+def _failure_message(exit_code, stderr_file):
+    """
+    The errorMessage for a script that exited non-zero: the exit code plus the
+    last STDERR_TAIL_BYTES of what the script wrote to stderr.
+
+    The script's own explanation (an exception, or a message it printed before
+    exiting) is what tells a sysadmin why the run failed, and stderr.log alone
+    is not enough to carry it: the API removes the operation directory, logs
+    included, at the end of most imports, exports and previews. The message is
+    what survives into the connector run or the import error.
+
+    Only the end is read, by seeking, so the cost is one small read on the
+    failure path whatever the size of the log; the end is where a traceback's
+    actual error line, or a script's final message, sits.
+    """
+    try:
+        with open(stderr_file, 'rb') as fh:
+            size = fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, size - STDERR_TAIL_BYTES))
+            tail = fh.read().decode('utf-8', errors='replace').strip()
+    except OSError:
+        tail = ''
+        size = 0
+    if not tail:
+        return f'Script exited with code {exit_code} and wrote nothing to stderr.'
+    # A cut start may fall mid-line (or mid-character, hence errors='replace').
+    prefix = '...' if size > STDERR_TAIL_BYTES else ''
+    return f'Script exited with code {exit_code}: {prefix}{tail}'
+
+
 def _error_summary(error_type, message):
     return {
         'status': 'failure',
@@ -387,4 +421,8 @@ def _error_summary(error_type, message):
 if __name__ == '__main__':
     port = int(os.environ.get('PYTHON_RUNNER_PORT', 5101))
     debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    # Werkzeug (the server app.run() starts) logs every request at INFO, so
+    # each adapter run left a `"POST /run HTTP/1.1" 200 -` line. The API
+    # already records each run's outcome; WARNING keeps Werkzeug's errors.
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
     app.run(host='0.0.0.0', port=port, debug=debug)

@@ -175,9 +175,10 @@ export class ObservationImportService {
             testRun: false,
         };
 
-        // Production import: the operation directory is torn down at the end
-        // of the flow, so log files add no value — delete them right away.
-        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
+        // The runner's log files land beside the output in this (intermediate)
+        // directory. Nothing lists it — the output is picked from
+        // result.outputFiles — and they go when the operation directory does.
+        const result: AdapterRunResult = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata);
 
         return result;
     }
