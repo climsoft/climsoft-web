@@ -190,9 +190,6 @@ export class ObservationImportService {
         stationId: string | null,
         duckDbConn: DuckDBConnection,
     ): Promise<FileProcessingError | void> {
-        const startTime = Date.now();
-
-        //this.logger.log(`processing file ${inputFilePathName} for database import`);
 
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
