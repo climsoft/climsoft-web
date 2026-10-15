@@ -52,6 +52,11 @@
  *   getvariable('climsoft_output_dir') — output directory path
  *   getvariable('climsoft_metadata')   — metadata sidecar path
  *   getvariable('climsoft_warnings')   — warnings file path
+ *   getvariable('climsoft_script_dir') — the adapter's own directory, for files
+ *                                        uploaded alongside the script
+ *
+ * These are the same values the Python, JavaScript and R runners pass as
+ * CLIMSOFT_* environment variables, so every adapter language sees one contract.
  */
 
 const express = require('express');
@@ -454,6 +459,7 @@ app.post('/run', async (req, res) => {
       await conn.run(`SET VARIABLE climsoft_output_dir = '${sqlLiteral(outputDir)}';`);
       await conn.run(`SET VARIABLE climsoft_metadata = '${sqlLiteral(metadataFile)}';`);
       await conn.run(`SET VARIABLE climsoft_warnings = '${sqlLiteral(warningsFile)}';`);
+      await conn.run(`SET VARIABLE climsoft_script_dir = '${sqlLiteral(scriptDir)}';`);
 
       // Step 4: enforce a per-run wall-clock timeout. DuckDB has no SQL-level
       // `statement_timeout`, so we drive it from JavaScript: a setTimeout fires
