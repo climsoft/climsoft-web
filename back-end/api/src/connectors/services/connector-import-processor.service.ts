@@ -71,7 +71,8 @@ const DRAIN_BATCH = 200;
  * out of a default maximum of ten leaves six for the rest of the API.
  *
  * Safe at this value, but only because of how the transform is written. Two
- * rules hold it up, both in the note on `DuckDBUtils.createTableFromFile`:
+ * rules hold it up, the second documented on
+ * `TabularImportTransformer.buildAlterDateTimeColumnSQL`:
  * every working table is named from `crypto.randomUUID()`, so two workers never
  * contend for a catalog entry; and no index-creating DDL (`SET NOT NULL`,
  * `PRIMARY KEY`, `UNIQUE`, `CREATE INDEX`) is issued after rows in a table have
