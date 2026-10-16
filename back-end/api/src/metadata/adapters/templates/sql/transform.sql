@@ -8,11 +8,16 @@
 --   climsoft_output_dir - directory where output file(s) must be written
 --   climsoft_metadata   - path to a JSON sidecar with context metadata
 --   climsoft_warnings   - path to write structured warnings (JSON Lines)
+--   climsoft_script_dir - folder holding this script and any files uploaded with it
 --
--- Access them with: getvariable('climsoft_file_path_name')
+-- Access them with: getvariable('climsoft_input_file_path_name')
+--
+-- Use climsoft_script_dir to find files that ship alongside the script, such
+-- as a lookup table:
+--   read_csv(getvariable('climsoft_script_dir') || '/stations.csv')
 --
 -- Your script must:
---   1. Read from input files in 'climsoft_file_path_name'
+--   1. Read from the file in 'climsoft_input_file_path_name'
 --   2. Transform the data
 --   3. Write the result to a file inside climsoft_output_dir using COPY ... TO
 --

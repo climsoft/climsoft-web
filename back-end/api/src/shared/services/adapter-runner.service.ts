@@ -57,23 +57,10 @@ export interface AdapterRunResult {
     /**
      * Well-known runner-produced log files that exist on disk:
      * `metadata.json`, `warnings.jsonl`, `stdout.log`, `stderr.log`,
-     * `install.log`. Empty when `deleteLogsOnCompletion` was requested
-     * or when the runner wrote nothing.
+     * `install.log`. Empty when the runner wrote nothing.
      */
     logFiles: ProducedFile[];
     error?: FileProcessingError;
-}
-
-/** Options for {@link AdapterRunnerService.run}. */
-export interface AdapterRunOptions {
-    /**
-     * When true, the runner deletes the well-known log files from the
-     * output directory after enumerating them, and returns `logFiles: []`.
-     * Used by production callers whose output directory becomes user-
-     * visible (e.g. export downloads) so log files don't leak into the
-     * download.
-     */
-    deleteLogsOnCompletion?: boolean;
 }
 
 /**
@@ -123,6 +110,14 @@ interface RunnerResponse {
  *
  * After the runner completes, this service scans `outputDir` for
  * output files (excluding well-known log files).
+ *
+ * This service never deletes anything. The log files stay in `outputDir`
+ * beside the output, and the caller's operation directory owns their
+ * lifetime: it is deleted when the caller's flow ends. A caller whose
+ * directory is delivered as a whole (an export's zip download or upload)
+ * must therefore not pass that directory as `outputDir`; it passes its
+ * intermediate directory and moves `outputFiles` across, as the export
+ * flow does.
  */
 @Injectable()
 export class AdapterRunnerService {
@@ -157,7 +152,6 @@ export class AdapterRunnerService {
      * @param inputFilePathName  API-view path the runner should read input from
      * @param outputDir API-view path the runner should write output and logs to
      * @param metadata  Context written to metadata.json for the script
-     * @param opts      Optional run behavior (e.g. delete log files after completion).
      *
      * Both `inputFilePathName` and `outputDir` must lie under
      * `fileIO.apiOperationsDir/<operationId>/`. This service extracts the
@@ -170,7 +164,6 @@ export class AdapterRunnerService {
         inputFilePathName: string,
         outputDir: string,
         metadata: AdapterRunMetadata,
-        opts?: AdapterRunOptions,
     ): Promise<AdapterRunResult> {
         const cfg = this.runnerConfigFor(adapter.language);
         if (!cfg.enabled) {
@@ -213,21 +206,17 @@ export class AdapterRunnerService {
                 });
                 runnerResp = resp.data;
             } catch (err) {
-                return await this.onHttpError(err, adapter.name, outputDir, opts);
+                return await this.onHttpError(err, adapter.name, outputDir);
             }
 
             const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
 
             // this.logger.log(`Adapter run completed with status '${runnerResp.status}' in ${runnerResp.durationMs}ms. Output files: ${outputFiles.map(f => f.name).join(', ')}`);
 
-            if (opts?.deleteLogsOnCompletion) {
-                await this.deleteLogFiles(outputDir, logFiles);
-            }
-
             const baseResult = {
                 durationMs: runnerResp.durationMs,
                 outputFiles,
-                logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles,
+                logFiles,
             };
 
             if (runnerResp.status === 'success') {
@@ -356,21 +345,6 @@ export class AdapterRunnerService {
         return { outputFiles, logFiles };
     }
 
-    /**
-     * Unlinks the enumerated log files from `outputDir`. Failures are
-     * swallowed — cleanup is best-effort; the orphaned-op sweeper will
-     * eventually collect anything left behind.
-     */
-    private async deleteLogFiles(outputDir: string, logFiles: ProducedFile[]): Promise<void> {
-        for (const f of logFiles) {
-            try {
-                await fs.promises.unlink(path.posix.join(outputDir, f.name));
-            } catch (err) {
-                this.logger.warn(`Failed to delete log file '${f.name}' in ${outputDir}: ${(err as Error).message}`);
-            }
-        }
-    }
-
     private runnerConfigFor(language: AdapterLanguageEnum): { enabled: boolean; host: string; port: number; timeoutSeconds: number } {
         switch (language) {
             case AdapterLanguageEnum.PYTHON: return AppConfig.adapterRunners.python;
@@ -380,17 +354,13 @@ export class AdapterRunnerService {
         }
     }
 
-    private async onHttpError(err: unknown, adapterName: string, outputDir: string, opts?: AdapterRunOptions): Promise<AdapterRunResult> {
+    private async onHttpError(err: unknown, adapterName: string, outputDir: string): Promise<AdapterRunResult> {
         const axiosErr = err as AxiosError;
         const code = axiosErr?.code ?? '';
 
         // Enumerate whatever the runner may have written before crashing —
         // the log files are on disk regardless of what the HTTP layer saw.
-        const { outputFiles, logFiles } = await this.enumerateOutputDir(outputDir);
-        if (opts?.deleteLogsOnCompletion) {
-            await this.deleteLogFiles(outputDir, logFiles);
-        }
-        const carryFiles = { outputFiles, logFiles: opts?.deleteLogsOnCompletion ? [] : logFiles };
+        const carryFiles = await this.enumerateOutputDir(outputDir);
 
         if (code === 'ECONNABORTED' || /timeout/i.test(axiosErr?.message ?? '')) {
             this.logger.warn(`Adapter '${adapterName}' timed out at the HTTP layer`);

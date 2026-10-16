@@ -242,7 +242,8 @@ export class ObservationsExportService {
      *
      * Flow depends on export type and whether a post-export adapter is configured:
      * - Raw (no adapter): Postgres COPY TO -> op.outputDir
-     * - Raw (with adapter): Postgres COPY TO -> op.inputDir, runner reads -> op.outputDir
+     * - Raw (with adapter): Postgres COPY TO -> op.inputDir, runner reads -> op.intermediateDir,
+     *   then only the adapter's output files are moved into op.outputDir
      * - Dissemination: Postgres COPY TO -> op.inputDir, service-specific transformer -> op.outputDir
      */
     public async generateExport(
@@ -260,10 +261,10 @@ export class ObservationsExportService {
         switch (viewExportDto.exportType) {
             case ExportTypeEnum.RAW:
                 if (hasAdapter) {
-                    // Postgres -> inputDir, then adapter -> outputDir
+                    // Postgres -> inputDir, then adapter -> intermediateDir -> outputDir
                     const raw = await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportQuery, op.dbInputDir);
                     const inputFilePathName = path.posix.join(op.inputDir, raw.fileName);
-                    await this.runExportAdapter(viewExportDto, inputFilePathName, op.outputDir);
+                    await this.runExportAdapter(viewExportDto, inputFilePathName, op);
                     return raw.rowCount;
                 }
                 // Postgres -> outputDir directly
@@ -296,11 +297,20 @@ export class ObservationsExportService {
 
     /**
      * Runs the post-export adapter. Reads from op.inputDir, writes to op.outputDir.
+     *
+     * The runner writes into op.intermediateDir, not op.outputDir, because it
+     * also writes its log files (stderr.log, metadata.json, ...) into whatever
+     * directory it is given, and op.outputDir is delivered wholesale: the manual
+     * download zips every file in it, and the connector export uploads every file
+     * in it to the partner's server. So only the adapter's own output files are
+     * moved across; the logs stay behind in op.intermediateDir and go when the
+     * operation directory is deleted. This is the same split the import flow
+     * uses, where the adapter also writes to the intermediate directory.
      */
     private async runExportAdapter(
         exportSpec: ViewSpecificationExportModel,
         inputFilePathName: string,
-        outputDir: string,): Promise<void> {
+        op: OperationContext,): Promise<void> {
         const adapter = this.adaptersService.find(exportSpec.adapterId!);
 
         if (adapter.disabled) {
@@ -327,13 +337,18 @@ export class ObservationsExportService {
             testRun: false,
         };
 
-        // The operation's outputDir becomes user-visible via
-        // `manualDownloadExport`, which zips every file it finds. Delete
-        // the runner's log files so they don't leak into the download.
-        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, outputDir, metadata, { deleteLogsOnCompletion: true });
+        const result = await this.adapterRunnerService.run(adapterRef, inputFilePathName, op.intermediateDir, metadata);
 
         if (result.status !== 'success') {
             throw new Error(`Export adapter '${adapter.name}' failed: ${result.error?.message || 'unknown error'}`);
+        }
+
+        // A rename, not a copy: both directories are on the same volume.
+        for (const file of result.outputFiles) {
+            await fs.promises.rename(
+                path.posix.join(op.intermediateDir, file.name),
+                path.posix.join(op.outputDir, file.name),
+            );
         }
 
         this.logger.log(`Export adapter '${adapter.name}' produced ${result.outputFiles.length} file(s)`);

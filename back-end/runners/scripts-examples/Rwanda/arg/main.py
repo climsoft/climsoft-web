@@ -58,7 +58,8 @@
 #        CLIMSOFT_OUTPUT_DIR             the directory to write output into
 #        CLIMSOFT_METADATA_FILE          run context written by the API
 #        CLIMSOFT_WARNINGS_FILE          JSON-Lines file for non-fatal warnings
-#  * Exit 0 = success, 2 = OUTPUT_INVALID, any other non-zero = RUNTIME_ERROR.
+#  * Exit 0 = success. Any non-zero exit fails the run as RUNTIME_ERROR, and the
+#    end of what was written to stderr becomes the run's error message.
 #  * Output must not be named metadata.json, warnings.jsonl, stdout.log,
 #    stderr.log or install.log; those are the runner's own sidecar files.
 #
@@ -326,7 +327,7 @@ def main() -> None:
         print(f"No data rows found in {input_path}. Expected an LSI LASTEM Elab "
               "export with a 'Date/time' header and tab-separated columns.",
               file=sys.stderr)
-        sys.exit(2)
+        sys.exit(1)
 
     rows.sort(key=lambda r: r.date_time)             # chronological, stable
 

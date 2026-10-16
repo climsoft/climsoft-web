@@ -8,11 +8,16 @@ The paths are provided via environment variables set by the runner:
     CLIMSOFT_OUTPUT_DIR   — path where the output file(s) must be written
     CLIMSOFT_METADATA_FILE — path to a JSON sidecar with context metadata
     CLIMSOFT_WARNINGS_FILE — path to write structured warnings (JSON Lines)
+    CLIMSOFT_SCRIPT_DIR   — folder holding this script and any files uploaded with it
+
+The script runs with its working directory set to the operation's directory,
+so use CLIMSOFT_SCRIPT_DIR (or os.path.dirname(__file__)) to find files that
+ship alongside it, such as a lookup table.
 
 The script must:
     1. Read from CLIMSOFT_INPUT_FILE_PATH_NAME
     2. Process the data
-    3. Write the result to CLIMSOFT_OUTPUT_FILE
+    3. Write the result to a file inside CLIMSOFT_OUTPUT_DIR
     4. Exit with code 0 on success, non-zero on failure
 
 Any output to stdout is captured and shown in the test-run pane.
