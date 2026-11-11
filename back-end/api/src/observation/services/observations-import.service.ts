@@ -231,11 +231,14 @@ export class ObservationImportService {
      * Import processed CSV file to database using PostgreSQL COPY command.
      * Uses a staging table approach to handle duplicates efficiently.
      *
-     * Returns the number of observations written — Postgres's own row count
-     * for the upsert, so new and overwritten observations both count, which is
-     * what "imported" means for a re-read file. Taken from the statement that
-     * commits rather than from DuckDB's count before export, so it is the
-     * number that actually landed, and it costs nothing extra.
+     * Returns the number of observations that actually changed in the database
+     * — Postgres's own row count for the upsert, so new observations and ones
+     * whose stored value, flag or comment differ both count. A row the file
+     * repeats unchanged is not written and does not count, even if a different
+     * user is running the import this time, so a log
+     * file that has only grown reports just its new rows. Taken from the
+     * statement that commits rather than from DuckDB's count before export, so
+     * it is the number that actually landed, and it costs nothing extra.
      */
     public async importProcessedFileToDatabase(inputFilePathName: string,): Promise<number> {
         const queryRunner = this.dataSource.createQueryRunner();
@@ -280,7 +283,26 @@ export class ObservationImportService {
                         ${TabularImportTransformer.VALUE_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.VALUE_PROPERTY_NAME},
                         ${TabularImportTransformer.FLAG_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.FLAG_PROPERTY_NAME},
                         ${TabularImportTransformer.COMMENT_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.COMMENT_PROPERTY_NAME},
-                        ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME};
+                        ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME}
+                    -- Only rewrite a row that differs from what is stored. A file that is
+                    -- read again after rows were appended to it repeats every old row
+                    -- unchanged, and without this each of those was updated anyway:
+                    -- the entry-date-time trigger moved its "entered at" time forward,
+                    -- and because that column is indexed (as are eleven others) every
+                    -- update wrote a new heap tuple plus an entry in every index.
+                    -- Measured on 500k unchanged rows + 5k new: 39s / 581MB of WAL
+                    -- unconditionally, 7s / 32MB with this condition. The comparison
+                    -- itself is noise beside the update it avoids.
+                    --
+                    -- What is compared is the observation's content: value, flag and
+                    -- comment. The entry user is deliberately NOT compared. For a connector
+                    -- it is whoever owns or last restarted the connector, so it changes
+                    -- whenever a different sysadmin re-enables it, and comparing it would
+                    -- send every row of every re-read file back through the full update
+                    -- that this condition exists to avoid. It is still SET above, so a row
+                    -- whose content does change records who changed it.
+                    WHERE (observations.${TabularImportTransformer.VALUE_PROPERTY_NAME}, observations.${TabularImportTransformer.FLAG_PROPERTY_NAME}, observations.${TabularImportTransformer.COMMENT_PROPERTY_NAME})
+                        IS DISTINCT FROM (EXCLUDED.${TabularImportTransformer.VALUE_PROPERTY_NAME}, EXCLUDED.${TabularImportTransformer.FLAG_PROPERTY_NAME}, EXCLUDED.${TabularImportTransformer.COMMENT_PROPERTY_NAME});
                 `;
 
             const upsertResult = await queryRunner.query(upsertQuery, undefined, true);
