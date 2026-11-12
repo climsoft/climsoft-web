@@ -95,7 +95,22 @@ Warnings are written as JSON Lines to the runner's warnings file (`warnings.json
 
 ## Differences between the three
 
-- **Several files at once.** Only the SQL adapter accepts a glob such as `.../*.txt` as its input.
+- **Several files at once.** Only the SQL adapter accepts a glob such as `.../*.txt` as its input. The rows of all matching files come out in one `output.csv`, sorted by time, with same-time rows in filename then file order.
+
+On every file in [`sample-files/`](sample-files/) the three give byte-identical `output.csv` and `warnings.jsonl`. They also agree on every rejection path (each warning type above, plus empty and no-record files, which all fail with the same message) and on a UTF-8 byte-order mark, CRLF line endings, a missing final newline, and NUL bytes inside a record.
+
+They differ only on input that no sample file, and no logger output seen so far, contains:
+
+| Input | Python | JavaScript | SQL |
+|---|---|---|---|
+| A byte that isn't valid UTF-8 | Replaced by `�`; the file is read | Same as Python | The whole file fails (`could not read ... as valid UTF-8`) |
+| A value of `nan` or `inf` | Output as `nan` / `inf` | Empty value | Output as `nan` / `inf` |
+| A value like `1_0` | Read as `10.0` | Empty value | Read as `10.0` |
+| A very small or large value (`1e-05`, `1e16`) | `1e-05`, `1e+16` | `0.00001`, `10000000000000000.0` | `1e-05`, `1e+16` |
+| A record closed by `##` | Rejected as `RAGGED_RECORD` | Same as Python | Imported (it strips every trailing `#`, the others strip one) |
+| Measurement id `0` | `UNKNOWN_MEASUREMENT` warning says "base 50" | "base 0" | "base 0" |
+
+For the first row, the Python and JavaScript behaviour is the better one for a logger that writes a stray byte: one bad byte loses one value, not the file. The `nan`/`inf` row is a gap in the Python and SQL versions, since a non-finite number isn't a reading.
 
 ## Known gaps
 

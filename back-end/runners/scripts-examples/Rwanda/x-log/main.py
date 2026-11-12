@@ -357,7 +357,9 @@ def flush_warnings() -> None:
     try:
         with open(path, "a", encoding="utf-8") as fh:
             for entry in _warnings:
-                fh.write(json.dumps(entry) + "\n")
+                # Compact separators and raw UTF-8, so the line is byte-for-byte
+                # what the JavaScript and SQL versions write.
+                fh.write(json.dumps(entry, separators=(",", ":"), ensure_ascii=False) + "\n")
     except OSError as exc:
         # Failing to record a warning must never mask an otherwise good run.
         print(f"Could not write warnings file: {exc}", file=sys.stderr)
