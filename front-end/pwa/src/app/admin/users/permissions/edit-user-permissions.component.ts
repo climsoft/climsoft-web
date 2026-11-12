@@ -144,10 +144,9 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.userPermissions.exportPermissions.qcStatuses = option === 'All' ? undefined : [QCStatusEnum.NONE, QCStatusEnum.PASSED];
   }
 
-  protected onExportSpecificationSelection(selectionType: string): void {
-    if (this.userPermissions.exportPermissions) {
-      this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
-    }
+  protected onExportSpecificationSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
+    this.userPermissions.exportPermissions.exportTemplateIds = (option === 'All') ? undefined : [];
   }
 
 }
