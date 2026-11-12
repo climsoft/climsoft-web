@@ -49,8 +49,6 @@ export enum SubMenuNameEnum {
     ADAPTERS_SPECIFICATIONS = 'Adapter Specifications',
     CLIMATE_PRODUCTS_ADMIN = 'Climate Products',
 
-
-
     USER_GROUPS = 'User Groups',
     USERS = 'Users',
     CLIMSOFT_V4 = 'Climsoft V4',
