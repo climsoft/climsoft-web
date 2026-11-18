@@ -18,12 +18,14 @@ services:
     container_name: climsoft-nginx-proxy
     restart: unless-stopped
     environment:
-      # Substituted into nginx.conf's Superset server block by the base
+      # Substituted into nginx.conf's assets/config.json response by the base
       # image's envsubst-on-templates entrypoint (wired up in the image's
       # own Dockerfile, see the repo root).
-      SUPERSET_HOSTNAME: "${SUPERSET_HOSTNAME}"
+      HOST_SUPERSET_PORT: "${HOST_SUPERSET_PORT}"
+      SUPERSET_PUBLIC_URL: "${SUPERSET_PUBLIC_URL}"
     ports:
       - "${HOST_HTTP_PORT}:80"
+      - "${HOST_SUPERSET_PORT}:8088"
     depends_on:
       - climsoft_pwa
       - climsoft_api
@@ -180,9 +182,9 @@ services:
       SERVER_WORKER_CLASS: gevent
       SERVER_THREADS_AMOUNT: 1000
       GUNICORN_TIMEOUT: 120
-    # Reached through climsoft_nginx_proxy's SUPERSET_HOSTNAME server block —
-    # no longer published directly, so Superset traffic always goes through
-    # nginx's request-handling behavior too.
+    # Reached through climsoft_nginx_proxy's Superset server block (published
+    # on HOST_SUPERSET_PORT) — not published directly, so Superset traffic
+    # always goes through nginx's request-handling behavior too.
     expose:
       - 8088
     depends_on:

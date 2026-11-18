@@ -7,8 +7,8 @@
 FROM nginx:1.27.1-alpine
 
 # The base image's own entrypoint script (runs automatically before CMD)
-# looks for *.template files and substitutes env vars (${SUPERSET_HOSTNAME},
-# see nginx.dev.conf) into them at container start. By default it reads from
+# looks for *.template files and substitutes env vars (HOST_SUPERSET_PORT,
+# SUPERSET_PUBLIC_URL — see nginx.dev.conf) into them at container start. By default it reads from
 # /etc/nginx/templates/ and writes into /etc/nginx/conf.d/ — a layout meant
 # for a base nginx.conf that does `include /etc/nginx/conf.d/*.conf;`. This
 # repo instead keeps everything in one flat file, so both are redirected to

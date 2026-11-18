@@ -1,8 +1,8 @@
 # Start from the official Nginx image
 FROM nginx:1.27.1-alpine
 
-# nginx.conf references ${SUPERSET_HOSTNAME} (see its own comments for why
-# Superset needs its own hostname/origin). Copy it as a .template and point
+# nginx.conf references env vars (HOST_SUPERSET_PORT, SUPERSET_PUBLIC_URL —
+# see its assets/config.json block). Copy it as a .template and point
 # the base image's own envsubst-on-templates entrypoint script (part of the
 # official nginx image, runs automatically before CMD) at it directly, so it
 # substitutes env vars into place at container start and writes the result
