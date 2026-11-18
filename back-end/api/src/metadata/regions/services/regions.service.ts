@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -101,7 +101,11 @@ export class RegionsService implements OnModuleInit {
         const regionsToSave: RegionEntity[] = [];
         for (const region of features) {
 
-            const name: string = region.properties.NAME_1;
+            const name: string | null = RegionsService.getGadmRegionName(region.properties);
+            if (!name) {
+                await this.fileUploadService.deleteOperation(op.operationId);
+                throw new BadRequestException('Could not determine a region name. Expected GADM properties NAME_<level> or COUNTRY.');
+            }
 
             let entity = await this.regionsRepo.findOneBy({
                 name: name,
@@ -137,6 +141,31 @@ export class RegionsService implements OnModuleInit {
         await this.cache.invalidate();
 
         await this.fileUploadService.deleteOperation(op.operationId);
+    }
+
+    /**
+     * Returns the name of the feature's own (deepest) GADM level: NAME_<n> with the highest n,
+     * or COUNTRY for a level 0 file, which has no NAME_<n> properties.
+     */
+    private static getGadmRegionName(properties: Record<string, unknown> | null | undefined): string | null {
+        if (!properties) return null;
+
+        let deepestLevel = -1;
+        let name: string | null = null;
+        for (const [key, value] of Object.entries(properties)) {
+            const match = /^NAME_(\d+)$/.exec(key);
+            if (!match || typeof value !== 'string' || value.trim() === '' || value === 'NA') continue;
+            const level = Number(match[1]);
+            if (level > deepestLevel) {
+                deepestLevel = level;
+                name = value.trim();
+            }
+        }
+
+        if (name) return name;
+
+        const country = properties['COUNTRY'];
+        return typeof country === 'string' && country.trim() !== '' ? country.trim() : null;
     }
 
     public async delete(id: number): Promise<number> {
