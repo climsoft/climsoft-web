@@ -69,6 +69,9 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
 
     // TODO. The assignment to `observationPeriod` automatically raises `ngOnChanges`. Investigate how that can be stopped.
     switch (option) {
+      case 'All':
+        this.observationPeriod = undefined;
+        break;
       case 'Within':
         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
         // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it 
@@ -90,11 +93,9 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
         };
         break;
       default:
-        this.observationPeriod = undefined;
         throw new Error('Option not supported.');
     }
 
-    // console.log('emitting: ', this.observationPeriod);
     // TODO. Before this is emitted, `ngOnChanges` is raised. Investigate how this could be prevented.
     this.observationPeriodChange.emit(this.observationPeriod);
   }

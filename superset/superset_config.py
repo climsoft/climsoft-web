@@ -46,13 +46,12 @@ FEATURE_FLAGS = {
 # need at least Gamma-level permissions to load dashboards and query datasets.
 PUBLIC_ROLE_LIKE = "Gamma"
 
-# Superset is reverse-proxied on its own hostname (see nginx.conf /
-# nginx.dev.conf's SUPERSET_HOSTNAME server block), not a path prefix under
-# a shared origin — Superset's own frontend emits absolute root-relative
-# URLs (static assets, API calls, its embedded-dashboard route) that don't
-# respect a path prefix, so path-prefix deployment isn't reliable (the
-# Superset maintainers themselves recommend a subdomain instead:
-# https://github.com/apache/superset/discussions/29547). Since Superset is
+# Superset is reverse-proxied on its own port (see nginx.conf /
+# nginx.dev.conf's Superset server block), not a path prefix under a shared
+# origin — Superset's own frontend emits absolute root-relative URLs (static
+# assets, API calls, its embedded-dashboard route) that don't respect a path
+# prefix, so path-prefix deployment isn't reliable
+# (https://github.com/apache/superset/discussions/29547). Since Superset is
 # mounted at the root of its own origin, no APPLICATION_ROOT / prefix config
 # is needed at all.
 
